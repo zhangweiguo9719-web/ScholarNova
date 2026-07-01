@@ -1,0 +1,154 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+    --color-primary: 30 58 95;
+    --color-secondary: 107 114 128;
+    --ui-canvas: #f3f1eb;
+    --ui-canvas-deep: #ebe8df;
+    --ui-surface: rgba(255, 255, 255, 0.78);
+    --ui-surface-solid: #fffefa;
+    --ui-surface-soft: rgba(248, 247, 242, 0.84);
+    --ui-surface-raised: rgba(255, 255, 255, 0.92);
+    --ui-border: rgba(31, 51, 76, 0.11);
+    --ui-border-strong: rgba(30, 58, 95, 0.22);
+    --ui-text: #172238;
+    --ui-text-soft: #526077;
+    --ui-muted: #7b8799;
+    --ui-brand: #1e3a5f;
+    --ui-brand-hover: #152d4c;
+    --ui-accent: #b77b28;
+    --ui-accent-bright: #d39a44;
+    --ui-accent-soft: rgba(183, 123, 40, 0.1);
+    --ui-shadow: 0 18px 50px rgba(26, 38, 56, 0.09);
+    --ui-shadow-hover: 0 24px 64px rgba(26, 38, 56, 0.15);
+    --ui-ring: rgba(30, 58, 95, 0.16);
+    --ui-orbit: rgba(183, 123, 40, 0.16);
+    --ui-glow: rgba(211, 154, 68, 0.12);
+  }
+
+  .dark {
+    color-scheme: dark;
+    --ui-canvas: #060b14;
+    --ui-canvas-deep: #030710;
+    --ui-surface: rgba(13, 21, 36, 0.76);
+    --ui-surface-solid: #0d1626;
+    --ui-surface-soft: rgba(10, 17, 30, 0.78);
+    --ui-surface-raised: rgba(17, 27, 45, 0.92);
+    --ui-border: rgba(205, 220, 239, 0.1);
+    --ui-border-strong: rgba(230, 189, 105, 0.3);
+    --ui-text: #edf2f8;
+    --ui-text-soft: #a4b0c1;
+    --ui-muted: #758399;
+    --ui-brand: #e6bd69;
+    --ui-brand-hover: #f5d58f;
+    --ui-accent: #e6bd69;
+    --ui-accent-bright: #f5d58f;
+    --ui-accent-soft: rgba(230, 189, 105, 0.09);
+    --ui-shadow: 0 20px 58px rgba(0, 0, 0, 0.28);
+    --ui-shadow-hover: 0 26px 72px rgba(0, 0, 0, 0.4);
+    --ui-ring: rgba(230, 189, 105, 0.15);
+    --ui-orbit: rgba(230, 189, 105, 0.12);
+    --ui-glow: rgba(230, 189, 105, 0.11);
+  }
+
+  body {
+    @apply antialiased;
+    color: var(--ui-text);
+    background: var(--ui-canvas);
+    font-family: Inter, "SF Pro Display", "Segoe UI", "PingFang SC",
+      "Microsoft YaHei", system-ui, sans-serif;
+    transition: color 240ms ease, background-color 240ms ease;
+  }
+
+  .dark body {
+    color: var(--ui-text);
+    background: var(--ui-canvas);
+  }
+
+  ::selection {
+    color: #101722;
+    background: #ead09b;
+  }
+
+  * {
+    scrollbar-color: color-mix(in srgb, var(--ui-accent) 35%, transparent) transparent;
+  }
+}
+
+@layer components {
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Skeleton loading */
+  .skeleton {
+    @apply bg-gray-200 dark:bg-gray-700 rounded animate-skeleton;
+  }
+
+  /* Scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 dark:bg-gray-600 rounded-full;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400 dark:bg-gray-500;
+  }
+
+  /* Progress bar */
+  .progress-bar {
+    @apply h-1 bg-primary-500 rounded-full transition-all duration-500 ease-out;
+  }
+
+  /* Card base */
+  .card {
+    border: 1px solid var(--ui-border);
+    border-radius: 1rem;
+    background: var(--ui-surface);
+    box-shadow: var(--ui-shadow);
+    backdrop-filter: blur(18px) saturate(120%);
+  }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full;
+  }
+  .badge-source {
+    background: var(--ui-accent-soft);
+    color: var(--ui-accent);
+    border: 1px solid color-mix(in srgb, var(--ui-accent) 24%, transparent);
+  }
+  .badge-oa {
+    @apply bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400;
+  }
+  .badge-verdict-supports {
+    @apply bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400;
+  }
+  .badge-verdict-contradicts {
+    @apply bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400;
+  }
+  .badge-verdict-neutral {
+    @apply bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400;
+  }
+  .badge-verdict-insufficient {
+    @apply bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400;
+  }
+}

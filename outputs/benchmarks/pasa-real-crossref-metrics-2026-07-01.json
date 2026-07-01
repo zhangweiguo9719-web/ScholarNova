@@ -1,0 +1,18 @@
+{
+  "cases": 50,
+  "micro": {
+    "precision": 0.003542,
+    "recall": 0.020253,
+    "f1": 0.00603
+  },
+  "recall_at_k": {
+    "20": 0.008861,
+    "50": 0.017722,
+    "100": 0.020253
+  },
+  "efficiency": {
+    "avg_api_calls": 1.02,
+    "avg_latency_ms": 9226.416,
+    "avg_total_tokens": 0.0
+  }
+}

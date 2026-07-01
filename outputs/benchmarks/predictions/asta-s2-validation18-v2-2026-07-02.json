@@ -1,0 +1,4160 @@
+[
+  {
+    "case_id": "specific_7",
+    "query": "BART by Lewis et al.",
+    "optimized_query": "BART Lewis",
+    "results": [
+      {
+        "corpus_id": "204960716",
+        "title": "BART: Denoising Sequence-to-Sequence Pre-training for Natural Language Generation, Translation, and Comprehension",
+        "doi": "10.18653/v1/2020.acl-main.703",
+        "year": 2019,
+        "venue": "Annual Meeting of the Association for Computational Linguistics",
+        "citation_count": 12920,
+        "relevance_score": 0.9852
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 1,
+      "latency_ms": 75.46,
+      "token_usage": {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": null
+  },
+  {
+    "case_id": "specific_9",
+    "query": "the MS^2 DeYong2021 paper",
+    "optimized_query": "MS2",
+    "results": [
+      {
+        "corpus_id": "269747350",
+        "title": "Molecular Intercalation‐Induced Two‐Phase Evolution Engineering of 1T and 2H‐MS2 (M = Mo, V, W) for Interface‐Polarization‐Enhanced Electromagnetic Absorbers",
+        "doi": "10.1002/adfm.202405523",
+        "year": 2024,
+        "venue": "Advanced Functional Materials",
+        "citation_count": 122,
+        "relevance_score": 0.8575
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 1,
+      "latency_ms": 91.45,
+      "token_usage": {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": null
+  },
+  {
+    "case_id": "specific_10",
+    "query": "the Multi-news fabri2019multinews paper",
+    "optimized_query": "Multi news",
+    "results": [
+      {
+        "corpus_id": "174799390",
+        "title": "Multi-News: A Large-Scale Multi-Document Summarization Dataset and Abstractive Hierarchical Model",
+        "doi": "10.18653/v1/P19-1102",
+        "year": 2019,
+        "venue": "Annual Meeting of the Association for Computational Linguistics",
+        "citation_count": 723,
+        "relevance_score": 0.9815
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 1,
+      "latency_ms": 59.86,
+      "token_usage": {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": null
+  },
+  {
+    "case_id": "specific_11",
+    "query": "the paper about the Objaverse dataset",
+    "optimized_query": "Objaverse dataset",
+    "results": [
+      {
+        "corpus_id": "254685588",
+        "title": "Objaverse: A Universe of Annotated 3D Objects",
+        "doi": "10.1109/CVPR52729.2023.01263",
+        "year": 2022,
+        "venue": "Computer Vision and Pattern Recognition",
+        "citation_count": 1718,
+        "relevance_score": 0.98
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 1,
+      "latency_ms": 49.86,
+      "token_usage": {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": null
+  },
+  {
+    "case_id": "specific_15",
+    "query": "the AlphaGeometry paper",
+    "optimized_query": "Solving olympiad geometry without human demonstrations",
+    "results": [
+      {
+        "corpus_id": "267032902",
+        "title": "Solving olympiad geometry without human demonstrations",
+        "doi": "10.1038/s41586-023-06747-5",
+        "year": 2024,
+        "venue": "Nature",
+        "citation_count": 783,
+        "relevance_score": 0.9527
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 2,
+      "latency_ms": 8092.9,
+      "token_usage": {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": null
+  },
+  {
+    "case_id": "specific_20",
+    "query": "the cnn paper",
+    "optimized_query": "ImageNet classification with deep convolutional neural networks",
+    "results": [
+      {
+        "corpus_id": "195908774",
+        "title": "ImageNet classification with deep convolutional neural networks",
+        "doi": "10.1145/3065386",
+        "year": 2012,
+        "venue": "Communications of the ACM",
+        "citation_count": 129801,
+        "relevance_score": 0.9323
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 2,
+      "latency_ms": 2732.02,
+      "token_usage": {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": null
+  },
+  {
+    "case_id": "specific_24",
+    "query": "the gpt-2 paper",
+    "optimized_query": "Language Models are Unsupervised Multitask Learners",
+    "results": [
+      {
+        "corpus_id": "160025533",
+        "title": "Language Models are Unsupervised Multitask Learners",
+        "doi": null,
+        "year": 2019,
+        "venue": "",
+        "citation_count": 29192,
+        "relevance_score": 0.9427
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 2,
+      "latency_ms": 1226.36,
+      "token_usage": {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": null
+  },
+  {
+    "case_id": "specific_33",
+    "query": "the squad paper",
+    "optimized_query": "SQuAD: 100,000+ Questions for Machine Comprehension of Text",
+    "results": [
+      {
+        "corpus_id": "11816014",
+        "title": "SQuAD: 100,000+ Questions for Machine Comprehension of Text",
+        "doi": "10.18653/v1/D16-1264",
+        "year": 2016,
+        "venue": "Conference on Empirical Methods in Natural Language Processing",
+        "citation_count": 9506,
+        "relevance_score": 0.9378
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 2,
+      "latency_ms": 3409.83,
+      "token_usage": {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": null
+  },
+  {
+    "case_id": "specific_39",
+    "query": "the SPIKE paper",
+    "optimized_query": "SPIKE",
+    "results": [
+      {
+        "corpus_id": "212631502",
+        "title": "Structure, Function, and Antigenicity of the SARS-CoV-2 Spike Glycoprotein",
+        "doi": "10.1016/j.cell.2020.02.058",
+        "year": 2020,
+        "venue": "bioRxiv",
+        "citation_count": 8544,
+        "relevance_score": 0.987
+      },
+      {
+        "corpus_id": "263741202",
+        "title": "SpikingJelly: An open-source machine learning infrastructure platform for spike-based intelligence",
+        "doi": "10.1126/sciadv.adi1480",
+        "year": 2023,
+        "venue": "Science Advances",
+        "citation_count": 508,
+        "relevance_score": 0.9775
+      },
+      {
+        "corpus_id": "248496530",
+        "title": "Training High-Performance Low-Latency Spiking Neural Networks by Differentiation on Spike Representation",
+        "doi": "10.1109/CVPR52688.2022.01212",
+        "year": 2022,
+        "venue": "Computer Vision and Pattern Recognition",
+        "citation_count": 190,
+        "relevance_score": 0.9699
+      },
+      {
+        "corpus_id": "253182948",
+        "title": "Unadjuvanted intranasal spike vaccine elicits protective mucosal immunity against sarbecoviruses",
+        "doi": "10.1126/science.abo2523",
+        "year": 2022,
+        "venue": "Science",
+        "citation_count": 272,
+        "relevance_score": 0.9719
+      },
+      {
+        "corpus_id": "212709012",
+        "title": "COVID-19 spike-host cell receptor GRP78 binding site prediction",
+        "doi": "10.1016/j.jinf.2020.02.026",
+        "year": 2020,
+        "venue": "Journal of Infection",
+        "citation_count": 480,
+        "relevance_score": 0.9712
+      },
+      {
+        "corpus_id": "269007614",
+        "title": "Spike sorting with Kilosort4",
+        "doi": "10.1038/s41592-024-02232-7",
+        "year": 2024,
+        "venue": "Nature Methods",
+        "citation_count": 306,
+        "relevance_score": 0.9769
+      },
+      {
+        "corpus_id": "53046288",
+        "title": "SLAYER: Spike Layer Error Reassignment in Time",
+        "doi": null,
+        "year": 2018,
+        "venue": "Neural Information Processing Systems",
+        "citation_count": 920,
+        "relevance_score": 0.9712
+      },
+      {
+        "corpus_id": "3637557",
+        "title": "Unsupervised learning of digit recognition using spike-timing-dependent plasticity",
+        "doi": "10.3389/fncom.2015.00099",
+        "year": 2015,
+        "venue": "Frontiers in Computational Neuroscience",
+        "citation_count": 1431,
+        "relevance_score": 0.969
+      },
+      {
+        "corpus_id": "219700912",
+        "title": "Antibody cocktail to SARS-CoV-2 spike protein prevents rapid mutational escape seen with individual antibodies",
+        "doi": "10.1126/science.abd0831",
+        "year": 2020,
+        "venue": "Science",
+        "citation_count": 1267,
+        "relevance_score": 0.9765
+      },
+      {
+        "corpus_id": "256696284",
+        "title": "Persistent Circulation of Soluble and Extracellular vesicle-linked Spike Protein in Individuals with Post-Acute Sequelae of COVID-19",
+        "doi": "10.1002/jmv.28568",
+        "year": 2023,
+        "venue": "Journal of Medical Virology",
+        "citation_count": 102,
+        "relevance_score": 0.9686
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 1,
+      "latency_ms": 83.52,
+      "token_usage": {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": null
+  },
+  {
+    "case_id": "specific_44",
+    "query": "SPIKE syntactic search paper",
+    "optimized_query": "SPIKE syntactic search",
+    "results": [
+      {
+        "corpus_id": "219303477",
+        "title": "Syntactic Search by Example",
+        "doi": "10.18653/v1/2020.acl-demos.3",
+        "year": 2020,
+        "venue": "Annual Meeting of the Association for Computational Linguistics",
+        "citation_count": 37,
+        "relevance_score": 0.617
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 1,
+      "latency_ms": 74.12,
+      "token_usage": {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": null
+  },
+  {
+    "case_id": "metadata_4",
+    "query": "a Nature portfolio papers by David Harel",
+    "optimized_query": "Nature portfolio David Harel",
+    "results": [
+      {
+        "corpus_id": "226312159",
+        "title": "A measure of smell enables the creation of olfactory metamers",
+        "doi": "10.1038/s41586-020-2891-7",
+        "year": 2020,
+        "venue": "Nature",
+        "citation_count": 63,
+        "relevance_score": 0.1257
+      },
+      {
+        "corpus_id": "14549281",
+        "title": "A metric for odorant comparison",
+        "doi": "10.1038/nmeth.1197",
+        "year": 2008,
+        "venue": "Nature Methods",
+        "citation_count": 215,
+        "relevance_score": 0.1203
+      },
+      {
+        "corpus_id": "34517208",
+        "title": "A Turing-like test for biological modeling",
+        "doi": "10.1038/nbt0405-495",
+        "year": 2005,
+        "venue": "Nature Biotechnology",
+        "citation_count": 63,
+        "relevance_score": 0.1062
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 2,
+      "latency_ms": 530.14,
+      "token_usage": {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": null
+  },
+  {
+    "case_id": "metadata_14",
+    "query": "NAACL 2010 or 2012 papers co-authored by one of the authors of the \"BERT\" paper and at least one additional author",
+    "optimized_query": "NAACL co authored one authors BERT least additional author",
+    "results": [
+      {
+        "corpus_id": "17192521",
+        "title": "Trait-Based Hypothesis Selection For Machine Translation",
+        "doi": null,
+        "year": 2012,
+        "venue": "North American Chapter of the Association for Computational Linguistics",
+        "citation_count": 23,
+        "relevance_score": 0.1908
+      },
+      {
+        "corpus_id": "2468787",
+        "title": "Extracting Parallel Sentences from Comparable Corpora using Document Level Alignment",
+        "doi": null,
+        "year": 2010,
+        "venue": "North American Chapter of the Association for Computational Linguistics",
+        "citation_count": 251,
+        "relevance_score": 0.1806
+      },
+      {
+        "corpus_id": "11265565",
+        "title": "Discriminative Learning over Constrained Latent Representations",
+        "doi": null,
+        "year": 2010,
+        "venue": "North American Chapter of the Association for Computational Linguistics",
+        "citation_count": 83,
+        "relevance_score": 0.1707
+      },
+      {
+        "corpus_id": "1173402",
+        "title": "Unified Expectation Maximization",
+        "doi": null,
+        "year": 2012,
+        "venue": "North American Chapter of the Association for Computational Linguistics",
+        "citation_count": 50,
+        "relevance_score": 0.1395
+      },
+      {
+        "corpus_id": "6937668",
+        "title": "MSR SPLAT, a language analysis toolkit",
+        "doi": null,
+        "year": 2012,
+        "venue": "North American Chapter of the Association for Computational Linguistics",
+        "citation_count": 40,
+        "relevance_score": 0.1375
+      },
+      {
+        "corpus_id": "1999849",
+        "title": "Machine Translation of Arabic Dialects",
+        "doi": null,
+        "year": 2012,
+        "venue": "North American Chapter of the Association for Computational Linguistics",
+        "citation_count": 222,
+        "relevance_score": 0.1819
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 9,
+      "latency_ms": 4225.16,
+      "token_usage": {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": null
+  },
+  {
+    "case_id": "metadata_15",
+    "query": "Claire Cardie ACL papers published at 2014 or 2017",
+    "optimized_query": "Claire Cardie ACL published",
+    "results": [
+      {
+        "corpus_id": "14764893",
+        "title": "Identifying Appropriate Support for Propositions in Online User Comments",
+        "doi": "10.3115/v1/W14-2105",
+        "year": 2014,
+        "venue": "ArgMining@ACL",
+        "citation_count": 190,
+        "relevance_score": 0.5208
+      },
+      {
+        "corpus_id": "41478142",
+        "title": "Overview of the 2014 NLP Unshared Task in PoliInformatics",
+        "doi": "10.3115/v1/W14-2505",
+        "year": 2014,
+        "venue": "LTCSS@ACL",
+        "citation_count": 13,
+        "relevance_score": 0.5115
+      },
+      {
+        "corpus_id": "2786154",
+        "title": "Improving Agreement and Disagreement Identification in Online Discussions with A Socially-Tuned Sentiment Lexicon",
+        "doi": "10.3115/v1/W14-2617",
+        "year": 2014,
+        "venue": "WASSA@ACL",
+        "citation_count": 45,
+        "relevance_score": 0.456
+      },
+      {
+        "corpus_id": "2172129",
+        "title": "Learning to Ask: Neural Question Generation for Reading Comprehension",
+        "doi": "10.18653/v1/P17-1123",
+        "year": 2017,
+        "venue": "Annual Meeting of the Association for Computational Linguistics",
+        "citation_count": 736,
+        "relevance_score": 0.3043
+      },
+      {
+        "corpus_id": "441563",
+        "title": "Going out on a limb: Joint Extraction of Entity Mentions and Relations without Dependency Trees",
+        "doi": "10.18653/v1/P17-1085",
+        "year": 2017,
+        "venue": "Annual Meeting of the Association for Computational Linguistics",
+        "citation_count": 243,
+        "relevance_score": 0.2642
+      },
+      {
+        "corpus_id": "12315936",
+        "title": "Context-aware Learning for Sentence-level Sentiment Analysis with Posterior Regularization",
+        "doi": "10.3115/v1/P14-1031",
+        "year": 2014,
+        "venue": "Annual Meeting of the Association for Computational Linguistics",
+        "citation_count": 130,
+        "relevance_score": 0.2623
+      },
+      {
+        "corpus_id": "142368",
+        "title": "Towards a General Rule for Identifying Deceptive Opinion Spam",
+        "doi": "10.3115/v1/P14-1147",
+        "year": 2014,
+        "venue": "Annual Meeting of the Association for Computational Linguistics",
+        "citation_count": 378,
+        "relevance_score": 0.2539
+      },
+      {
+        "corpus_id": "18733074",
+        "title": "Argument Mining with Structured SVMs and RNNs",
+        "doi": "10.18653/v1/P17-1091",
+        "year": 2017,
+        "venue": "Annual Meeting of the Association for Computational Linguistics",
+        "citation_count": 122,
+        "relevance_score": 0.1986
+      },
+      {
+        "corpus_id": "10538557",
+        "title": "A Piece of My Mind: A Sentiment Analysis Approach for Online Dispute Detection",
+        "doi": "10.3115/v1/P14-2113",
+        "year": 2014,
+        "venue": "Annual Meeting of the Association for Computational Linguistics",
+        "citation_count": 61,
+        "relevance_score": 0.2128
+      },
+      {
+        "corpus_id": "2280062",
+        "title": "Joint Modeling of Opinion Expression Extraction and Attribute Classification",
+        "doi": "10.1162/tacl_a_00199",
+        "year": 2014,
+        "venue": "Transactions of the Association for Computational Linguistics",
+        "citation_count": 22,
+        "relevance_score": 0.2077
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 2,
+      "latency_ms": 1240.6,
+      "token_usage": {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": null
+  },
+  {
+    "case_id": "metadata_25",
+    "query": "Papers citing the DistilBERT paper after 2022 with more than 50 citations",
+    "optimized_query": "citing DistilBERT citations",
+    "results": [
+      {
+        "corpus_id": "257504984",
+        "title": "Eliciting Latent Predictions from Transformers with the Tuned Lens",
+        "doi": "10.48550/arXiv.2303.08112",
+        "year": 2023,
+        "venue": "arXiv.org",
+        "citation_count": 485,
+        "relevance_score": 0.5786
+      },
+      {
+        "corpus_id": "275606475",
+        "title": "Large language models for automated scholarly paper review: A survey",
+        "doi": "10.1016/j.inffus.2025.103332",
+        "year": 2025,
+        "venue": "Information Fusion",
+        "citation_count": 77,
+        "relevance_score": 0.5436
+      },
+      {
+        "corpus_id": "268531351",
+        "title": "DROID: A Large-Scale In-The-Wild Robot Manipulation Dataset",
+        "doi": "10.48550/arXiv.2403.12945",
+        "year": 2024,
+        "venue": "Robotics: Science and Systems Conference",
+        "citation_count": 856,
+        "relevance_score": 0.5554
+      },
+      {
+        "corpus_id": "270440391",
+        "title": "OpenVLA: An Open-Source Vision-Language-Action Model",
+        "doi": "10.48550/arXiv.2406.09246",
+        "year": 2024,
+        "venue": "Conference on Robot Learning",
+        "citation_count": 2598,
+        "relevance_score": 0.539
+      },
+      {
+        "corpus_id": "258447166",
+        "title": "A Brief Overview of ChatGPT: The History, Status Quo and Potential Future Development",
+        "doi": "10.1109/JAS.2023.123618",
+        "year": 2023,
+        "venue": "IEEE/CAA Journal of Automatica Sinica",
+        "citation_count": 1220,
+        "relevance_score": 0.5343
+      },
+      {
+        "corpus_id": "258947273",
+        "title": "AlignScore: Evaluating Factual Consistency with A Unified Alignment Function",
+        "doi": "10.48550/arXiv.2305.16739",
+        "year": 2023,
+        "venue": "Annual Meeting of the Association for Computational Linguistics",
+        "citation_count": 372,
+        "relevance_score": 0.5248
+      },
+      {
+        "corpus_id": "265498655",
+        "title": "LightGaussian: Unbounded 3D Gaussian Compression with 15x Reduction and 200+ FPS",
+        "doi": "10.48550/arXiv.2311.17245",
+        "year": 2023,
+        "venue": "Neural Information Processing Systems",
+        "citation_count": 564,
+        "relevance_score": 0.5196
+      },
+      {
+        "corpus_id": "276885298",
+        "title": "Sketch-of-Thought: Efficient LLM Reasoning with Adaptive Cognitive-Inspired Sketching",
+        "doi": "10.48550/arXiv.2503.05179",
+        "year": 2025,
+        "venue": "Conference on Empirical Methods in Natural Language Processing",
+        "citation_count": 127,
+        "relevance_score": 0.5137
+      },
+      {
+        "corpus_id": "256697131",
+        "title": "Offsite-Tuning: Transfer Learning without Full Model",
+        "doi": "10.48550/arXiv.2302.04870",
+        "year": 2023,
+        "venue": "arXiv.org",
+        "citation_count": 104,
+        "relevance_score": 0.5138
+      },
+      {
+        "corpus_id": "259177825",
+        "title": "FACT: FFN-Attention Co-optimized Transformer Architecture with Eager Correlation Prediction",
+        "doi": "10.1145/3579371.3589057",
+        "year": 2023,
+        "venue": "International Symposium on Computer Architecture",
+        "citation_count": 127,
+        "relevance_score": 0.5044
+      },
+      {
+        "corpus_id": "258217097",
+        "title": "Changes in Research Ethics, Openness, and Transparency in Empirical Studies between CHI 2017 and CHI 2022",
+        "doi": "10.1145/3544548.3580848",
+        "year": 2023,
+        "venue": "International Conference on Human Factors in Computing Systems",
+        "citation_count": 51,
+        "relevance_score": 0.5004
+      },
+      {
+        "corpus_id": "258436810",
+        "title": "TMR: Text-to-Motion Retrieval Using Contrastive 3D Human Motion Synthesis",
+        "doi": "10.1109/ICCV51070.2023.00870",
+        "year": 2023,
+        "venue": "IEEE International Conference on Computer Vision",
+        "citation_count": 212,
+        "relevance_score": 0.501
+      },
+      {
+        "corpus_id": "267750227",
+        "title": "Towards Cross-Tokenizer Distillation: the Universal Logit Distillation Loss for LLMs",
+        "doi": "10.48550/arXiv.2402.12030",
+        "year": 2024,
+        "venue": "Trans. Mach. Learn. Res.",
+        "citation_count": 53,
+        "relevance_score": 0.5026
+      },
+      {
+        "corpus_id": "258059818",
+        "title": "RRHF: Rank Responses to Align Language Models with Human Feedback without tears",
+        "doi": "10.48550/arXiv.2304.05302",
+        "year": 2023,
+        "venue": "Neural Information Processing Systems",
+        "citation_count": 541,
+        "relevance_score": 0.5188
+      },
+      {
+        "corpus_id": "259766518",
+        "title": "EgoVLPv2: Egocentric Video-Language Pre-training with Fusion in the Backbone",
+        "doi": "10.1109/ICCV51070.2023.00487",
+        "year": 2023,
+        "venue": "IEEE International Conference on Computer Vision",
+        "citation_count": 165,
+        "relevance_score": 0.5206
+      },
+      {
+        "corpus_id": "268819884",
+        "title": "The Larger the Better? Improved LLM Code-Generation via Budget Reallocation",
+        "doi": "10.48550/arXiv.2404.00725",
+        "year": 2024,
+        "venue": "arXiv.org",
+        "citation_count": 51,
+        "relevance_score": 0.5019
+      },
+      {
+        "corpus_id": "258686446",
+        "title": "TinyStories: How Small Can Language Models Be and Still Speak Coherent English?",
+        "doi": null,
+        "year": 2023,
+        "venue": "arXiv.org",
+        "citation_count": 478,
+        "relevance_score": 0.5184
+      },
+      {
+        "corpus_id": "256615983",
+        "title": "Findings of the TSAR-2022 Shared Task on Multilingual Lexical Simplification",
+        "doi": "10.48550/arXiv.2302.02888",
+        "year": 2023,
+        "venue": "Proceedings of the Workshop on Text Simplification, Accessibility, and Readability (TSAR-2022)",
+        "citation_count": 60,
+        "relevance_score": 0.5147
+      },
+      {
+        "corpus_id": "277043297",
+        "title": "A Survey on Knowledge-Oriented Retrieval-Augmented Generation",
+        "doi": "10.48550/arXiv.2503.10677",
+        "year": 2025,
+        "venue": "arXiv.org",
+        "citation_count": 63,
+        "relevance_score": 0.5023
+      },
+      {
+        "corpus_id": "276250391",
+        "title": "DexVLA: Vision-Language Model with Plug-In Diffusion Expert for General Robot Control",
+        "doi": "10.48550/arXiv.2502.05855",
+        "year": 2025,
+        "venue": "arXiv.org",
+        "citation_count": 195,
+        "relevance_score": 0.5349
+      },
+      {
+        "corpus_id": "280869811",
+        "title": "Toward Edge General Intelligence With Agentic AI and Agentification: Concepts, Technologies, and Future Directions",
+        "doi": "10.1109/COMST.2026.3651702",
+        "year": 2025,
+        "venue": "IEEE Communications Surveys and Tutorials",
+        "citation_count": 51,
+        "relevance_score": 0.5096
+      },
+      {
+        "corpus_id": "262083905",
+        "title": "TinyCLIP: CLIP Distillation via Affinity Mimicking and Weight Inheritance",
+        "doi": "10.1109/ICCV51070.2023.02008",
+        "year": 2023,
+        "venue": "IEEE International Conference on Computer Vision",
+        "citation_count": 130,
+        "relevance_score": 0.4936
+      },
+      {
+        "corpus_id": "259145019",
+        "title": "A Comprehensive Survey on Applications of Transformers for Deep Learning Tasks",
+        "doi": "10.48550/arXiv.2306.07303",
+        "year": 2023,
+        "venue": "Expert systems with applications",
+        "citation_count": 474,
+        "relevance_score": 0.5182
+      },
+      {
+        "corpus_id": "256868484",
+        "title": "Speculative Decoding with Big Little Decoder",
+        "doi": "10.52202/075280-1705",
+        "year": 2023,
+        "venue": "Neural Information Processing Systems",
+        "citation_count": 192,
+        "relevance_score": 0.4991
+      },
+      {
+        "corpus_id": "256503955",
+        "title": "Approximating the Shapley Value without Marginal Contributions",
+        "doi": "10.48550/arXiv.2302.00736",
+        "year": 2023,
+        "venue": "AAAI Conference on Artificial Intelligence",
+        "citation_count": 52,
+        "relevance_score": 0.4989
+      },
+      {
+        "corpus_id": "259203671",
+        "title": "Give us the Facts: Enhancing Large Language Models With Knowledge Graphs for Fact-Aware Language Modeling",
+        "doi": "10.1109/TKDE.2024.3360454",
+        "year": 2023,
+        "venue": "IEEE Transactions on Knowledge and Data Engineering",
+        "citation_count": 192,
+        "relevance_score": 0.5366
+      },
+      {
+        "corpus_id": "257365320",
+        "title": "Referring Multi-Object Tracking",
+        "doi": "10.1109/CVPR52729.2023.01406",
+        "year": 2023,
+        "venue": "Computer Vision and Pattern Recognition",
+        "citation_count": 140,
+        "relevance_score": 0.4688
+      },
+      {
+        "corpus_id": "258170300",
+        "title": "RAFT: Reward rAnked FineTuning for Generative Foundation Model Alignment",
+        "doi": "10.48550/arXiv.2304.06767",
+        "year": 2023,
+        "venue": "Trans. Mach. Learn. Res.",
+        "citation_count": 741,
+        "relevance_score": 0.5005
+      },
+      {
+        "corpus_id": "258352540",
+        "title": "Noise Is Not the Main Factor Behind the Gap Between SGD and Adam on Transformers, but Sign Descent Might Be",
+        "doi": "10.48550/arXiv.2304.13960",
+        "year": 2023,
+        "venue": "International Conference on Learning Representations",
+        "citation_count": 129,
+        "relevance_score": 0.4916
+      },
+      {
+        "corpus_id": "257410947",
+        "title": "Remote Work across Jobs, Companies, and Space",
+        "doi": "10.2139/ssrn.4380734",
+        "year": 2023,
+        "venue": "Social Science Research Network",
+        "citation_count": 94,
+        "relevance_score": 0.4875
+      },
+      {
+        "corpus_id": "258331833",
+        "title": "Harnessing the Power of LLMs in Practice: A Survey on ChatGPT and Beyond",
+        "doi": "10.1145/3649506",
+        "year": 2023,
+        "venue": "ACM Transactions on Knowledge Discovery from Data",
+        "citation_count": 1064,
+        "relevance_score": 0.5317
+      },
+      {
+        "corpus_id": "260681542",
+        "title": "Spanish Pre-trained BERT Model and Evaluation Data",
+        "doi": "10.48550/arXiv.2308.02976",
+        "year": 2023,
+        "venue": "arXiv.org",
+        "citation_count": 786,
+        "relevance_score": 0.4885
+      },
+      {
+        "corpus_id": "258049306",
+        "title": "OpenAGI: When LLM Meets Domain Experts",
+        "doi": "10.48550/arXiv.2304.04370",
+        "year": 2023,
+        "venue": "Neural Information Processing Systems",
+        "citation_count": 348,
+        "relevance_score": 0.4861
+      },
+      {
+        "corpus_id": "257636598",
+        "title": "Did You Train on My Dataset? Towards Public Dataset Protection with CleanLabel Backdoor Watermarking",
+        "doi": "10.1145/3606274.3606279",
+        "year": 2023,
+        "venue": "SIGKDD Explorations",
+        "citation_count": 75,
+        "relevance_score": 0.4814
+      },
+      {
+        "corpus_id": "263834773",
+        "title": "MatFormer: Nested Transformer for Elastic Inference",
+        "doi": "10.48550/arXiv.2310.07707",
+        "year": 2023,
+        "venue": "Neural Information Processing Systems",
+        "citation_count": 83,
+        "relevance_score": 0.4851
+      },
+      {
+        "corpus_id": "268248534",
+        "title": "VariErr NLI: Separating Annotation Error from Human Label Variation",
+        "doi": "10.48550/arXiv.2403.01931",
+        "year": 2024,
+        "venue": "Annual Meeting of the Association for Computational Linguistics",
+        "citation_count": 55,
+        "relevance_score": 0.479
+      },
+      {
+        "corpus_id": "273346315",
+        "title": "The Ingredients for Robotic Diffusion Transformers",
+        "doi": "10.1109/ICRA55743.2025.11127493",
+        "year": 2024,
+        "venue": "IEEE International Conference on Robotics and Automation",
+        "citation_count": 78,
+        "relevance_score": 0.5099
+      },
+      {
+        "corpus_id": "267759646",
+        "title": "Video ReCap: Recursive Captioning of Hour-Long Videos",
+        "doi": "10.1109/CVPR52733.2024.01723",
+        "year": 2024,
+        "venue": "Computer Vision and Pattern Recognition",
+        "citation_count": 102,
+        "relevance_score": 0.4775
+      },
+      {
+        "corpus_id": "274822365",
+        "title": "CAD-Recode: Reverse Engineering CAD Code From Point Clouds",
+        "doi": "10.1109/ICCV51701.2025.00914",
+        "year": 2024,
+        "venue": "IEEE International Conference on Computer Vision",
+        "citation_count": 54,
+        "relevance_score": 0.4786
+      },
+      {
+        "corpus_id": "267547625",
+        "title": "Everybody Prune Now: Structured Pruning of LLMs with only Forward Passes",
+        "doi": "10.48550/arXiv.2402.05406",
+        "year": 2024,
+        "venue": "arXiv.org",
+        "citation_count": 55,
+        "relevance_score": 0.4902
+      },
+      {
+        "corpus_id": "259129801",
+        "title": "Bias Against 93 Stigmatized Groups in Masked Language Models and Downstream Sentiment Classification Tasks",
+        "doi": "10.1145/3593013.3594109",
+        "year": 2023,
+        "venue": "Conference on Fairness, Accountability and Transparency",
+        "citation_count": 86,
+        "relevance_score": 0.4989
+      },
+      {
+        "corpus_id": "268363846",
+        "title": "Characterization of Large Language Model Development in the Datacenter",
+        "doi": "10.48550/arXiv.2403.07648",
+        "year": 2024,
+        "venue": "Symposium on Networked Systems Design and Implementation",
+        "citation_count": 148,
+        "relevance_score": 0.522
+      },
+      {
+        "corpus_id": "277435005",
+        "title": "CoT-VLA: Visual Chain-of-Thought Reasoning for Vision-Language-Action Models",
+        "doi": "10.1109/CVPR52734.2025.00166",
+        "year": 2025,
+        "venue": "Computer Vision and Pattern Recognition",
+        "citation_count": 462,
+        "relevance_score": 0.5138
+      },
+      {
+        "corpus_id": "261557007",
+        "title": "Certifying LLM Safety against Adversarial Prompting",
+        "doi": "10.48550/arXiv.2309.02705",
+        "year": 2023,
+        "venue": "arXiv.org",
+        "citation_count": 326,
+        "relevance_score": 0.4848
+      },
+      {
+        "corpus_id": "256194460",
+        "title": "Injecting the BM25 Score as Text Improves BERT-Based Re-rankers",
+        "doi": "10.48550/arXiv.2301.09728",
+        "year": 2023,
+        "venue": "European Conference on Information Retrieval",
+        "citation_count": 54,
+        "relevance_score": 0.4752
+      },
+      {
+        "corpus_id": "258714899",
+        "title": "Chatting with GPT-3 for Zero-Shot Human-Like Mobile Automated GUI Testing",
+        "doi": "10.48550/arXiv.2305.09434",
+        "year": 2023,
+        "venue": "arXiv.org",
+        "citation_count": 53,
+        "relevance_score": 0.488
+      },
+      {
+        "corpus_id": "262045066",
+        "title": "ChatGPT v Bard v Bing v Claude 2 v Aria v human-expert. How good are AI chatbots at scientific writing? (ver. 23Q3)",
+        "doi": "10.3390/fi15100336",
+        "year": 2023,
+        "venue": "Future Internet",
+        "citation_count": 59,
+        "relevance_score": 0.4656
+      },
+      {
+        "corpus_id": "257405349",
+        "title": "A Comprehensive Survey of AI-Generated Content (AIGC): A History of Generative AI from GAN to ChatGPT",
+        "doi": "10.48550/arXiv.2303.04226",
+        "year": 2023,
+        "venue": "arXiv.org",
+        "citation_count": 804,
+        "relevance_score": 0.502
+      },
+      {
+        "corpus_id": "278636247",
+        "title": "SRT-H: A Hierarchical Framework for Autonomous Surgery via Language Conditioned Imitation Learning",
+        "doi": "10.48550/arXiv.2505.10251",
+        "year": 2025,
+        "venue": "Sci. Robotics",
+        "citation_count": 108,
+        "relevance_score": 0.4862
+      },
+      {
+        "corpus_id": "271974233",
+        "title": "Efficient LLM Scheduling by Learning to Rank",
+        "doi": "10.48550/arXiv.2408.15792",
+        "year": 2024,
+        "venue": "Neural Information Processing Systems",
+        "citation_count": 94,
+        "relevance_score": 0.489
+      },
+      {
+        "corpus_id": "273811174",
+        "title": "π0: A Vision-Language-Action Flow Model for General Robot Control",
+        "doi": "10.48550/arXiv.2410.24164",
+        "year": 2024,
+        "venue": "arXiv.org",
+        "citation_count": 2061,
+        "relevance_score": 0.5346
+      },
+      {
+        "corpus_id": "258999338",
+        "title": "ReviewerGPT? An Exploratory Study on Using Large Language Models for Paper Reviewing",
+        "doi": "10.48550/arXiv.2306.00622",
+        "year": 2023,
+        "venue": "arXiv.org",
+        "citation_count": 142,
+        "relevance_score": 0.5328
+      },
+      {
+        "corpus_id": "266725532",
+        "title": "A Comprehensive Survey of Hallucination Mitigation Techniques in Large Language Models",
+        "doi": "10.48550/arXiv.2401.01313",
+        "year": 2024,
+        "venue": "arXiv.org",
+        "citation_count": 465,
+        "relevance_score": 0.5194
+      },
+      {
+        "corpus_id": "276647709",
+        "title": "Fine-Tuning Vision-Language-Action Models: Optimizing Speed and Success",
+        "doi": "10.48550/arXiv.2502.19645",
+        "year": 2025,
+        "venue": "Robotics",
+        "citation_count": 613,
+        "relevance_score": 0.5192
+      },
+      {
+        "corpus_id": "267407058",
+        "title": "Survey of transformers and towards ensemble learning using transformers for natural language processing",
+        "doi": "10.1186/s40537-023-00842-0",
+        "year": 2024,
+        "venue": "Journal of Big Data",
+        "citation_count": 106,
+        "relevance_score": 0.5176
+      },
+      {
+        "corpus_id": "256503945",
+        "title": "Accelerating Large Language Model Decoding with Speculative Sampling",
+        "doi": "10.48550/arXiv.2302.01318",
+        "year": 2023,
+        "venue": "arXiv.org",
+        "citation_count": 938,
+        "relevance_score": 0.5162
+      },
+      {
+        "corpus_id": "259129855",
+        "title": "On the Detectability of ChatGPT Content: Benchmarking, Methodology, and Evaluation through the Lens of Academic Writing",
+        "doi": "10.1145/3658644.3670392",
+        "year": 2023,
+        "venue": "Conference on Computer and Communications Security",
+        "citation_count": 54,
+        "relevance_score": 0.5146
+      },
+      {
+        "corpus_id": "273662413",
+        "title": "Natural Language Processing for the Legal Domain: A Survey of Tasks, Datasets, Models, and Challenges",
+        "doi": "10.1145/3777009",
+        "year": 2024,
+        "venue": "ACM Computing Surveys",
+        "citation_count": 97,
+        "relevance_score": 0.514
+      },
+      {
+        "corpus_id": "281371543",
+        "title": "Vision-Language-Action Models for Robotics: A Review Towards Real-World Applications",
+        "doi": "10.1109/ACCESS.2025.3609980",
+        "year": 2025,
+        "venue": "IEEE Access",
+        "citation_count": 117,
+        "relevance_score": 0.514
+      },
+      {
+        "corpus_id": "269626255",
+        "title": "Large Language Models for Cyber Security: A Systematic Literature Review",
+        "doi": "10.1145/3769676",
+        "year": 2024,
+        "venue": "ACM Transactions on Software Engineering and Methodology",
+        "citation_count": 223,
+        "relevance_score": 0.5054
+      },
+      {
+        "corpus_id": "258833129",
+        "title": "Editing Large Language Models: Problems, Methods, and Opportunities",
+        "doi": "10.48550/arXiv.2305.13172",
+        "year": 2023,
+        "venue": "Conference on Empirical Methods in Natural Language Processing",
+        "citation_count": 468,
+        "relevance_score": 0.5048
+      },
+      {
+        "corpus_id": "269588084",
+        "title": "Large Language Models for UAVs: Current State and Pathways to the Future",
+        "doi": "10.1109/OJVT.2024.3446799",
+        "year": 2024,
+        "venue": "IEEE Open Journal of Vehicular Technology",
+        "citation_count": 114,
+        "relevance_score": 0.5039
+      },
+      {
+        "corpus_id": "267682382",
+        "title": "Model Compression and Efficient Inference for Large Language Models: A Survey",
+        "doi": "10.48550/arXiv.2402.09748",
+        "year": 2024,
+        "venue": "arXiv.org",
+        "citation_count": 102,
+        "relevance_score": 0.5037
+      },
+      {
+        "corpus_id": "263831293",
+        "title": "The Troubling Emergence of Hallucination in Large Language Models - An Extensive Definition, Quantification, and Prescriptive Remediations",
+        "doi": "10.48550/arXiv.2310.04988",
+        "year": 2023,
+        "venue": "Conference on Empirical Methods in Natural Language Processing",
+        "citation_count": 238,
+        "relevance_score": 0.5032
+      },
+      {
+        "corpus_id": "276902001",
+        "title": "Large language models (LLM) in computational social science: prospects, current state, and challenges",
+        "doi": "10.1007/s13278-025-01428-9",
+        "year": 2025,
+        "venue": "Social Network Analysis and Mining",
+        "citation_count": 65,
+        "relevance_score": 0.5029
+      },
+      {
+        "corpus_id": "258564887",
+        "title": "TidyBot: Personalized Robot Assistance with Large Language Models",
+        "doi": "10.1007/s10514-023-10139-z",
+        "year": 2023,
+        "venue": "IEEE/RJS International Conference on Intelligent RObots and Systems",
+        "citation_count": 443,
+        "relevance_score": 0.5019
+      },
+      {
+        "corpus_id": "268379614",
+        "title": "Language models scale reliably with over-training and on downstream tasks",
+        "doi": "10.48550/arXiv.2403.08540",
+        "year": 2024,
+        "venue": "International Conference on Learning Representations",
+        "citation_count": 100,
+        "relevance_score": 0.5015
+      },
+      {
+        "corpus_id": "267760021",
+        "title": "A Survey on Knowledge Distillation of Large Language Models",
+        "doi": "10.48550/arXiv.2402.13116",
+        "year": 2024,
+        "venue": "arXiv.org",
+        "citation_count": 344,
+        "relevance_score": 0.5005
+      },
+      {
+        "corpus_id": "276281406",
+        "title": "The Large Language Models on Biomedical Data Analysis: A Survey",
+        "doi": "10.1109/JBHI.2025.3530794",
+        "year": 2025,
+        "venue": "IEEE journal of biomedical and health informatics",
+        "citation_count": 61,
+        "relevance_score": 0.4998
+      },
+      {
+        "corpus_id": "269555028",
+        "title": "A Review on the emerging technology of TinyML",
+        "doi": "10.1145/3661820",
+        "year": 2024,
+        "venue": "ACM Computing Surveys",
+        "citation_count": 84,
+        "relevance_score": 0.4982
+      },
+      {
+        "corpus_id": "269983009",
+        "title": "A Survey on Vision-Language-Action Models for Embodied AI",
+        "doi": "10.1109/TNNLS.2025.3650584",
+        "year": 2024,
+        "venue": "IEEE Transactions on Neural Networks and Learning Systems",
+        "citation_count": 295,
+        "relevance_score": 0.4976
+      },
+      {
+        "corpus_id": "265119054",
+        "title": "Evolution toward intelligent communications: Impact of deep learning applications on the future of 6G technology",
+        "doi": "10.1002/widm.1521",
+        "year": 2023,
+        "venue": "WIREs Data. Mining. Knowl. Discov.",
+        "citation_count": 88,
+        "relevance_score": 0.4975
+      },
+      {
+        "corpus_id": "265042999",
+        "title": "OLaLa: Ontology Matching with Large Language Models",
+        "doi": "10.1145/3587259.3627571",
+        "year": 2023,
+        "venue": "International Conference on Knowledge Capture",
+        "citation_count": 88,
+        "relevance_score": 0.4975
+      },
+      {
+        "corpus_id": "265659184",
+        "title": "Large Language Models on Graphs: A Comprehensive Survey",
+        "doi": "10.1109/TKDE.2024.3469578",
+        "year": 2023,
+        "venue": "IEEE Transactions on Knowledge and Data Engineering",
+        "citation_count": 309,
+        "relevance_score": 0.4969
+      },
+      {
+        "corpus_id": "280048275",
+        "title": "Toward Edge General Intelligence With Multiple-Large Language Model (Multi-LLM): Architecture, Trust, and Orchestration",
+        "doi": "10.1109/TCCN.2025.3612760",
+        "year": 2025,
+        "venue": "IEEE Transactions on Cognitive Communications and Networking",
+        "citation_count": 52,
+        "relevance_score": 0.4968
+      },
+      {
+        "corpus_id": "270095084",
+        "title": "Shifting Attention to Relevance: Towards the Predictive Uncertainty Quantification of Free-Form Large Language Models",
+        "doi": "10.18653/v1/2024.acl-long.276",
+        "year": 2023,
+        "venue": "Annual Meeting of the Association for Computational Linguistics",
+        "citation_count": 158,
+        "relevance_score": 0.4954
+      },
+      {
+        "corpus_id": "259316437",
+        "title": "Transformers and large language models in healthcare: A review",
+        "doi": "10.1016/j.artmed.2024.102900",
+        "year": 2023,
+        "venue": "Artif. Intell. Medicine",
+        "citation_count": 142,
+        "relevance_score": 0.4953
+      },
+      {
+        "corpus_id": "267770567",
+        "title": "An Explainable Transformer-based Model for Phishing Email Detection: A Large Language Model Approach",
+        "doi": "10.48550/arXiv.2402.13871",
+        "year": 2024,
+        "venue": "Comput. Networks",
+        "citation_count": 64,
+        "relevance_score": 0.4949
+      },
+      {
+        "corpus_id": "257805087",
+        "title": "AnnoLLM: Making Large Language Models to Be Better Crowdsourced Annotators",
+        "doi": "10.48550/arXiv.2303.16854",
+        "year": 2023,
+        "venue": "North American Chapter of the Association for Computational Linguistics",
+        "citation_count": 275,
+        "relevance_score": 0.4947
+      },
+      {
+        "corpus_id": "267061245",
+        "title": "Knowledge Fusion of Large Language Models",
+        "doi": "10.48550/arXiv.2401.10491",
+        "year": 2024,
+        "venue": "International Conference on Learning Representations",
+        "citation_count": 126,
+        "relevance_score": 0.4946
+      },
+      {
+        "corpus_id": "263610088",
+        "title": "On-Policy Distillation of Language Models: Learning from Self-Generated Mistakes",
+        "doi": null,
+        "year": 2023,
+        "venue": "International Conference on Learning Representations",
+        "citation_count": 531,
+        "relevance_score": 0.4941
+      },
+      {
+        "corpus_id": "272593221",
+        "title": "What is the Role of Small Models in the LLM Era: A Survey",
+        "doi": "10.48550/arXiv.2409.06857",
+        "year": 2024,
+        "venue": "arXiv.org",
+        "citation_count": 67,
+        "relevance_score": 0.4939
+      },
+      {
+        "corpus_id": "270869399",
+        "title": "ConU: Conformal Uncertainty in Large Language Models with Correctness Coverage Guarantees",
+        "doi": "10.48550/arXiv.2407.00499",
+        "year": 2024,
+        "venue": "Conference on Empirical Methods in Natural Language Processing",
+        "citation_count": 67,
+        "relevance_score": 0.4939
+      },
+      {
+        "corpus_id": "268264094",
+        "title": "Generative AI for Synthetic Data Generation: Methods, Challenges and the Future",
+        "doi": "10.48550/arXiv.2403.04190",
+        "year": 2024,
+        "venue": "arXiv.org",
+        "citation_count": 65,
+        "relevance_score": 0.4933
+      },
+      {
+        "corpus_id": "265659354",
+        "title": "Let the LLMs Talk: Simulating Human-to-Human Conversational QA via Zero-Shot LLM-to-LLM Interactions",
+        "doi": "10.1145/3616855.3635856",
+        "year": 2023,
+        "venue": "Web Search and Data Mining",
+        "citation_count": 137,
+        "relevance_score": 0.4927
+      },
+      {
+        "corpus_id": "263830786",
+        "title": "Sheared LLaMA: Accelerating Language Model Pre-training via Structured Pruning",
+        "doi": "10.48550/arXiv.2310.06694",
+        "year": 2023,
+        "venue": "International Conference on Learning Representations",
+        "citation_count": 491,
+        "relevance_score": 0.4926
+      },
+      {
+        "corpus_id": "272915569",
+        "title": "ChatVTG: Video Temporal Grounding via Chat with Video Dialogue Large Language Models",
+        "doi": "10.1109/CVPRW63382.2024.00191",
+        "year": 2024,
+        "venue": "2024 IEEE/CVF Conference on Computer Vision and Pattern Recognition Workshops (CVPRW)",
+        "citation_count": 60,
+        "relevance_score": 0.4918
+      },
+      {
+        "corpus_id": "257232385",
+        "title": "AccelTran: A Sparsity-Aware Accelerator for Dynamic Inference With Transformers",
+        "doi": "10.1109/TCAD.2023.3273992",
+        "year": 2023,
+        "venue": "IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems",
+        "citation_count": 63,
+        "relevance_score": 0.4912
+      },
+      {
+        "corpus_id": "258615571",
+        "title": "KGA: A General Machine Unlearning Framework Based on Knowledge Gap Alignment",
+        "doi": "10.48550/arXiv.2305.06535",
+        "year": 2023,
+        "venue": "Annual Meeting of the Association for Computational Linguistics",
+        "citation_count": 112,
+        "relevance_score": 0.4908
+      },
+      {
+        "corpus_id": "259212465",
+        "title": "Learning to Generate Better Than Your LLM",
+        "doi": "10.48550/arXiv.2306.11816",
+        "year": 2023,
+        "venue": "arXiv.org",
+        "citation_count": 59,
+        "relevance_score": 0.49
+      },
+      {
+        "corpus_id": "268296800",
+        "title": "Breaking Down the Defenses: A Comparative Survey of Attacks on Large Language Models",
+        "doi": "10.48550/arXiv.2403.04786",
+        "year": 2024,
+        "venue": "arXiv.org",
+        "citation_count": 54,
+        "relevance_score": 0.4899
+      },
+      {
+        "corpus_id": "273163363",
+        "title": "CLoSD: Closing the Loop between Simulation and Diffusion for multi-task character control",
+        "doi": "10.48550/arXiv.2410.03441",
+        "year": 2024,
+        "venue": "International Conference on Learning Representations",
+        "citation_count": 107,
+        "relevance_score": 0.4896
+      },
+      {
+        "corpus_id": "255440354",
+        "title": "Test of Time: Instilling Video-Language Models with a Sense of Time",
+        "doi": "10.1109/CVPR52729.2023.00247",
+        "year": 2023,
+        "venue": "Computer Vision and Pattern Recognition",
+        "citation_count": 54,
+        "relevance_score": 0.4883
+      },
+      {
+        "corpus_id": "264146066",
+        "title": "ReMax: A Simple, Effective, and Efficient Reinforcement Learning Method for Aligning Large Language Models",
+        "doi": "10.48550/arXiv.2310.10505",
+        "year": 2023,
+        "venue": "International Conference on Machine Learning",
+        "citation_count": 188,
+        "relevance_score": 0.4875
+      },
+      {
+        "corpus_id": "274929812",
+        "title": "A Survey of AI-Generated Content (AIGC)",
+        "doi": "10.1145/3704262",
+        "year": 2024,
+        "venue": "ACM Computing Surveys",
+        "citation_count": 171,
+        "relevance_score": 0.4872
+      },
+      {
+        "corpus_id": "235294021",
+        "title": "Towards Efficient and Explainable Hate Speech Detection via Model Distillation",
+        "doi": "10.1007/978-3-031-88711-6_24",
+        "year": 2024,
+        "venue": "European Conference on Information Retrieval",
+        "citation_count": 165,
+        "relevance_score": 0.4866
+      },
+      {
+        "corpus_id": "258564349",
+        "title": "FrugalGPT: How to Use Large Language Models While Reducing Cost and Improving Performance",
+        "doi": "10.48550/arXiv.2305.05176",
+        "year": 2023,
+        "venue": "Trans. Mach. Learn. Res.",
+        "citation_count": 705,
+        "relevance_score": 0.4864
+      },
+      {
+        "corpus_id": "258686693",
+        "title": "From Pretraining Data to Language Models to Downstream Tasks: Tracking the Trails of Political Biases Leading to Unfair NLP Models",
+        "doi": "10.48550/arXiv.2305.08283",
+        "year": 2023,
+        "venue": "Annual Meeting of the Association for Computational Linguistics",
+        "citation_count": 386,
+        "relevance_score": 0.4862
+      },
+      {
+        "corpus_id": "267312085",
+        "title": "Efficient Tuning and Inference for Large Language Models on Textual Graphs",
+        "doi": "10.48550/arXiv.2401.15569",
+        "year": 2024,
+        "venue": "International Joint Conference on Artificial Intelligence",
+        "citation_count": 78,
+        "relevance_score": 0.4855
+      },
+      {
+        "corpus_id": "269386526",
+        "title": "Large language models for preventing medication direction errors in online pharmacies",
+        "doi": "10.1038/s41591-024-02933-8",
+        "year": 2024,
+        "venue": "Nature Medicine",
+        "citation_count": 76,
+        "relevance_score": 0.485
+      },
+      {
+        "corpus_id": "260002610",
+        "title": "Discop: Provably Secure Steganography in Practice Based on \"Distribution Copies\"",
+        "doi": "10.1109/SP46215.2023.10179287",
+        "year": 2023,
+        "venue": "IEEE Symposium on Security and Privacy",
+        "citation_count": 80,
+        "relevance_score": 0.4845
+      },
+      {
+        "corpus_id": "271270644",
+        "title": "Retrieval-Augmented Generation for Natural Language Processing: A Survey",
+        "doi": "10.48550/arXiv.2407.13193",
+        "year": 2024,
+        "venue": "Artificial Intelligence Review",
+        "citation_count": 141,
+        "relevance_score": 0.4836
+      },
+      {
+        "corpus_id": "260611172",
+        "title": "Baby Llama: knowledge distillation from an ensemble of teachers trained on a small dataset with no performance penalty",
+        "doi": "10.48550/arXiv.2308.02019",
+        "year": 2023,
+        "venue": "Proceedings of the BabyLM Challenge at the 27th Conference on Computational Natural Language Learning",
+        "citation_count": 84,
+        "relevance_score": 0.4835
+      },
+      {
+        "corpus_id": "265821110",
+        "title": "RenAIssance: A Survey Into AI Text-to-Image Generation in the Era of Large Model",
+        "doi": "10.1109/TPAMI.2024.3522305",
+        "year": 2023,
+        "venue": "IEEE Transactions on Pattern Analysis and Machine Intelligence",
+        "citation_count": 83,
+        "relevance_score": 0.4833
+      },
+      {
+        "corpus_id": "273210310",
+        "title": "Large Language Models Meet Next-Generation Networking Technologies: A Review",
+        "doi": "10.3390/fi16100365",
+        "year": 2024,
+        "venue": "Future Internet",
+        "citation_count": 64,
+        "relevance_score": 0.4818
+      },
+      {
+        "corpus_id": "271874793",
+        "title": "FuseChat: Knowledge Fusion of Chat Models",
+        "doi": "10.48550/arXiv.2402.16107",
+        "year": 2024,
+        "venue": "Conference on Empirical Methods in Natural Language Processing",
+        "citation_count": 61,
+        "relevance_score": 0.4809
+      },
+      {
+        "corpus_id": "259937556",
+        "title": "On the application of Large Language Models for language teaching and assessment technology",
+        "doi": "10.48550/arXiv.2307.08393",
+        "year": 2023,
+        "venue": "LLM@AIED",
+        "citation_count": 72,
+        "relevance_score": 0.4806
+      },
+      {
+        "corpus_id": "270878760",
+        "title": "Survey on Knowledge Distillation for Large Language Models: Methods, Evaluation, and Application",
+        "doi": "10.1145/3699518",
+        "year": 2024,
+        "venue": "ACM Transactions on Intelligent Systems and Technology",
+        "citation_count": 118,
+        "relevance_score": 0.4802
+      },
+      {
+        "corpus_id": "258740999",
+        "title": "Generative Table Pre-training Empowers Models for Tabular Prediction",
+        "doi": "10.48550/arXiv.2305.09696",
+        "year": 2023,
+        "venue": "Conference on Empirical Methods in Natural Language Processing",
+        "citation_count": 63,
+        "relevance_score": 0.48
+      },
+      {
+        "corpus_id": "273350649",
+        "title": "Speculative Knowledge Distillation: Bridging the Teacher-Student Gap Through Interleaved Sampling",
+        "doi": "10.48550/arXiv.2410.11325",
+        "year": 2024,
+        "venue": "arXiv.org",
+        "citation_count": 64,
+        "relevance_score": 0.4799
+      },
+      {
+        "corpus_id": "263334113",
+        "title": "Faithful Explanations of Black-box NLP Models Using LLM-generated Counterfactuals",
+        "doi": "10.48550/arXiv.2310.00603",
+        "year": 2023,
+        "venue": "International Conference on Learning Representations",
+        "citation_count": 61,
+        "relevance_score": 0.4794
+      },
+      {
+        "corpus_id": "268819406",
+        "title": "Survey on Large Language Model-Enhanced Reinforcement Learning: Concept, Taxonomy, and Methods",
+        "doi": "10.1109/TNNLS.2024.3497992",
+        "year": 2024,
+        "venue": "IEEE Transactions on Neural Networks and Learning Systems",
+        "citation_count": 225,
+        "relevance_score": 0.4793
+      },
+      {
+        "corpus_id": "267311830",
+        "title": "A Survey on Data Augmentation in Large Model Era",
+        "doi": "10.48550/arXiv.2401.15422",
+        "year": 2024,
+        "venue": "arXiv.org",
+        "citation_count": 56,
+        "relevance_score": 0.4793
+      },
+      {
+        "corpus_id": "267627639",
+        "title": "Do Membership Inference Attacks Work on Large Language Models?",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv.org",
+        "citation_count": 222,
+        "relevance_score": 0.4791
+      },
+      {
+        "corpus_id": "260378128",
+        "title": "Structured Knowledge Distillation for Accurate and Efficient Object Detection",
+        "doi": "10.1109/TPAMI.2023.3300470",
+        "year": 2023,
+        "venue": "IEEE Transactions on Pattern Analysis and Machine Intelligence",
+        "citation_count": 60,
+        "relevance_score": 0.479
+      },
+      {
+        "corpus_id": "258084028",
+        "title": "A Survey on BERT and Its Applications",
+        "doi": "10.1109/LT58159.2023.10092289",
+        "year": 2023,
+        "venue": "2023 20th Learning and Technology Conference (L&T)",
+        "citation_count": 60,
+        "relevance_score": 0.479
+      },
+      {
+        "corpus_id": "254223828",
+        "title": "Toward Understanding Why Adam Converges Faster Than SGD for Transformers",
+        "doi": "10.48550/arXiv.2306.00204",
+        "year": 2023,
+        "venue": "arXiv.org",
+        "citation_count": 66,
+        "relevance_score": 0.479
+      },
+      {
+        "corpus_id": "255341638",
+        "title": "No, to the Right: Online Language Corrections for Robotic Manipulation via Shared Autonomy",
+        "doi": "10.1145/3568162.3578623",
+        "year": 2023,
+        "venue": "IEEE/ACM International Conference on Human-Robot Interaction",
+        "citation_count": 130,
+        "relevance_score": 0.4786
+      },
+      {
+        "corpus_id": "266053529",
+        "title": "Improving Activation Steering in Language Models with Mean-Centring",
+        "doi": "10.48550/arXiv.2312.03813",
+        "year": 2023,
+        "venue": "arXiv.org",
+        "citation_count": 64,
+        "relevance_score": 0.4784
+      },
+      {
+        "corpus_id": "267211893",
+        "title": "Generative-AI-Driven Human Digital Twin in IoT Healthcare: A Comprehensive Survey",
+        "doi": "10.1109/JIOT.2024.3421918",
+        "year": 2024,
+        "venue": "IEEE Internet of Things Journal",
+        "citation_count": 107,
+        "relevance_score": 0.4784
+      },
+      {
+        "corpus_id": "257232952",
+        "title": "Structured Pruning of Self-Supervised Pre-Trained Models for Speech Recognition and Understanding",
+        "doi": "10.1109/ICASSP49357.2023.10095780",
+        "year": 2023,
+        "venue": "IEEE International Conference on Acoustics, Speech, and Signal Processing",
+        "citation_count": 57,
+        "relevance_score": 0.4781
+      },
+      {
+        "corpus_id": "271909821",
+        "title": "AI-Driven Review Systems: Evaluating LLMs in Scalable and Bias-Aware Academic Reviews",
+        "doi": "10.48550/arXiv.2408.10365",
+        "year": 2024,
+        "venue": "arXiv.org",
+        "citation_count": 52,
+        "relevance_score": 0.4779
+      },
+      {
+        "corpus_id": "270711469",
+        "title": "Knowledge Distillation in Automated Annotation: Supervised Text Classification with LLM-Generated Training Labels",
+        "doi": "10.48550/arXiv.2406.17633",
+        "year": 2024,
+        "venue": "NLPCSS",
+        "citation_count": 56,
+        "relevance_score": 0.4774
+      },
+      {
+        "corpus_id": "256163866",
+        "title": "A 95.6-TOPS/W Deep Learning Inference Accelerator With Per-Vector Scaled 4-bit Quantization in 5 nm",
+        "doi": "10.1109/JSSC.2023.3234893",
+        "year": 2023,
+        "venue": "IEEE Journal of Solid-State Circuits",
+        "citation_count": 60,
+        "relevance_score": 0.4772
+      },
+      {
+        "corpus_id": "268357839",
+        "title": "SPLADE-v3: New baselines for SPLADE",
+        "doi": "10.48550/arXiv.2403.06789",
+        "year": 2024,
+        "venue": "arXiv.org",
+        "citation_count": 100,
+        "relevance_score": 0.4771
+      },
+      {
+        "corpus_id": "265150147",
+        "title": "SneakyPrompt: Jailbreaking Text-to-image Generative Models",
+        "doi": "10.1109/SP54263.2024.00123",
+        "year": 2023,
+        "venue": "IEEE Symposium on Security and Privacy",
+        "citation_count": 212,
+        "relevance_score": 0.4766
+      },
+      {
+        "corpus_id": "259164722",
+        "title": "MiniLLM: On-Policy Distillation of Large Language Models",
+        "doi": null,
+        "year": 2023,
+        "venue": "",
+        "citation_count": 106,
+        "relevance_score": 0.4766
+      },
+      {
+        "corpus_id": "259202631",
+        "title": "The Ecological Fallacy in Annotation: Modeling Human Label Variation goes beyond Sociodemographics",
+        "doi": "10.18653/v1/2023.acl-short.88",
+        "year": 2023,
+        "venue": "Annual Meeting of the Association for Computational Linguistics",
+        "citation_count": 58,
+        "relevance_score": 0.4765
+      },
+      {
+        "corpus_id": "259129342",
+        "title": "Can Large Language Models Infer Causation from Correlation?",
+        "doi": "10.48550/arXiv.2306.05836",
+        "year": 2023,
+        "venue": "International Conference on Learning Representations",
+        "citation_count": 208,
+        "relevance_score": 0.4763
+      },
+      {
+        "corpus_id": "256389937",
+        "title": "LEXTREME: A Multi-Lingual and Multi-Task Benchmark for the Legal Domain",
+        "doi": "10.18653/v1/2023.findings-emnlp.200",
+        "year": 2023,
+        "venue": "Conference on Empirical Methods in Natural Language Processing",
+        "citation_count": 112,
+        "relevance_score": 0.4758
+      },
+      {
+        "corpus_id": "262012615",
+        "title": "PoseFix: Correcting 3D Human Poses with Natural Language",
+        "doi": "10.1109/ICCV51070.2023.01379",
+        "year": 2023,
+        "venue": "IEEE International Conference on Computer Vision",
+        "citation_count": 52,
+        "relevance_score": 0.4745
+      },
+      {
+        "corpus_id": "259275123",
+        "title": "Large Language Model as Attributed Training Data Generator: A Tale of Diversity and Bias",
+        "doi": "10.48550/arXiv.2306.15895",
+        "year": 2023,
+        "venue": "Neural Information Processing Systems",
+        "citation_count": 359,
+        "relevance_score": 0.4735
+      },
+      {
+        "corpus_id": "274109330",
+        "title": "Towards sustainable AI: a comprehensive framework for Green AI",
+        "doi": "10.1007/s43621-024-00641-4",
+        "year": 2024,
+        "venue": "Discover Sustainability",
+        "citation_count": 82,
+        "relevance_score": 0.4733
+      },
+      {
+        "corpus_id": "270560254",
+        "title": "A Systematic Survey of Text Summarization: From Statistical Methods to Large Language Models",
+        "doi": "10.1145/3731445",
+        "year": 2024,
+        "venue": "ACM Computing Surveys",
+        "citation_count": 156,
+        "relevance_score": 0.4724
+      },
+      {
+        "corpus_id": "261980097",
+        "title": ": Toward Heterogeneous Federated Learning via Global Knowledge Distillation",
+        "doi": "10.1109/TC.2023.3315066",
+        "year": 2024,
+        "venue": "IEEE transactions on computers",
+        "citation_count": 77,
+        "relevance_score": 0.4721
+      },
+      {
+        "corpus_id": "276538080",
+        "title": "Tiny Language Models for Automation and Control: Overview, Potential Applications, and Future Research Directions",
+        "doi": "10.3390/s25051318",
+        "year": 2025,
+        "venue": "Italian National Conference on Sensors",
+        "citation_count": 51,
+        "relevance_score": 0.4721
+      },
+      {
+        "corpus_id": "260125192",
+        "title": "PINNsFormer: A Transformer-Based Framework For Physics-Informed Neural Networks",
+        "doi": "10.48550/arXiv.2307.11833",
+        "year": 2023,
+        "venue": "International Conference on Learning Representations",
+        "citation_count": 83,
+        "relevance_score": 0.472
+      },
+      {
+        "corpus_id": "257687234",
+        "title": "NS3D: Neuro-Symbolic Grounding of 3D Objects and Relations",
+        "doi": "10.1109/CVPR52729.2023.00257",
+        "year": 2023,
+        "venue": "Computer Vision and Pattern Recognition",
+        "citation_count": 83,
+        "relevance_score": 0.472
+      },
+      {
+        "corpus_id": "277050095",
+        "title": "BERT applications in natural language processing: a review",
+        "doi": "10.1007/s10462-025-11162-5",
+        "year": 2025,
+        "venue": "Artificial Intelligence Review",
+        "citation_count": 204,
+        "relevance_score": 0.472
+      },
+      {
+        "corpus_id": "258298978",
+        "title": "CHEAT: A Large-Scale Dataset for Detecting CHatGPT-writtEn AbsTracts",
+        "doi": "10.1109/TBDATA.2025.3536929",
+        "year": 2023,
+        "venue": "IEEE Transactions on Big Data",
+        "citation_count": 79,
+        "relevance_score": 0.4711
+      },
+      {
+        "corpus_id": "268819195",
+        "title": "Green AI: exploring carbon footprints, mitigation strategies, and trade offs in large language model training",
+        "doi": "10.1007/s44163-024-00149-w",
+        "year": 2024,
+        "venue": "Discover Artificial Intelligence",
+        "citation_count": 72,
+        "relevance_score": 0.4709
+      },
+      {
+        "corpus_id": "256900966",
+        "title": "Counting Carbon: A Survey of Factors Influencing the Emissions of Machine Learning",
+        "doi": "10.48550/arXiv.2302.08476",
+        "year": 2023,
+        "venue": "arXiv.org",
+        "citation_count": 85,
+        "relevance_score": 0.4706
+      },
+      {
+        "corpus_id": "258823460",
+        "title": "AttriCLIP: A Non-Incremental Learner for Incremental Knowledge Learning",
+        "doi": "10.1109/CVPR52729.2023.00356",
+        "year": 2023,
+        "venue": "Computer Vision and Pattern Recognition",
+        "citation_count": 76,
+        "relevance_score": 0.4704
+      },
+      {
+        "corpus_id": "259138783",
+        "title": "Revisiting Token Pruning for Object Detection and Instance Segmentation",
+        "doi": "10.1109/WACV57701.2024.00264",
+        "year": 2023,
+        "venue": "IEEE Workshop/Winter Conference on Applications of Computer Vision",
+        "citation_count": 70,
+        "relevance_score": 0.4688
+      },
+      {
+        "corpus_id": "266818179",
+        "title": "Progressive Knowledge Distillation Of Stable Diffusion XL Using Layer Level Loss",
+        "doi": "10.48550/arXiv.2401.02677",
+        "year": 2024,
+        "venue": "arXiv.org",
+        "citation_count": 64,
+        "relevance_score": 0.4687
+      },
+      {
+        "corpus_id": "263265858",
+        "title": "Efficient Federated Learning for Modern NLP",
+        "doi": "10.1145/3570361.3592505",
+        "year": 2023,
+        "venue": "ACM/IEEE International Conference on Mobile Computing and Networking",
+        "citation_count": 69,
+        "relevance_score": 0.4685
+      },
+      {
+        "corpus_id": "259317075",
+        "title": "Large Language Models Enable Few-Shot Clustering",
+        "doi": "10.1162/tacl_a_00648",
+        "year": 2023,
+        "venue": "Transactions of the Association for Computational Linguistics",
+        "citation_count": 137,
+        "relevance_score": 0.4684
+      },
+      {
+        "corpus_id": "261529981",
+        "title": "Taken out of context: On measuring situational awareness in LLMs",
+        "doi": "10.48550/arXiv.2309.00667",
+        "year": 2023,
+        "venue": "arXiv.org",
+        "citation_count": 136,
+        "relevance_score": 0.4682
+      },
+      {
+        "corpus_id": "260887495",
+        "title": "SLoRA: Federated Parameter Efficient Fine-Tuning of Language Models",
+        "doi": "10.48550/arXiv.2308.06522",
+        "year": 2023,
+        "venue": "arXiv.org",
+        "citation_count": 136,
+        "relevance_score": 0.4682
+      },
+      {
+        "corpus_id": "259203086",
+        "title": "OpenDataVal: a Unified Benchmark for Data Valuation",
+        "doi": "10.48550/arXiv.2306.10577",
+        "year": 2023,
+        "venue": "Neural Information Processing Systems",
+        "citation_count": 66,
+        "relevance_score": 0.4677
+      },
+      {
+        "corpus_id": "259076049",
+        "title": "Energy-Sustainable IoT Connectivity: Vision, Technological Enablers, Challenges, and Future Directions",
+        "doi": "10.1109/OJCOMS.2023.3323832",
+        "year": 2023,
+        "venue": "IEEE Open Journal of the Communications Society",
+        "citation_count": 66,
+        "relevance_score": 0.4677
+      },
+      {
+        "corpus_id": "264458034",
+        "title": "Deep Learning-Based Depression Detection from Social Media: Comparative Evaluation of ML and Transformer Techniques",
+        "doi": "10.3390/electronics12214396",
+        "year": 2023,
+        "venue": "Electronics",
+        "citation_count": 63,
+        "relevance_score": 0.4668
+      },
+      {
+        "corpus_id": "273877585",
+        "title": "The Semantic Hub Hypothesis: Language Models Share Semantic Representations Across Languages and Modalities",
+        "doi": "10.48550/arXiv.2411.04986",
+        "year": 2024,
+        "venue": "International Conference on Learning Representations",
+        "citation_count": 64,
+        "relevance_score": 0.4668
+      },
+      {
+        "corpus_id": "259129329",
+        "title": "S3: Increasing GPU Utilization during Generative Inference for Higher Throughput",
+        "doi": "10.48550/arXiv.2306.06000",
+        "year": 2023,
+        "venue": "Neural Information Processing Systems",
+        "citation_count": 124,
+        "relevance_score": 0.4665
+      },
+      {
+        "corpus_id": "267499832",
+        "title": "DistiLLM: Towards Streamlined Distillation for Large Language Models",
+        "doi": "10.48550/arXiv.2402.03898",
+        "year": 2024,
+        "venue": "International Conference on Machine Learning",
+        "citation_count": 114,
+        "relevance_score": 0.4664
+      },
+      {
+        "corpus_id": "269187580",
+        "title": "LAPTOP-Diff: Layer Pruning and Normalized Distillation for Compressing Diffusion Models",
+        "doi": "10.48550/arXiv.2404.11098",
+        "year": 2024,
+        "venue": "arXiv.org",
+        "citation_count": 56,
+        "relevance_score": 0.4662
+      },
+      {
+        "corpus_id": "258967462",
+        "title": "A Systematic Study and Comprehensive Evaluation of ChatGPT on Benchmark Datasets",
+        "doi": "10.48550/arXiv.2305.18486",
+        "year": 2023,
+        "venue": "Annual Meeting of the Association for Computational Linguistics",
+        "citation_count": 241,
+        "relevance_score": 0.466
+      },
+      {
+        "corpus_id": "256826310",
+        "title": "Towards automatic text-based estimation of depression through symptom prediction",
+        "doi": "10.1186/s40708-023-00185-9",
+        "year": 2023,
+        "venue": "Brain Informatics",
+        "citation_count": 60,
+        "relevance_score": 0.4659
+      },
+      {
+        "corpus_id": "256662263",
+        "title": "ZipLM: Inference-Aware Structured Pruning of Language Models",
+        "doi": "10.52202/075280-2863",
+        "year": 2023,
+        "venue": "Neural Information Processing Systems",
+        "citation_count": 60,
+        "relevance_score": 0.4659
+      },
+      {
+        "corpus_id": "258999195",
+        "title": "LIV: Language-Image Representations and Rewards for Robotic Control",
+        "doi": "10.48550/arXiv.2306.00958",
+        "year": 2023,
+        "venue": "International Conference on Machine Learning",
+        "citation_count": 237,
+        "relevance_score": 0.4656
+      },
+      {
+        "corpus_id": "260164491",
+        "title": "E2VPT: An Effective and Efficient Approach for Visual Prompt Tuning",
+        "doi": "10.48550/arXiv.2307.13770",
+        "year": 2023,
+        "venue": "IEEE International Conference on Computer Vision",
+        "citation_count": 118,
+        "relevance_score": 0.4655
+      },
+      {
+        "corpus_id": "265213076",
+        "title": "Explore Spurious Correlations at the Concept Level in Language Models for Text Classification",
+        "doi": "10.48550/arXiv.2311.08648",
+        "year": 2023,
+        "venue": "Annual Meeting of the Association for Computational Linguistics",
+        "citation_count": 63,
+        "relevance_score": 0.465
+      },
+      {
+        "corpus_id": "265216566",
+        "title": "WalkLM: A Uniform Language Model Fine-tuning Framework for Attributed Graph Embedding",
+        "doi": "10.52202/075280-0584",
+        "year": 2023,
+        "venue": "Neural Information Processing Systems",
+        "citation_count": 57,
+        "relevance_score": 0.465
+      },
+      {
+        "corpus_id": "269303134",
+        "title": "CultureBank: An Online Community-Driven Knowledge Base Towards Culturally Aware Language Technologies",
+        "doi": "10.48550/arXiv.2404.15238",
+        "year": 2024,
+        "venue": "Conference on Empirical Methods in Natural Language Processing",
+        "citation_count": 105,
+        "relevance_score": 0.4649
+      },
+      {
+        "corpus_id": "270559825",
+        "title": "garak: A Framework for Security Probing Large Language Models",
+        "doi": "10.48550/arXiv.2406.11036",
+        "year": 2024,
+        "venue": "arXiv.org",
+        "citation_count": 52,
+        "relevance_score": 0.4648
+      },
+      {
+        "corpus_id": "259286977",
+        "title": "Harnessing the Power of Hugging Face Transformers for Predicting Mental Health Disorders in Social Networks",
+        "doi": "10.1109/ACCESS.2024.3366653",
+        "year": 2023,
+        "venue": "IEEE Access",
+        "citation_count": 62,
+        "relevance_score": 0.4647
+      },
+      {
+        "corpus_id": "258841383",
+        "title": "Generalizable Synthetic Image Detection via Language-Guided Contrastive Learning",
+        "doi": "10.1109/TAI.2025.3641104",
+        "year": 2023,
+        "venue": "IEEE Transactions on Artificial Intelligence",
+        "citation_count": 60,
+        "relevance_score": 0.464
+      },
+      {
+        "corpus_id": "264426011",
+        "title": "Attention-Enhancing Backdoor Attacks Against BERT-based Models",
+        "doi": "10.48550/arXiv.2310.14480",
+        "year": 2023,
+        "venue": "Conference on Empirical Methods in Natural Language Processing",
+        "citation_count": 54,
+        "relevance_score": 0.4639
+      },
+      {
+        "corpus_id": "258179419",
+        "title": "Interactive and Explainable Region-guided Radiology Report Generation",
+        "doi": "10.1109/CVPR52729.2023.00718",
+        "year": 2023,
+        "venue": "Computer Vision and Pattern Recognition",
+        "citation_count": 216,
+        "relevance_score": 0.4639
+      },
+      {
+        "corpus_id": "268904260",
+        "title": "Using transformers for multimodal emotion recognition: Taxonomies and state of the art review",
+        "doi": "10.1016/j.engappai.2024.108339",
+        "year": 2024,
+        "venue": "Engineering applications of artificial intelligence",
+        "citation_count": 106,
+        "relevance_score": 0.4632
+      },
+      {
+        "corpus_id": "259095948",
+        "title": "Turning large language models into cognitive models",
+        "doi": "10.48550/arXiv.2306.03917",
+        "year": 2023,
+        "venue": "International Conference on Learning Representations",
+        "citation_count": 104,
+        "relevance_score": 0.4632
+      },
+      {
+        "corpus_id": "263829839",
+        "title": "LLM for SoC Security: A Paradigm Shift",
+        "doi": "10.1109/ACCESS.2024.3427369",
+        "year": 2023,
+        "venue": "IEEE Access",
+        "citation_count": 102,
+        "relevance_score": 0.4628
+      },
+      {
+        "corpus_id": "259924631",
+        "title": "Detecting LLM-Generated Text in Computing Education: Comparative Study for ChatGPT Cases",
+        "doi": "10.1109/COMPSAC61105.2024.00027",
+        "year": 2023,
+        "venue": "Annual International Computer Software and Applications Conference",
+        "citation_count": 99,
+        "relevance_score": 0.4622
+      },
+      {
+        "corpus_id": "259088837",
+        "title": "Click: Controllable Text Generation with Sequence Likelihood Contrastive Learning",
+        "doi": "10.48550/arXiv.2306.03350",
+        "year": 2023,
+        "venue": "Annual Meeting of the Association for Computational Linguistics",
+        "citation_count": 53,
+        "relevance_score": 0.4617
+      },
+      {
+        "corpus_id": "264306222",
+        "title": "AutoMix: Automatically Mixing Language Models",
+        "doi": "10.48550/arXiv.2310.12963",
+        "year": 2023,
+        "venue": "Neural Information Processing Systems",
+        "citation_count": 95,
+        "relevance_score": 0.4614
+      },
+      {
+        "corpus_id": "269272256",
+        "title": "ZKML: An Optimizing System for ML Inference in Zero-Knowledge Proofs",
+        "doi": "10.1145/3627703.3650088",
+        "year": 2024,
+        "venue": "European Conference on Computer Systems",
+        "citation_count": 87,
+        "relevance_score": 0.4613
+      },
+      {
+        "corpus_id": "257412593",
+        "title": "The State of the Art of Natural Language Processing—A Systematic Automated Review of NLP Literature Using NLP Techniques",
+        "doi": "10.1162/dint_a_00213",
+        "year": 2023,
+        "venue": "Data Intelligence",
+        "citation_count": 51,
+        "relevance_score": 0.461
+      },
+      {
+        "corpus_id": "256827347",
+        "title": "MarioGPT: Open-Ended Text2Level Generation through Large Language Models",
+        "doi": "10.48550/arXiv.2302.05981",
+        "year": 2023,
+        "venue": "Neural Information Processing Systems",
+        "citation_count": 92,
+        "relevance_score": 0.4608
+      },
+      {
+        "corpus_id": "266361979",
+        "title": "SkillDiffuser: Interpretable Hierarchical Planning via Skill Abstractions in Diffusion-Based Task Execution",
+        "doi": "10.1109/CVPR52733.2024.01558",
+        "year": 2023,
+        "venue": "Computer Vision and Pattern Recognition",
+        "citation_count": 87,
+        "relevance_score": 0.4598
+      },
+      {
+        "corpus_id": "271880412",
+        "title": "A tutorial on open-source large language models for behavioral science",
+        "doi": "10.3758/s13428-024-02455-8",
+        "year": 2024,
+        "venue": "Behavior Research Methods",
+        "citation_count": 80,
+        "relevance_score": 0.4597
+      },
+      {
+        "corpus_id": "267617160",
+        "title": "A Survey on Transformer Compression",
+        "doi": "10.48550/arXiv.2402.05964",
+        "year": 2024,
+        "venue": "arXiv.org",
+        "citation_count": 79,
+        "relevance_score": 0.4595
+      },
+      {
+        "corpus_id": "258352678",
+        "title": "LaMini-LM: A Diverse Herd of Distilled Models from Large-Scale Instructions",
+        "doi": "10.48550/arXiv.2304.14402",
+        "year": 2023,
+        "venue": "Conference of the European Chapter of the Association for Computational Linguistics",
+        "citation_count": 171,
+        "relevance_score": 0.4594
+      },
+      {
+        "corpus_id": "259224568",
+        "title": "Quantizable Transformers: Removing Outliers by Helping Attention Heads Do Nothing",
+        "doi": "10.48550/arXiv.2306.12929",
+        "year": 2023,
+        "venue": "Neural Information Processing Systems",
+        "citation_count": 170,
+        "relevance_score": 0.4593
+      },
+      {
+        "corpus_id": "266551872",
+        "title": "Towards Efficient Generative Large Language Model Serving: A Survey from Algorithms to Systems",
+        "doi": "10.1145/3754448",
+        "year": 2023,
+        "venue": "ACM Computing Surveys",
+        "citation_count": 169,
+        "relevance_score": 0.4592
+      },
+      {
+        "corpus_id": "257636789",
+        "title": "Language Model Behavior: A Comprehensive Survey",
+        "doi": "10.1162/coli_a_00492",
+        "year": 2023,
+        "venue": "International Conference on Computational Logic",
+        "citation_count": 169,
+        "relevance_score": 0.4592
+      },
+      {
+        "corpus_id": "265157884",
+        "title": "REST: Retrieval-Based Speculative Decoding",
+        "doi": "10.48550/arXiv.2311.08252",
+        "year": 2023,
+        "venue": "North American Chapter of the Association for Computational Linguistics",
+        "citation_count": 167,
+        "relevance_score": 0.459
+      },
+      {
+        "corpus_id": "257365136",
+        "title": "Multitask Prompt Tuning Enables Parameter-Efficient Transfer Learning",
+        "doi": "10.48550/arXiv.2303.02861",
+        "year": 2023,
+        "venue": "International Conference on Learning Representations",
+        "citation_count": 164,
+        "relevance_score": 0.4586
+      },
+      {
+        "corpus_id": "259991709",
+        "title": "Vesper: A Compact and Effective Pretrained Model for Speech Emotion Recognition",
+        "doi": "10.1109/TAFFC.2024.3369726",
+        "year": 2023,
+        "venue": "IEEE Transactions on Affective Computing",
+        "citation_count": 81,
+        "relevance_score": 0.4584
+      },
+      {
+        "corpus_id": "257636830",
+        "title": "Transformers in Speech Processing: A Survey",
+        "doi": "10.48550/arXiv.2303.11607",
+        "year": 2023,
+        "venue": "arXiv.org",
+        "citation_count": 81,
+        "relevance_score": 0.4584
+      },
+      {
+        "corpus_id": "271950361",
+        "title": "A scoping review of large language model based approaches for information extraction from radiology reports",
+        "doi": "10.1038/s41746-024-01219-0",
+        "year": 2024,
+        "venue": "npj Digital Medicine",
+        "citation_count": 72,
+        "relevance_score": 0.4578
+      },
+      {
+        "corpus_id": "275549172",
+        "title": "A comprehensive review of large language models: issues and solutions in learning environments",
+        "doi": "10.1007/s43621-025-00815-8",
+        "year": 2025,
+        "venue": "Discover Sustainability",
+        "citation_count": 96,
+        "relevance_score": 0.4577
+      },
+      {
+        "corpus_id": "270703266",
+        "title": "From Decoding to Meta-Generation: Inference-time Algorithms for Large Language Models",
+        "doi": "10.48550/arXiv.2406.16838",
+        "year": 2024,
+        "venue": "Trans. Mach. Learn. Res.",
+        "citation_count": 143,
+        "relevance_score": 0.4576
+      },
+      {
+        "corpus_id": "267412705",
+        "title": "Large Language Model Agent for Hyper-Parameter Optimization",
+        "doi": "10.48550/arXiv.2402.01881",
+        "year": 2024,
+        "venue": "CPAL",
+        "citation_count": 71,
+        "relevance_score": 0.4575
+      },
+      {
+        "corpus_id": "265213270",
+        "title": "Scalable and Effective Generative Information Retrieval",
+        "doi": "10.1145/3589334.3645477",
+        "year": 2023,
+        "venue": "The Web Conference",
+        "citation_count": 77,
+        "relevance_score": 0.4575
+      },
+      {
+        "corpus_id": "259075813",
+        "title": "MultiLegalPile: A 689GB Multilingual Legal Corpus",
+        "doi": "10.48550/arXiv.2306.02069",
+        "year": 2023,
+        "venue": "Annual Meeting of the Association for Computational Linguistics",
+        "citation_count": 77,
+        "relevance_score": 0.4575
+      },
+      {
+        "corpus_id": "259937180",
+        "title": "A Survey of Techniques for Optimizing Transformer Inference",
+        "doi": "10.48550/arXiv.2307.07982",
+        "year": 2023,
+        "venue": "Journal of systems architecture",
+        "citation_count": 154,
+        "relevance_score": 0.4575
+      },
+      {
+        "corpus_id": "257405434",
+        "title": "SemEval-2023 Task 10: Explainable Detection of Online Sexism",
+        "doi": "10.48550/arXiv.2303.04222",
+        "year": 2023,
+        "venue": "International Workshop on Semantic Evaluation",
+        "citation_count": 154,
+        "relevance_score": 0.4575
+      },
+      {
+        "corpus_id": "258823148",
+        "title": "Federated Foundation Models: Privacy-Preserving and Collaborative Learning for Large Models",
+        "doi": "10.48550/arXiv.2305.11414",
+        "year": 2023,
+        "venue": "International Conference on Language Resources and Evaluation",
+        "citation_count": 75,
+        "relevance_score": 0.457
+      },
+      {
+        "corpus_id": "258298124",
+        "title": "ITER: Iterative Neural Repair for Multi-Location Patches",
+        "doi": "10.1145/3597503.3623337",
+        "year": 2023,
+        "venue": "International Conference on Software Engineering",
+        "citation_count": 74,
+        "relevance_score": 0.4567
+      },
+      {
+        "corpus_id": "257280437",
+        "title": "SHAP-IQ: Unified Approximation of any-order Shapley Interactions",
+        "doi": "10.48550/arXiv.2303.01179",
+        "year": 2023,
+        "venue": "Neural Information Processing Systems",
+        "citation_count": 72,
+        "relevance_score": 0.4562
+      },
+      {
+        "corpus_id": "267707681",
+        "title": "Utilizing BERT for Information Retrieval: Survey, Applications, Resources, and Challenges",
+        "doi": "10.1145/3648471",
+        "year": 2024,
+        "venue": "ACM Computing Surveys",
+        "citation_count": 132,
+        "relevance_score": 0.4561
+      },
+      {
+        "corpus_id": "257631936",
+        "title": "AugGPT: Leveraging ChatGPT for Text Data Augmentation",
+        "doi": "10.1109/TBDATA.2025.3536934",
+        "year": 2023,
+        "venue": "IEEE Transactions on Big Data",
+        "citation_count": 275,
+        "relevance_score": 0.4553
+      },
+      {
+        "corpus_id": "270226235",
+        "title": "From Chatbots to Phishbots?: Phishing Scam Generation in Commercial Large Language Models",
+        "doi": "10.1109/SP54263.2024.00182",
+        "year": 2024,
+        "venue": "IEEE Symposium on Security and Privacy",
+        "citation_count": 63,
+        "relevance_score": 0.4552
+      },
+      {
+        "corpus_id": "258888047",
+        "title": "Sequential Integrated Gradients: a simple but effective method for explaining language models",
+        "doi": "10.48550/arXiv.2305.15853",
+        "year": 2023,
+        "venue": "Annual Meeting of the Association for Computational Linguistics",
+        "citation_count": 68,
+        "relevance_score": 0.4551
+      },
+      {
+        "corpus_id": "256105735",
+        "title": "Rationalization for explainable NLP: a survey",
+        "doi": "10.3389/frai.2023.1225093",
+        "year": 2023,
+        "venue": "Frontiers Artif. Intell.",
+        "citation_count": 68,
+        "relevance_score": 0.4551
+      },
+      {
+        "corpus_id": "270559746",
+        "title": "A Comprehensive Survey of Foundation Models in Medicine",
+        "doi": "10.1109/RBME.2025.3531360",
+        "year": 2024,
+        "venue": "IEEE Reviews in Biomedical Engineering",
+        "citation_count": 125,
+        "relevance_score": 0.455
+      },
+      {
+        "corpus_id": "273233474",
+        "title": "Towards Synergistic, Generalized, and Efficient Dual-System for Robotic Manipulation",
+        "doi": "10.48550/arXiv.2410.08001",
+        "year": 2024,
+        "venue": "arXiv.org",
+        "citation_count": 62,
+        "relevance_score": 0.4549
+      },
+      {
+        "corpus_id": "268249097",
+        "title": "GuardT2I: Defending Text-to-Image Models from Adversarial Prompts",
+        "doi": "10.48550/arXiv.2403.01446",
+        "year": 2024,
+        "venue": "Neural Information Processing Systems",
+        "citation_count": 61,
+        "relevance_score": 0.4546
+      },
+      {
+        "corpus_id": "264833188",
+        "title": "Distil-Whisper: Robust Knowledge Distillation via Large-Scale Pseudo Labelling",
+        "doi": "10.48550/arXiv.2311.00430",
+        "year": 2023,
+        "venue": "arXiv.org",
+        "citation_count": 132,
+        "relevance_score": 0.4545
+      },
+      {
+        "corpus_id": "273707190",
+        "title": "Plan-on-Graph: Self-Correcting Adaptive Planning of Large Language Model on Knowledge Graphs",
+        "doi": "10.48550/arXiv.2410.23875",
+        "year": 2024,
+        "venue": "Neural Information Processing Systems",
+        "citation_count": 121,
+        "relevance_score": 0.4544
+      },
+      {
+        "corpus_id": "258841371",
+        "title": "RaSa: Relation and Sensitivity Aware Representation Learning for Text-based Person Search",
+        "doi": "10.24963/ijcai.2023/62",
+        "year": 2023,
+        "venue": "International Joint Conference on Artificial Intelligence",
+        "citation_count": 130,
+        "relevance_score": 0.4542
+      },
+      {
+        "corpus_id": "265445332",
+        "title": "Transformer-Based Named Entity Recognition in Construction Supply Chain Risk Management in Australia",
+        "doi": "10.1109/ACCESS.2024.3377232",
+        "year": 2023,
+        "venue": "IEEE Access",
+        "citation_count": 63,
+        "relevance_score": 0.4537
+      },
+      {
+        "corpus_id": "264306297",
+        "title": "HumanTOMATO: Text-aligned Whole-body Motion Generation",
+        "doi": "10.48550/arXiv.2310.12978",
+        "year": 2023,
+        "venue": "International Conference on Machine Learning",
+        "citation_count": 126,
+        "relevance_score": 0.4537
+      },
+      {
+        "corpus_id": "268856658",
+        "title": "Digital forgetting in large language models: a survey of unlearning methods",
+        "doi": "10.1007/s10462-024-11078-6",
+        "year": 2024,
+        "venue": "Artificial Intelligence Review",
+        "citation_count": 56,
+        "relevance_score": 0.453
+      },
+      {
+        "corpus_id": "264555682",
+        "title": "Knowing What LLMs DO NOT Know: A Simple Yet Effective Self-Detection Method",
+        "doi": "10.48550/arXiv.2310.17918",
+        "year": 2023,
+        "venue": "North American Chapter of the Association for Computational Linguistics",
+        "citation_count": 60,
+        "relevance_score": 0.4528
+      },
+      {
+        "corpus_id": "256106256",
+        "title": "A Comparative Survey of Instance Selection Methods applied to Non-Neural and Transformer-Based Text Classification",
+        "doi": "10.1145/3582000",
+        "year": 2023,
+        "venue": "ACM Computing Surveys",
+        "citation_count": 60,
+        "relevance_score": 0.4528
+      },
+      {
+        "corpus_id": "259187495",
+        "title": "FedMultimodal: A Benchmark for Multimodal Federated Learning",
+        "doi": "10.1145/3580305.3599825",
+        "year": 2023,
+        "venue": "Knowledge Discovery and Data Mining",
+        "citation_count": 118,
+        "relevance_score": 0.4524
+      },
+      {
+        "corpus_id": "265352411",
+        "title": "MESAS: Poisoning Defense for Federated Learning Resilient against Adaptive Attackers",
+        "doi": "10.1145/3576915.3623212",
+        "year": 2023,
+        "venue": "Conference on Computer and Communications Security",
+        "citation_count": 58,
+        "relevance_score": 0.4522
+      },
+      {
+        "corpus_id": "262459118",
+        "title": "Towards LLM-guided Causal Explainability for Black-box Text Classifiers",
+        "doi": null,
+        "year": 2023,
+        "venue": "",
+        "citation_count": 58,
+        "relevance_score": 0.4522
+      },
+      {
+        "corpus_id": "257632532",
+        "title": "An empirical study of pre-trained language models in simple knowledge graph question answering",
+        "doi": "10.1007/s11280-023-01166-y",
+        "year": 2023,
+        "venue": "World wide web (Bussum)",
+        "citation_count": 58,
+        "relevance_score": 0.4522
+      },
+      {
+        "corpus_id": "261049466",
+        "title": "A Survey on Fairness in Large Language Models",
+        "doi": "10.48550/arXiv.2308.10149",
+        "year": 2023,
+        "venue": "arXiv.org",
+        "citation_count": 116,
+        "relevance_score": 0.4521
+      },
+      {
+        "corpus_id": "273654967",
+        "title": "A Survey of Small Language Models",
+        "doi": "10.48550/arXiv.2410.20011",
+        "year": 2024,
+        "venue": "arXiv.org",
+        "citation_count": 52,
+        "relevance_score": 0.4516
+      },
+      {
+        "corpus_id": "270122967",
+        "title": "Large Language Models Can Self-Improve At Web Agent Tasks",
+        "doi": "10.48550/arXiv.2405.20309",
+        "year": 2024,
+        "venue": "arXiv.org",
+        "citation_count": 52,
+        "relevance_score": 0.4516
+      },
+      {
+        "corpus_id": "257255121",
+        "title": "How Robust is GPT-3.5 to Predecessors? A Comprehensive Study on Language Understanding Tasks",
+        "doi": "10.48550/arXiv.2303.00293",
+        "year": 2023,
+        "venue": "arXiv.org",
+        "citation_count": 112,
+        "relevance_score": 0.4514
+      },
+      {
+        "corpus_id": "260866096",
+        "title": "Fly-Swat or Cannon? Cost-Effective Language Model Choice via Meta-Modeling",
+        "doi": "10.1145/3616855.3635825",
+        "year": 2023,
+        "venue": "Web Search and Data Mining",
+        "citation_count": 111,
+        "relevance_score": 0.4513
+      },
+      {
+        "corpus_id": "257879348",
+        "title": "Machine Learning Driven Mental Stress Detection on Reddit Posts Using Natural Language Processing",
+        "doi": "10.1007/s44230-023-00020-8",
+        "year": 2023,
+        "venue": "Human-Centric Intelligent Systems",
+        "citation_count": 54,
+        "relevance_score": 0.4508
+      },
+      {
+        "corpus_id": "257482688",
+        "title": "An Overview on Language Models: Recent Developments and Outlook",
+        "doi": "10.1561/116.00000010",
+        "year": 2023,
+        "venue": "APSIPA Transactions on Signal and Information Processing",
+        "citation_count": 54,
+        "relevance_score": 0.4508
+      },
+      {
+        "corpus_id": "259837553",
+        "title": "Predictive Pipelined Decoding: A Compute-Latency Trade-off for Exact LLM Decoding",
+        "doi": "10.48550/arXiv.2307.05908",
+        "year": 2023,
+        "venue": "Trans. Mach. Learn. Res.",
+        "citation_count": 53,
+        "relevance_score": 0.4505
+      },
+      {
+        "corpus_id": "267523522",
+        "title": "Hydra: Sequentially-Dependent Draft Heads for Medusa Decoding",
+        "doi": "10.48550/arXiv.2402.05109",
+        "year": 2024,
+        "venue": "arXiv.org",
+        "citation_count": 98,
+        "relevance_score": 0.4504
+      },
+      {
+        "corpus_id": "257205716",
+        "title": "Language-Driven Representation Learning for Robotics",
+        "doi": "10.48550/arXiv.2302.12766",
+        "year": 2023,
+        "venue": "Robotics: Science and Systems Conference",
+        "citation_count": 212,
+        "relevance_score": 0.4504
+      },
+      {
+        "corpus_id": "257915625",
+        "title": "Learning Emotion Representations from Verbal and Nonverbal Communication",
+        "doi": "10.1109/CVPR52729.2023.01821",
+        "year": 2023,
+        "venue": "Computer Vision and Pattern Recognition",
+        "citation_count": 52,
+        "relevance_score": 0.4501
+      },
+      {
+        "corpus_id": "259583234",
+        "title": "Text Algorithms in Economics",
+        "doi": "10.1146/annurev-economics-082222-074352",
+        "year": 2023,
+        "venue": "Annual Review of Economics",
+        "citation_count": 96,
+        "relevance_score": 0.4485
+      },
+      {
+        "corpus_id": "258508784",
+        "title": "Tabi: An Efficient Multi-Level Inference System for Large Language Models",
+        "doi": "10.1145/3552326.3587438",
+        "year": 2023,
+        "venue": "European Conference on Computer Systems",
+        "citation_count": 86,
+        "relevance_score": 0.4464
+      },
+      {
+        "corpus_id": "258668089",
+        "title": "A Review on Deep-Learning-Based Cyberbullying Detection",
+        "doi": "10.3390/fi15050179",
+        "year": 2023,
+        "venue": "Future Internet",
+        "citation_count": 84,
+        "relevance_score": 0.446
+      },
+      {
+        "corpus_id": "256868804",
+        "title": "Transformer models: an introduction and catalog",
+        "doi": "10.48550/arXiv.2302.07730",
+        "year": 2023,
+        "venue": "arXiv.org",
+        "citation_count": 82,
+        "relevance_score": 0.4455
+      },
+      {
+        "corpus_id": "255522772",
+        "title": "HierVL: Learning Hierarchical Video-Language Embeddings",
+        "doi": "10.1109/CVPR52729.2023.02209",
+        "year": 2023,
+        "venue": "Computer Vision and Pattern Recognition",
+        "citation_count": 82,
+        "relevance_score": 0.4455
+      },
+      {
+        "corpus_id": "258060005",
+        "title": "Scallop: A Language for Neurosymbolic Programming",
+        "doi": "10.1145/3591280",
+        "year": 2023,
+        "venue": "Proc. ACM Program. Lang.",
+        "citation_count": 81,
+        "relevance_score": 0.4453
+      },
+      {
+        "corpus_id": "259393283",
+        "title": "A systematic review of applications of natural language processing and future challenges with special emphasis in text-based emotion detection",
+        "doi": "10.1007/s10462-023-10509-0",
+        "year": 2023,
+        "venue": "Artificial Intelligence Review",
+        "citation_count": 83,
+        "relevance_score": 0.4439
+      },
+      {
+        "corpus_id": "258236650",
+        "title": "SINC: Spatial Composition of 3D Human Motions for Simultaneous Action Generation",
+        "doi": "10.1109/ICCV51070.2023.00916",
+        "year": 2023,
+        "venue": "IEEE International Conference on Computer Vision",
+        "citation_count": 73,
+        "relevance_score": 0.4434
+      },
+      {
+        "corpus_id": "258309541",
+        "title": "Pre-trained Embeddings for Entity Resolution: An Experimental Analysis",
+        "doi": "10.14778/3598581.3598594",
+        "year": 2023,
+        "venue": "Proceedings of the VLDB Endowment",
+        "citation_count": 67,
+        "relevance_score": 0.4417
+      },
+      {
+        "corpus_id": "265445845",
+        "title": "Benchmarking Large Language Models for Log Analysis, Security, and Interpretation",
+        "doi": "10.1007/s10922-024-09831-x",
+        "year": 2023,
+        "venue": "Journal of Network and Systems Management",
+        "citation_count": 64,
+        "relevance_score": 0.4409
+      },
+      {
+        "corpus_id": "256459413",
+        "title": "Learning-based Widget Matching for Migrating GUI Test Cases",
+        "doi": "10.1145/3597503.3623322",
+        "year": 2023,
+        "venue": "International Conference on Software Engineering",
+        "citation_count": 64,
+        "relevance_score": 0.4409
+      },
+      {
+        "corpus_id": "258439667",
+        "title": "Contrastive Learning Models for Sentence Representations",
+        "doi": "10.1145/3593590",
+        "year": 2023,
+        "venue": "ACM Transactions on Intelligent Systems and Technology",
+        "citation_count": 63,
+        "relevance_score": 0.4406
+      },
+      {
+        "corpus_id": "260334887",
+        "title": "Towards Codable Watermarking for Injecting Multi-Bits Information to LLMs",
+        "doi": null,
+        "year": 2023,
+        "venue": "International Conference on Learning Representations",
+        "citation_count": 61,
+        "relevance_score": 0.44
+      },
+      {
+        "corpus_id": "258960289",
+        "title": "NOTABLE: Transferable Backdoor Attacks Against Prompt-based NLP Models",
+        "doi": "10.48550/arXiv.2305.17826",
+        "year": 2023,
+        "venue": "Annual Meeting of the Association for Computational Linguistics",
+        "citation_count": 61,
+        "relevance_score": 0.44
+      },
+      {
+        "corpus_id": "259129468",
+        "title": "Artificial General Intelligence for Medical Imaging Analysis",
+        "doi": "10.1109/RBME.2024.3493775",
+        "year": 2023,
+        "venue": "IEEE Reviews in Biomedical Engineering",
+        "citation_count": 60,
+        "relevance_score": 0.4397
+      },
+      {
+        "corpus_id": "257585074",
+        "title": "A Unified Framework for Learned Sparse Retrieval",
+        "doi": "10.1007/978-3-031-28241-6_7",
+        "year": 2023,
+        "venue": "European Conference on Information Retrieval",
+        "citation_count": 58,
+        "relevance_score": 0.439
+      },
+      {
+        "corpus_id": "260704230",
+        "title": "Teacher-Student Architecture for Knowledge Distillation: A Survey",
+        "doi": "10.48550/arXiv.2308.04268",
+        "year": 2023,
+        "venue": "arXiv.org",
+        "citation_count": 56,
+        "relevance_score": 0.4384
+      },
+      {
+        "corpus_id": "268536862",
+        "title": "Adaptive Ensembles of Fine-Tuned Transformers for LLM-Generated Text Detection",
+        "doi": "10.1109/IJCNN60899.2024.10651296",
+        "year": 2024,
+        "venue": "IEEE International Joint Conference on Neural Network",
+        "citation_count": 51,
+        "relevance_score": 0.4382
+      },
+      {
+        "corpus_id": "258967791",
+        "title": "LANCE: Stress-testing Visual Models by Generating Language-guided Counterfactual Images",
+        "doi": "10.48550/arXiv.2305.19164",
+        "year": 2023,
+        "venue": "Neural Information Processing Systems",
+        "citation_count": 55,
+        "relevance_score": 0.438
+      },
+      {
+        "corpus_id": "256868817",
+        "title": "Intelligent Model Update Strategy for Sequential Recommendation",
+        "doi": "10.1145/3589334.3645316",
+        "year": 2023,
+        "venue": "The Web Conference",
+        "citation_count": 53,
+        "relevance_score": 0.4373
+      },
+      {
+        "corpus_id": "265033462",
+        "title": "ArAIEval Shared Task: Persuasion Techniques and Disinformation Detection in Arabic Text",
+        "doi": "10.48550/arXiv.2311.03179",
+        "year": 2023,
+        "venue": "ARABICNLP",
+        "citation_count": 51,
+        "relevance_score": 0.4366
+      },
+      {
+        "corpus_id": "259243873",
+        "title": "Toward Sustainable HPC: Carbon Footprint Estimation and Environmental Implications of HPC Systems",
+        "doi": "10.1145/3581784.3607035",
+        "year": 2023,
+        "venue": "International Conference for High Performance Computing, Networking, Storage and Analysis",
+        "citation_count": 89,
+        "relevance_score": 0.434
+      },
+      {
+        "corpus_id": "273326097",
+        "title": "Speech based detection of Alzheimer’s disease: a survey of AI techniques, datasets and challenges",
+        "doi": "10.1007/s10462-024-10961-6",
+        "year": 2024,
+        "venue": "Artificial Intelligence Review",
+        "citation_count": 80,
+        "relevance_score": 0.4335
+      },
+      {
+        "corpus_id": "265659105",
+        "title": "Neural Sign Actors: A diffusion model for 3D sign language production from text",
+        "doi": "10.1109/CVPR52733.2024.00194",
+        "year": 2023,
+        "venue": "Computer Vision and Pattern Recognition",
+        "citation_count": 64,
+        "relevance_score": 0.4278
+      },
+      {
+        "corpus_id": "267397458",
+        "title": "Towards comprehensive cyberbullying detection: A dataset incorporating aggressive texts, repetition, peerness, and intent to harm",
+        "doi": "10.1016/j.chb.2023.108123",
+        "year": 2024,
+        "venue": "Computers in Human Behavior",
+        "citation_count": 51,
+        "relevance_score": 0.425
+      },
+      {
+        "corpus_id": "260203255",
+        "title": "A Hybrid Machine Learning Model for Classifying Gene Mutations in Cancer using LSTM, BiLSTM, CNN, GRU, and GloVe",
+        "doi": "10.48550/arXiv.2307.14361",
+        "year": 2023,
+        "venue": "Systems and Soft Computing",
+        "citation_count": 53,
+        "relevance_score": 0.4242
+      },
+      {
+        "corpus_id": "257921251",
+        "title": "Lexical Semantic Change through Large Language Models: a Survey",
+        "doi": "10.1145/3672393",
+        "year": 2023,
+        "venue": "ACM Computing Surveys",
+        "citation_count": 52,
+        "relevance_score": 0.4239
+      },
+      {
+        "corpus_id": "259077311",
+        "title": "Unicorn: A Unified Multi-tasking Model for Supporting Matching Tasks in Data Integration",
+        "doi": "10.1145/3588938",
+        "year": 2023,
+        "venue": "Proc. ACM Manag. Data",
+        "citation_count": 61,
+        "relevance_score": 0.4137
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 7,
+      "latency_ms": 1721.07,
+      "token_usage": {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": null
+  },
+  {
+    "case_id": "metadata_26",
+    "query": "paper citing the T5 paper and the spider paper",
+    "optimized_query": "citing T5 spider",
+    "results": [
+      {
+        "corpus_id": "271843296",
+        "title": "A Survey of Text-to-SQL in the Era of LLMs: Where Are We, and Where Are We Going?",
+        "doi": "10.1109/TKDE.2025.3592032",
+        "year": 2024,
+        "venue": "IEEE Transactions on Knowledge and Data Engineering",
+        "citation_count": 75,
+        "relevance_score": 0.3619
+      },
+      {
+        "corpus_id": "276742133",
+        "title": "DeepRetrieval: Hacking Real Search Engines and Retrievers with Large Language Models via Reinforcement Learning",
+        "doi": "10.48550/arXiv.2503.00223",
+        "year": 2025,
+        "venue": "arXiv.org",
+        "citation_count": 55,
+        "relevance_score": 0.326
+      },
+      {
+        "corpus_id": "271865765",
+        "title": "DataVisT5: A Pre-Trained Language Model for Jointly Understanding Text and Data Visualization",
+        "doi": "10.1109/ICDE65448.2025.00131",
+        "year": 2024,
+        "venue": "IEEE International Conference on Data Engineering",
+        "citation_count": 8,
+        "relevance_score": 0.3328
+      },
+      {
+        "corpus_id": "276774742",
+        "title": "OmniSQL: Synthesizing High-quality Text-to-SQL Data at Scale",
+        "doi": "10.14778/3749646.3749723",
+        "year": 2025,
+        "venue": "Proceedings of the VLDB Endowment",
+        "citation_count": 103,
+        "relevance_score": 0.342
+      },
+      {
+        "corpus_id": "278481320",
+        "title": "LLMs Get Lost In Multi-Turn Conversation",
+        "doi": "10.48550/arXiv.2505.06120",
+        "year": 2025,
+        "venue": "arXiv.org",
+        "citation_count": 326,
+        "relevance_score": 0.323
+      },
+      {
+        "corpus_id": "276409203",
+        "title": "PlanGenLLMs: A Modern Survey of LLM Planning Capabilities",
+        "doi": "10.48550/arXiv.2502.11221",
+        "year": 2025,
+        "venue": "Annual Meeting of the Association for Computational Linguistics",
+        "citation_count": 90,
+        "relevance_score": 0.3161
+      },
+      {
+        "corpus_id": "280537037",
+        "title": "Lightweight Transformers for Zero-Shot and Fine-Tuned Text-to-SQL Generation Using Spider",
+        "doi": "10.48550/arXiv.2508.04623",
+        "year": 2025,
+        "venue": "arXiv.org",
+        "citation_count": 0,
+        "relevance_score": 0.323
+      },
+      {
+        "corpus_id": "279544457",
+        "title": "Automated Validating and Fixing of Text-to-SQL Translation with Execution Consistency",
+        "doi": "10.1145/3725271",
+        "year": 2025,
+        "venue": "Proc. ACM Manag. Data",
+        "citation_count": 15,
+        "relevance_score": 0.346
+      },
+      {
+        "corpus_id": "281335752",
+        "title": "Converting Human Text into Database Queries Using Natural Language Processing: A Hybrid Approach with Multinomial Logistic Regression and T5",
+        "doi": "10.1109/ICETETSIP64213.2025.11156919",
+        "year": 2025,
+        "venue": "2025 12th International Conference on Emerging Trends in Engineering & Technology - Signal and Information Processing (ICETET - SIP)",
+        "citation_count": 0,
+        "relevance_score": 0.2967
+      },
+      {
+        "corpus_id": "274581681",
+        "title": "A Survey of Large Language Model-Based Generative AI for Text-to-SQL: Benchmarks, Applications, Use Cases, and Challenges",
+        "doi": "10.1109/CCWC62904.2025.10903689",
+        "year": 2024,
+        "venue": "Computing and Communication Workshop and Conference",
+        "citation_count": 22,
+        "relevance_score": 0.3346
+      },
+      {
+        "corpus_id": "288814640",
+        "title": "Language Models Can Resolve Reference Compositionally, But It's Not Their Native Strength: The Case of the Personal Relation Task",
+        "doi": null,
+        "year": 2026,
+        "venue": "",
+        "citation_count": 0,
+        "relevance_score": 0.2775
+      },
+      {
+        "corpus_id": "277141167",
+        "title": "LOFTune: A Low-Overhead and Flexible Approach for Spark SQL Configuration Tuning",
+        "doi": "10.1109/TKDE.2025.3549232",
+        "year": 2025,
+        "venue": "IEEE Transactions on Knowledge and Data Engineering",
+        "citation_count": 6,
+        "relevance_score": 0.2984
+      },
+      {
+        "corpus_id": "283014850",
+        "title": "ASASQL: Active Data Synthesis and Annotation for Efficient Natural Language SQL Generation in Cloud Systems",
+        "doi": "10.1109/ISSRE66568.2025.00040",
+        "year": 2025,
+        "venue": "IEEE International Symposium on Software Reliability Engineering",
+        "citation_count": 0,
+        "relevance_score": 0.2967
+      },
+      {
+        "corpus_id": "277856903",
+        "title": "Pandora: A Code-Driven Large Language Model Agent for Unified Reasoning Across Diverse Structured Knowledge",
+        "doi": "10.48550/arXiv.2504.12734",
+        "year": 2025,
+        "venue": "arXiv.org",
+        "citation_count": 3,
+        "relevance_score": 0.2839
+      },
+      {
+        "corpus_id": "281394288",
+        "title": "LLM-JEPA: Large Language Models Meet Joint Embedding Predictive Architectures",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv.org",
+        "citation_count": 25,
+        "relevance_score": 0.2836
+      },
+      {
+        "corpus_id": "276449919",
+        "title": "STaR-SQL: Self-Taught Reasoner for Text-to-SQL",
+        "doi": "10.48550/arXiv.2502.13550",
+        "year": 2025,
+        "venue": "Annual Meeting of the Association for Computational Linguistics",
+        "citation_count": 23,
+        "relevance_score": 0.3078
+      },
+      {
+        "corpus_id": "272881379",
+        "title": "SynTQA: Synergistic Table-based Question Answering via Mixture of Text-to-SQL and E2E TQA",
+        "doi": "10.48550/arXiv.2409.16682",
+        "year": 2024,
+        "venue": "Conference on Empirical Methods in Natural Language Processing",
+        "citation_count": 21,
+        "relevance_score": 0.3072
+      },
+      {
+        "corpus_id": "281675906",
+        "title": "Multilingual Text-to-SQL: Benchmarking the Limits of Language Models with Collaborative Language Agents",
+        "doi": "10.48550/arXiv.2509.24405",
+        "year": 2025,
+        "venue": "Australasian Database Conference",
+        "citation_count": 11,
+        "relevance_score": 0.3123
+      },
+      {
+        "corpus_id": "280918802",
+        "title": "Database Entity Recognition with Data Augmentation and Deep Learning",
+        "doi": "10.1109/IRI66576.2025.00071",
+        "year": 2025,
+        "venue": "IEEE International Conference on Information Reuse and Integration",
+        "citation_count": 0,
+        "relevance_score": 0.2742
+      },
+      {
+        "corpus_id": "271961606",
+        "title": "MFTCoder: Boosting Code LLMs with Multitask Fine-Tuning",
+        "doi": "10.1145/3637528.3671609",
+        "year": 2024,
+        "venue": "Knowledge Discovery and Data Mining",
+        "citation_count": 39,
+        "relevance_score": 0.2477
+      },
+      {
+        "corpus_id": "277667650",
+        "title": "Task-Circuit Quantization: Leveraging Knowledge Localization and Interpretability for Compression",
+        "doi": "10.48550/arXiv.2504.07389",
+        "year": 2025,
+        "venue": "arXiv.org",
+        "citation_count": 3,
+        "relevance_score": 0.2576
+      },
+      {
+        "corpus_id": "273507324",
+        "title": "Understanding the Effect of Algorithm Transparency of Model Explanations in Text-to-SQL Semantic Parsing",
+        "doi": "10.48550/arXiv.2410.16283",
+        "year": 2024,
+        "venue": "arXiv.org",
+        "citation_count": 3,
+        "relevance_score": 0.3118
+      },
+      {
+        "corpus_id": "273654555",
+        "title": "NeuZip: Memory-Efficient Training and Inference with Dynamic Compression of Neural Networks",
+        "doi": "10.48550/arXiv.2410.20650",
+        "year": 2024,
+        "venue": "arXiv.org",
+        "citation_count": 12,
+        "relevance_score": 0.2674
+      },
+      {
+        "corpus_id": "274141065",
+        "title": "The Role of Accuracy and Validation Effectiveness in Conversational Business Analytics",
+        "doi": "10.1109/ACCESS.2025.3540975",
+        "year": 2024,
+        "venue": "IEEE Access",
+        "citation_count": 2,
+        "relevance_score": 0.2781
+      },
+      {
+        "corpus_id": "276775091",
+        "title": "NLI4DB: A Systematic Review of Natural Language Interfaces for Databases",
+        "doi": "10.48550/arXiv.2503.02435",
+        "year": 2025,
+        "venue": "arXiv.org",
+        "citation_count": 10,
+        "relevance_score": 0.2613
+      },
+      {
+        "corpus_id": "277271766",
+        "title": "LinkAlign: Scalable Schema Linking for Real-World Large-Scale Multi-Database Text-to-SQL",
+        "doi": "10.48550/arXiv.2503.18596",
+        "year": 2025,
+        "venue": "Conference on Empirical Methods in Natural Language Processing",
+        "citation_count": 27,
+        "relevance_score": 0.2855
+      },
+      {
+        "corpus_id": "280695668",
+        "title": "AID-SQL: Adaptive In-Context Learning of Text-to-SQL with Difficulty-Aware Instruction and Retrieval-Augmented Generation",
+        "doi": "10.1109/ICDE65448.2025.00294",
+        "year": 2025,
+        "venue": "IEEE International Conference on Data Engineering",
+        "citation_count": 6,
+        "relevance_score": 0.2984
+      },
+      {
+        "corpus_id": "281335320",
+        "title": "The Chain-of-Thought Text-to-SQL Parsing Method Based on Coverage and Redundancy Feedback",
+        "doi": "10.1109/CCSB66722.2025.11154305",
+        "year": 2025,
+        "venue": "2025 5th International Conference on Computer Science and Blockchain (CCSB)",
+        "citation_count": 0,
+        "relevance_score": 0.2967
+      },
+      {
+        "corpus_id": "279251039",
+        "title": "SEED: Enhancing Text-to-SQL Performance and Practical Usability Through Automatic Evidence Generation",
+        "doi": "10.1109/ICDEW67478.2025.00005",
+        "year": 2025,
+        "venue": "2025 IEEE 41st International Conference on Data Engineering Workshops (ICDEW)",
+        "citation_count": 3,
+        "relevance_score": 0.2839
+      },
+      {
+        "corpus_id": "277272157",
+        "title": "Feather-SQL: A Lightweight NL2SQL Framework with Dual-Model Collaboration Paradigm for Small Language Models",
+        "doi": "10.48550/arXiv.2503.17811",
+        "year": 2025,
+        "venue": "IJCNLP-AACL",
+        "citation_count": 4,
+        "relevance_score": 0.2634
+      },
+      {
+        "corpus_id": "273822124",
+        "title": "Grounding Natural Language to SQL Translation with Data-Based Self-Explanations",
+        "doi": "10.1109/ICDE65448.2025.00010",
+        "year": 2024,
+        "venue": "IEEE International Conference on Data Engineering",
+        "citation_count": 14,
+        "relevance_score": 0.2748
+      },
+      {
+        "corpus_id": "279799073",
+        "title": "Redefining text-to-SQL metrics by incorporating semantic and structural similarity",
+        "doi": "10.1038/s41598-025-04890-9",
+        "year": 2025,
+        "venue": "Scientific Reports",
+        "citation_count": 6,
+        "relevance_score": 0.2721
+      },
+      {
+        "corpus_id": "285541167",
+        "title": "DIVER: A Robust Text-to-SQL System with Dynamic Interactive Value Linking and Evidence Reasoning",
+        "doi": "10.1145/3786640",
+        "year": 2026,
+        "venue": "Proceedings of the ACM on Management of Data",
+        "citation_count": 2,
+        "relevance_score": 0.2797
+      },
+      {
+        "corpus_id": "287988558",
+        "title": "TabEmbed: Benchmarking and Learning Generalist Embeddings for Tabular Understanding",
+        "doi": null,
+        "year": 2026,
+        "venue": "",
+        "citation_count": 0,
+        "relevance_score": 0.2512
+      },
+      {
+        "corpus_id": "276660285",
+        "title": "The Generalization and Error Detection in LLM-based Text-to-SQL Systems",
+        "doi": "10.1145/3701551.3707416",
+        "year": 2025,
+        "venue": "Web Search and Data Mining",
+        "citation_count": 1,
+        "relevance_score": 0.2884
+      },
+      {
+        "corpus_id": "287703045",
+        "title": "MongoTalk: An Agentic AI Framework for Conversational and Autonomous No-Code MongoDB Management",
+        "doi": "10.1145/3799830.3799881",
+        "year": 2025,
+        "venue": "ACM IKDD Conference on Data Science",
+        "citation_count": 0,
+        "relevance_score": 0.2217
+      },
+      {
+        "corpus_id": "283557387",
+        "title": "OsmT: Bridging OpenStreetMap Queries and Natural Language with Open-source Tag-aware Language Models",
+        "doi": "10.48550/arXiv.2512.04738",
+        "year": 2025,
+        "venue": "arXiv.org",
+        "citation_count": 0,
+        "relevance_score": 0.248
+      },
+      {
+        "corpus_id": "269255393",
+        "title": "MAVIDSQL: A Model-Agnostic Visualization for Interpretation and Diagnosis of Text-to-SQL Tasks",
+        "doi": "10.1109/TCDS.2024.3391278",
+        "year": 2024,
+        "venue": "IEEE Transactions on Cognitive and Developmental Systems",
+        "citation_count": 6,
+        "relevance_score": 0.2776
+      },
+      {
+        "corpus_id": "280145758",
+        "title": "Data-Semantics-Aware Recommendation of Diverse Pivot Tables",
+        "doi": "10.1145/3786637",
+        "year": 2025,
+        "venue": "Proceedings of the ACM on Management of Data",
+        "citation_count": 3,
+        "relevance_score": 0.2089
+      },
+      {
+        "corpus_id": "278904630",
+        "title": "LoTA-QAF: Lossless Ternary Adaptation for Quantization-Aware Fine-Tuning",
+        "doi": "10.48550/arXiv.2505.18724",
+        "year": 2025,
+        "venue": "arXiv.org",
+        "citation_count": 5,
+        "relevance_score": 0.2194
+      },
+      {
+        "corpus_id": "275342818",
+        "title": "LEAP: LLM-powered End-to-end Automatic Library for Processing Social Science Queries on Unstructured Data",
+        "doi": "10.14778/3705829.3705843",
+        "year": 2024,
+        "venue": "Proceedings of the VLDB Endowment",
+        "citation_count": 8,
+        "relevance_score": 0.2091
+      },
+      {
+        "corpus_id": "278768859",
+        "title": "Capturing the Effects of Quantization on Trojans in Code LLMs",
+        "doi": "10.48550/arXiv.2505.14200",
+        "year": 2025,
+        "venue": "arXiv.org",
+        "citation_count": 1,
+        "relevance_score": 0.2397
+      },
+      {
+        "corpus_id": "277499137",
+        "title": "Auto-Assess: Automated Evaluation Platform for Enhanced SQL learning",
+        "doi": "10.1109/SCEECS64059.2025.10940103",
+        "year": 2025,
+        "venue": "2025 IEEE International Students' Conference on Electrical, Electronics and Computer Science (SCEECS)",
+        "citation_count": 1,
+        "relevance_score": 0.2172
+      },
+      {
+        "corpus_id": "278782759",
+        "title": "An Efficient Private GPT Never Autoregressively Decodes",
+        "doi": "10.48550/arXiv.2505.15252",
+        "year": 2025,
+        "venue": "International Conference on Machine Learning",
+        "citation_count": 1,
+        "relevance_score": 0.1909
+      },
+      {
+        "corpus_id": "276574850",
+        "title": "Entailment-Preserving First-order Logic Representations in Natural Language Entailment",
+        "doi": "10.48550/arXiv.2502.16757",
+        "year": 2025,
+        "venue": "Annual Meeting of the Association for Computational Linguistics",
+        "citation_count": 5,
+        "relevance_score": 0.2194
+      },
+      {
+        "corpus_id": "287210211",
+        "title": "SchemaRAG: A Schema-aware Retrieval-Augmented Generation Framework for Text-to-SQL",
+        "doi": "10.1145/3786696",
+        "year": 2026,
+        "venue": "Proceedings of the ACM on Management of Data",
+        "citation_count": 7,
+        "relevance_score": 0.2826
+      },
+      {
+        "corpus_id": "272770521",
+        "title": "Contextualized Data-Wrangling Code Generation in Computational Notebooks",
+        "doi": "10.1145/3691620.3695503",
+        "year": 2024,
+        "venue": "International Conference on Automated Software Engineering",
+        "citation_count": 13,
+        "relevance_score": 0.2205
+      },
+      {
+        "corpus_id": "272772301",
+        "title": "Handling Open-Vocabulary Constructs in Formalizing Specifications: Retrieval-Augmented Parsing with Expert Knowledge",
+        "doi": "10.48550/arXiv.2509.08808",
+        "year": 2025,
+        "venue": "arXiv.org",
+        "citation_count": 0,
+        "relevance_score": 0.2217
+      },
+      {
+        "corpus_id": "273950475",
+        "title": "CodeLutra: Boosting LLM Code Generation via Preference-Guided Refinement",
+        "doi": "10.48550/arXiv.2411.05199",
+        "year": 2024,
+        "venue": "Trans. Mach. Learn. Res.",
+        "citation_count": 10,
+        "relevance_score": 0.2143
+      },
+      {
+        "corpus_id": "272880709",
+        "title": "E-SQL: Direct Schema Linking via Question Enrichment in Text-to-SQL",
+        "doi": "10.48550/arXiv.2409.16751",
+        "year": 2024,
+        "venue": "arXiv.org",
+        "citation_count": 56,
+        "relevance_score": 0.2569
+      },
+      {
+        "corpus_id": "273228652",
+        "title": "Large Language Model Enhanced Text-to-SQL Generation: A Survey",
+        "doi": "10.48550/arXiv.2410.06011",
+        "year": 2024,
+        "venue": "arXiv.org",
+        "citation_count": 54,
+        "relevance_score": 0.2822
+      },
+      {
+        "corpus_id": "276574911",
+        "title": "Alpha-SQL: Zero-Shot Text-to-SQL using Monte Carlo Tree Search",
+        "doi": "10.48550/arXiv.2502.17248",
+        "year": 2025,
+        "venue": "International Conference on Machine Learning",
+        "citation_count": 43,
+        "relevance_score": 0.271
+      },
+      {
+        "corpus_id": "275570708",
+        "title": "Confidence Estimation for Error Detection in Text-to-SQL Systems",
+        "doi": "10.1609/aaai.v39i23.34699",
+        "year": 2025,
+        "venue": "AAAI Conference on Artificial Intelligence",
+        "citation_count": 12,
+        "relevance_score": 0.2657
+      },
+      {
+        "corpus_id": "275757475",
+        "title": "Reliable Text-to-SQL with Adaptive Abstention",
+        "doi": "10.1145/3709719",
+        "year": 2025,
+        "venue": "Proc. ACM Manag. Data",
+        "citation_count": 22,
+        "relevance_score": 0.2542
+      },
+      {
+        "corpus_id": "286327708",
+        "title": "MixCoT-SQL: A User-Adaptive Text-to-SQL Framework Based on Mixed Chain-of-Thought and Result Reflection Refinement",
+        "doi": "10.1109/BigData66926.2025.11400955",
+        "year": 2025,
+        "venue": "BigData Congress [Services Society]",
+        "citation_count": 0,
+        "relevance_score": 0.248
+      },
+      {
+        "corpus_id": "274992172",
+        "title": "Evaluating and Enhancing LLMs for Multi-turn Text-to-SQL with Multiple Question Types",
+        "doi": "10.1109/IJCNN64981.2025.11228279",
+        "year": 2024,
+        "venue": "IEEE International Joint Conference on Neural Network",
+        "citation_count": 4,
+        "relevance_score": 0.2426
+      },
+      {
+        "corpus_id": "276347191",
+        "title": "Enhancements in Data Querying: Applying MMR-Integrated In-Context Learning to LLM-based Text-to-SQL",
+        "doi": "10.1109/CAC63892.2024.10865575",
+        "year": 2024,
+        "venue": "ACM Cloud and Autonomic Computing Conference",
+        "citation_count": 3,
+        "relevance_score": 0.2406
+      },
+      {
+        "corpus_id": "274640780",
+        "title": "Large Language Models, Fine Tuning, Code Generation",
+        "doi": "10.1109/CANDO-EPE65072.2024.10772760",
+        "year": 2024,
+        "venue": "2024 IEEE 7th International Conference and Workshop Óbuda on Electrical and Power Engineering (CANDO-EPE)",
+        "citation_count": 3,
+        "relevance_score": 0.2406
+      },
+      {
+        "corpus_id": "282992079",
+        "title": "Text2SQL-Flow: A Robust SQL-Aware Data Augmentation Framework for Text-to-SQL",
+        "doi": "10.48550/arXiv.2511.10192",
+        "year": 2025,
+        "venue": "arXiv.org",
+        "citation_count": 12,
+        "relevance_score": 0.2394
+      },
+      {
+        "corpus_id": "279268449",
+        "title": "Exploring Large Language Models for Text-to-SQL Error Correction with LoRA Fine-Tuning",
+        "doi": "10.1109/ICAACE65325.2025.11018984",
+        "year": 2025,
+        "venue": "2025 8th International Conference on Advanced Algorithms and Control Engineering (ICAACE)",
+        "citation_count": 3,
+        "relevance_score": 0.2351
+      },
+      {
+        "corpus_id": "277676186",
+        "title": "Are Your LLM-based Text-to-SQL Models Secure? Exploring SQL Injection via Backdoor Attacks",
+        "doi": "10.1145/3769762",
+        "year": 2025,
+        "venue": "Proc. ACM Manag. Data",
+        "citation_count": 9,
+        "relevance_score": 0.2326
+      },
+      {
+        "corpus_id": "272832082",
+        "title": "Enhancing Text-to-SQL Capabilities of Large Language Models via Domain Database Knowledge Injection",
+        "doi": "10.48550/arXiv.2409.15907",
+        "year": 2024,
+        "venue": "European Conference on Artificial Intelligence",
+        "citation_count": 6,
+        "relevance_score": 0.2288
+      },
+      {
+        "corpus_id": "289690743",
+        "title": "Test-Time Verification for Text-to-SQL via Outcome Reward Models",
+        "doi": null,
+        "year": 2026,
+        "venue": "",
+        "citation_count": 0,
+        "relevance_score": 0.2288
+      },
+      {
+        "corpus_id": "289032175",
+        "title": "ZAS-SQL: Distilling Rules from Failures for Zero-Shot Text-to-SQL",
+        "doi": null,
+        "year": 2026,
+        "venue": "",
+        "citation_count": 0,
+        "relevance_score": 0.2288
+      },
+      {
+        "corpus_id": "283684072",
+        "title": "PLForge: Enhancing Language Models for Natural Language to Procedural Extensions of SQL",
+        "doi": "10.1145/3769813",
+        "year": 2025,
+        "venue": "Proc. ACM Manag. Data",
+        "citation_count": 2,
+        "relevance_score": 0.2277
+      },
+      {
+        "corpus_id": "273686758",
+        "title": "PCEM-SQL: enhancing text-to-SQL capabilities by large language models and prompt engineering with self-consistency and self-evaluation mechanism",
+        "doi": "10.1117/12.3050108",
+        "year": 2024,
+        "venue": "Other Conferences",
+        "citation_count": 0,
+        "relevance_score": 0.2272
+      },
+      {
+        "corpus_id": "272701638",
+        "title": "Valid Text-to-SQL Generation with Unification-Based DeepStochLog",
+        "doi": "10.1007/978-3-031-71167-1_17",
+        "year": 2025,
+        "venue": "International Workshop on Neural-Symbolic Learning and Reasoning",
+        "citation_count": 6,
+        "relevance_score": 0.2234
+      },
+      {
+        "corpus_id": "284078039",
+        "title": "A Multi-agent Text2SQL Framework using Small Language Models and Execution Feedback",
+        "doi": "10.48550/arXiv.2512.18622",
+        "year": 2025,
+        "venue": "arXiv.org",
+        "citation_count": 0,
+        "relevance_score": 0.2217
+      },
+      {
+        "corpus_id": "284967631",
+        "title": "Fine-Tuning DeepSeek for Efficient and Accurate Natural Language Querying on CSV Data",
+        "doi": "10.1109/ResgenXAI64788.2025.11344035",
+        "year": 2025,
+        "venue": "2025 International Conference on Responsible, Generative and Explainable AI (ResGenXAI)",
+        "citation_count": 0,
+        "relevance_score": 0.2217
+      },
+      {
+        "corpus_id": "273311462",
+        "title": "FathomGPT: A natural language interface for interactively exploring ocean science data",
+        "doi": "10.1145/3654777.3676462",
+        "year": 2024,
+        "venue": "ACM Symposium on User Interface Software and Technology",
+        "citation_count": 12,
+        "relevance_score": 0.2186
+      },
+      {
+        "corpus_id": "278886945",
+        "title": "UNJOIN: Enhancing Multi-Table Text-to-SQL Generation via Schema Simplification",
+        "doi": "10.48550/arXiv.2505.18122",
+        "year": 2025,
+        "venue": "arXiv.org",
+        "citation_count": 1,
+        "relevance_score": 0.2172
+      },
+      {
+        "corpus_id": "283449263",
+        "title": "Table as a Modality for Large Language Models",
+        "doi": "10.48550/arXiv.2512.00947",
+        "year": 2025,
+        "venue": "arXiv.org",
+        "citation_count": 3,
+        "relevance_score": 0.2089
+      },
+      {
+        "corpus_id": "275809954",
+        "title": "QATCH: Automatic Evaluation of SQL-Centric Tasks on Proprietary Data",
+        "doi": "10.1145/3712704",
+        "year": 2025,
+        "venue": "ACM Transactions on Intelligent Systems and Technology",
+        "citation_count": 3,
+        "relevance_score": 0.2089
+      },
+      {
+        "corpus_id": "273954459",
+        "title": "Zero-Shot Prompting Strategies for Table Question Answering with a Low-Resource Language",
+        "doi": "10.28991/esj-2024-08-05-020",
+        "year": 2024,
+        "venue": "Emerging Science Journal",
+        "citation_count": 2,
+        "relevance_score": 0.2069
+      },
+      {
+        "corpus_id": "282207824",
+        "title": "SKT-SQL: multi-decoupling and skeleton prompt framework for text-to-SQL on small-scale LMs",
+        "doi": "10.1007/s10844-025-00963-3",
+        "year": 2025,
+        "venue": "Journal of Intelligence and Information Systems",
+        "citation_count": 3,
+        "relevance_score": 0.2051
+      },
+      {
+        "corpus_id": "288939893",
+        "title": "SANE Schema-aware Natural-language Evaluation of Biological Data",
+        "doi": null,
+        "year": 2026,
+        "venue": "",
+        "citation_count": 0,
+        "relevance_score": 0.2025
+      },
+      {
+        "corpus_id": "288814246",
+        "title": "Improving Selective Classification with Pairwise Queries for Binary Classification",
+        "doi": "10.1007/s10994-026-07078-y",
+        "year": 2026,
+        "venue": "Machine-mediated learning",
+        "citation_count": 0,
+        "relevance_score": 0.2025
+      },
+      {
+        "corpus_id": "285842561",
+        "title": "An efficient strategy for fine-tuning large language models",
+        "doi": "10.3389/frai.2026.1665992",
+        "year": 2026,
+        "venue": "Frontiers Artif. Intell.",
+        "citation_count": 0,
+        "relevance_score": 0.2025
+      },
+      {
+        "corpus_id": "285606689",
+        "title": "Monte Carlo Tree Search with Reasoning Path Refinement for Small Language Models in Conversational Text-to-NoSQL",
+        "doi": "10.48550/arXiv.2602.12574",
+        "year": 2026,
+        "venue": "arXiv.org",
+        "citation_count": 0,
+        "relevance_score": 0.2025
+      },
+      {
+        "corpus_id": "279603586",
+        "title": "Towards Automating Domain-Specific Data Generation for Text-to-SQL: A Comprehensive Approach",
+        "doi": "10.1145/3746226",
+        "year": 2025,
+        "venue": "ACM Transactions on Software Engineering and Methodology",
+        "citation_count": 2,
+        "relevance_score": 0.2014
+      },
+      {
+        "corpus_id": "286135171",
+        "title": "Ldir: Natural Language Instruction Based Database Information Retrieval Using Local Lightweight Large Language Model",
+        "doi": "10.1109/ICSTSN67075.2025.11397950",
+        "year": 2025,
+        "venue": "2025 Fourth International Conference on Smart Technologies and Systems for Next Generation Computing (ICSTSN)",
+        "citation_count": 0,
+        "relevance_score": 0.1992
+      },
+      {
+        "corpus_id": "281081165",
+        "title": "GradeSQL: Test-Time Inference with Outcome Reward Models for Text-to-SQL Generation from Large Language Models",
+        "doi": null,
+        "year": 2025,
+        "venue": "",
+        "citation_count": 0,
+        "relevance_score": 0.1992
+      },
+      {
+        "corpus_id": "288156916",
+        "title": "Making SQL Executable with Execution-Guided Text-to-SQL: A Reproducible Study on WikiSQL-Style Queries",
+        "doi": "10.69987/aimlr.2025.60301",
+        "year": 2025,
+        "venue": "Artificial Intelligence and Machine Learning Review",
+        "citation_count": 0,
+        "relevance_score": 0.1992
+      },
+      {
+        "corpus_id": "280395242",
+        "title": "Inventory Management: Dataset for Scalable Text-to-SQL Systems",
+        "doi": "10.1109/RAIT65068.2025.11088930",
+        "year": 2025,
+        "venue": "International Conference on Recent Advances in Information Technology",
+        "citation_count": 0,
+        "relevance_score": 0.1992
+      },
+      {
+        "corpus_id": "277480475",
+        "title": "SWING: Weakly Supervised Table Question Answering with Self-training via Reinforcement Learning",
+        "doi": "10.1109/BigComp64353.2025.00058",
+        "year": 2025,
+        "venue": "International Conference on Big Data and Smart Computing",
+        "citation_count": 0,
+        "relevance_score": 0.1992
+      },
+      {
+        "corpus_id": "289045805",
+        "title": "Are we too focused on single query language? Investigating text-to-SQL/SPARQL/Cypher task complexity via fine-tuning unbiased T5 models",
+        "doi": "10.1016/j.neucom.2026.134202",
+        "year": 2026,
+        "venue": "Neurocomputing",
+        "citation_count": 0,
+        "relevance_score": 0.1987
+      },
+      {
+        "corpus_id": "275079271",
+        "title": "Improved Productivity with AI Models for SQL Tasks: A Case Study",
+        "doi": "10.5121/csit.2024.142402",
+        "year": 2024,
+        "venue": "Big Data, IOT and Blockchain Trends 2025",
+        "citation_count": 1,
+        "relevance_score": 0.1964
+      },
+      {
+        "corpus_id": "276541757",
+        "title": "Fine-tuning text-to-SQL models with reinforcement-learning training objectives",
+        "doi": "10.1016/j.nlp.2025.100135",
+        "year": 2025,
+        "venue": "Natural Language Processing Journal",
+        "citation_count": 15,
+        "relevance_score": 0.1923
+      },
+      {
+        "corpus_id": "283109743",
+        "title": "AskDB: An LLM Agent for Natural Language Interaction with Relational Databases",
+        "doi": "10.48550/arXiv.2511.16131",
+        "year": 2025,
+        "venue": "arXiv.org",
+        "citation_count": 1,
+        "relevance_score": 0.1909
+      },
+      {
+        "corpus_id": "280401421",
+        "title": "Text-to-SQL Task-oriented Dialogue Ontology Construction",
+        "doi": "10.48550/arXiv.2507.23358",
+        "year": 2025,
+        "venue": "Transactions of the Association for Computational Linguistics",
+        "citation_count": 1,
+        "relevance_score": 0.1909
+      },
+      {
+        "corpus_id": "277574991",
+        "title": "Efficient Multi-Expert Tabular Language Model for Banking",
+        "doi": "10.1145/3690624.3709400",
+        "year": 2025,
+        "venue": "Knowledge Discovery and Data Mining",
+        "citation_count": 1,
+        "relevance_score": 0.1909
+      },
+      {
+        "corpus_id": "273351314",
+        "title": "Learning from Imperfect Data: Towards Efficient Knowledge Distillation of Autoregressive Language Models for Text-to-SQL",
+        "doi": "10.48550/arXiv.2410.11371",
+        "year": 2024,
+        "venue": "Conference on Empirical Methods in Natural Language Processing",
+        "citation_count": 3,
+        "relevance_score": 0.1881
+      },
+      {
+        "corpus_id": "272045337",
+        "title": "Deep learning for code generation: a survey",
+        "doi": "10.1007/s11432-023-3956-3",
+        "year": 2024,
+        "venue": "Science China Information Sciences",
+        "citation_count": 25,
+        "relevance_score": 0.1841
+      },
+      {
+        "corpus_id": "278063556",
+        "title": "SQLify Me: An Automated Text-To-SQL Query Generator",
+        "doi": "10.1109/ICCTA64612.2024.10974783",
+        "year": 2024,
+        "venue": "International Conference on Computing: Theory and Applications",
+        "citation_count": 0,
+        "relevance_score": 0.1784
+      },
+      {
+        "corpus_id": "274165522",
+        "title": "Generative Fuzzy System for Sequence-to-Sequence Learning via Rule-Based Inference",
+        "doi": "10.1109/TNNLS.2025.3615650",
+        "year": 2024,
+        "venue": "IEEE Transactions on Neural Networks and Learning Systems",
+        "citation_count": 0,
+        "relevance_score": 0.1784
+      },
+      {
+        "corpus_id": "284312060",
+        "title": "Bridging Global Intent with Local Details: A Hierarchical Representation Approach for Semantic Validation in Text-to-SQL",
+        "doi": "10.48550/arXiv.2512.22744",
+        "year": 2025,
+        "venue": "arXiv.org",
+        "citation_count": 0,
+        "relevance_score": 0.173
+      },
+      {
+        "corpus_id": "282258858",
+        "title": "A Survey on Automated Data Analysis Techniques Powered by Large Language Models",
+        "doi": "10.1109/ICNC-FSKD67701.2025.11198129",
+        "year": 2025,
+        "venue": "International Conference on Natural Computation, Fuzzy Systems and Knowledge Discovery",
+        "citation_count": 0,
+        "relevance_score": 0.173
+      },
+      {
+        "corpus_id": "283015308",
+        "title": "COLD-QA: A Complex Long-Distance Numerical Reasoning Dataset for Hybrid Tabular-Textual Question Answering",
+        "doi": "10.1109/IJCNN64981.2025.11228031",
+        "year": 2025,
+        "venue": "IEEE International Joint Conference on Neural Network",
+        "citation_count": 0,
+        "relevance_score": 0.173
+      },
+      {
+        "corpus_id": "279999917",
+        "title": "HI-SQL: Optimizing Text-to-SQL Systems through Dynamic Hint Integration",
+        "doi": "10.1109/IJCNN64981.2025.11227320",
+        "year": 2025,
+        "venue": "IEEE International Joint Conference on Neural Network",
+        "citation_count": 0,
+        "relevance_score": 0.173
+      },
+      {
+        "corpus_id": "277780518",
+        "title": "Domain Specific Question to SQL Conversion with Embedded Data Balancing Technique",
+        "doi": "10.48550/arXiv.2504.08753",
+        "year": 2025,
+        "venue": "arXiv.org",
+        "citation_count": 0,
+        "relevance_score": 0.173
+      },
+      {
+        "corpus_id": "273497850",
+        "title": "Inferring Visualization Intent from Conversation",
+        "doi": "10.1145/3627673.3679589",
+        "year": 2024,
+        "venue": "International Conference on Information and Knowledge Management",
+        "citation_count": 1,
+        "relevance_score": 0.1701
+      },
+      {
+        "corpus_id": "279622611",
+        "title": "HeSQLNet: A Heterogeneous graph neural network for SQL-to-Text generation",
+        "doi": "10.1016/j.infsof.2025.107820",
+        "year": 2025,
+        "venue": "Information and Software Technology",
+        "citation_count": 2,
+        "relevance_score": 0.1489
+      },
+      {
+        "corpus_id": "287966489",
+        "title": "DCR-SQL: Dual-Channel Routing Framework for Cost-Efficient Text-to-SQL Generation with Dynamic Hardness Awareness",
+        "doi": "10.1109/CAC67268.2025.11487908",
+        "year": 2025,
+        "venue": "ACM Cloud and Autonomic Computing Conference",
+        "citation_count": 0,
+        "relevance_score": 0.1205
+      },
+      {
+        "corpus_id": "277833879",
+        "title": "Khai thác mô hình ngôn ngữ lớn để chuyển đổi ngôn ngữ tự nhiên thành truy vấn Cypher một cách hiệu quả",
+        "doi": "10.71091/2354-113x/248",
+        "year": 2025,
+        "venue": "Tạp chí Khoa học HUFLIT",
+        "citation_count": 0,
+        "relevance_score": 0.1205
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 11,
+      "latency_ms": 1031.15,
+      "token_usage": {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": null
+  },
+  {
+    "case_id": "metadata_31",
+    "query": "Journal articles by David Harel with at least 10 citations, citing papers by Gera Weiss, but not self-citations of Gera Weiss",
+    "optimized_query": "Journal articles David Harel least citations citing Gera",
+    "results": [
+      {
+        "corpus_id": "208139460",
+        "title": "Autonomics: In search of a foundation for next-generation autonomous systems",
+        "doi": "10.1073/pnas.2003162117",
+        "year": 2019,
+        "venue": "Proceedings of the National Academy of Sciences of the United States of America",
+        "citation_count": 54,
+        "relevance_score": 0.2627
+      },
+      {
+        "corpus_id": "246679917",
+        "title": "Scenario-Assisted Deep Reinforcement Learning",
+        "doi": "10.5220/0010904700003119",
+        "year": 2022,
+        "venue": "International Conference on Model-Driven Engineering and Software Development",
+        "citation_count": 13,
+        "relevance_score": 0.2065
+      },
+      {
+        "corpus_id": "210714145",
+        "title": "Expecting the Unexpected: Developing Autonomous-System Design Principles for Reacting to Unpredicted Events and Conditions",
+        "doi": "10.1145/3387939.3391607",
+        "year": 2020,
+        "venue": "International Symposium on Software Engineering for Adaptive and Self-Managing Systems",
+        "citation_count": 10,
+        "relevance_score": 0.2161
+      },
+      {
+        "corpus_id": "3987221",
+        "title": "An initial wise development environment for behavioral models",
+        "doi": "10.5220/0005811806000612",
+        "year": 2016,
+        "venue": "International Conference on Model-Driven Engineering and Software Development",
+        "citation_count": 24,
+        "relevance_score": 0.1701
+      },
+      {
+        "corpus_id": "249889772",
+        "title": "Constrained Reinforcement Learning for Robotics via Scenario-Based Programming",
+        "doi": "10.48550/arXiv.2206.09603",
+        "year": 2022,
+        "venue": "arXiv.org",
+        "citation_count": 21,
+        "relevance_score": 0.1626
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 4,
+      "latency_ms": 13934.76,
+      "token_usage": {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": null
+  },
+  {
+    "case_id": "metadata_33",
+    "query": "A SPLASH 2019 and beyond paper that cites any NeurIPS",
+    "optimized_query": "SPLASH beyond cites NeurIPS",
+    "results": [
+      {
+        "corpus_id": "5295035",
+        "title": "Getting the Word Out",
+        "doi": "10.1080/03632415.2013.775573",
+        "year": 2013,
+        "venue": "",
+        "citation_count": 29,
+        "relevance_score": 0.2011
+      },
+      {
+        "corpus_id": "38132256",
+        "title": "enDebug: A hardware-software framework for automated energy debugging",
+        "doi": "10.1016/J.JPDC.2016.05.005",
+        "year": 2016,
+        "venue": "J. Parallel Distributed Comput.",
+        "citation_count": 11,
+        "relevance_score": 0.1626
+      },
+      {
+        "corpus_id": "145466461",
+        "title": "Beyond the Tragedy of the Commons: A Discussion of Governing the Commons: The Evolution of Institutions for Collective Action",
+        "doi": "10.1017/S1537592710000320",
+        "year": 2010,
+        "venue": "Perspectives on Politics",
+        "citation_count": 9,
+        "relevance_score": 0.1844
+      },
+      {
+        "corpus_id": "84192937",
+        "title": "Adversaries or Partners? Science and the Precautionary Principle in International Wildlife Treaty Regimes",
+        "doi": "10.1080/13880290902869382",
+        "year": 2009,
+        "venue": "",
+        "citation_count": 2,
+        "relevance_score": 0.1312
+      },
+      {
+        "corpus_id": "260782308",
+        "title": "ect of Wetting on Drop Splashing of Newtonian Fluids and Blood",
+        "doi": null,
+        "year": 2017,
+        "venue": "",
+        "citation_count": 0,
+        "relevance_score": 0.1193
+      },
+      {
+        "corpus_id": "142553485",
+        "title": "Foreword: Making Makeup Matter",
+        "doi": null,
+        "year": 2007,
+        "venue": "",
+        "citation_count": 1,
+        "relevance_score": 0.0807
+      },
+      {
+        "corpus_id": "12947694",
+        "title": "Almost twenty years ago, I heard Stephen Wolfram speak at a Gordon Conference",
+        "doi": null,
+        "year": 2002,
+        "venue": "",
+        "citation_count": 0,
+        "relevance_score": 0.05
+      },
+      {
+        "corpus_id": "266499688",
+        "title": "UvA-DARE ( Digital Academic Repository ) Effect of Wetting on Drop Splashing of Newtonian Fluids",
+        "doi": null,
+        "year": 2018,
+        "venue": "",
+        "citation_count": 0,
+        "relevance_score": 0.0886
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 3,
+      "latency_ms": 2245.26,
+      "token_usage": {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": null
+  },
+  {
+    "case_id": "metadata_42",
+    "query": "NeurIPS papers 2022-2023 that cite the \"RoBERTa\" paper that are cited by at least 30 other paper written by more than 3 authors",
+    "optimized_query": "NeurIPS cite RoBERTa cited least written authors",
+    "results": [
+      {
+        "corpus_id": "250243785",
+        "title": "Pile of Law: Learning Responsible Data Filtering from the Law and a 256GB Open-Source Legal Dataset",
+        "doi": "10.48550/arXiv.2207.00220",
+        "year": 2022,
+        "venue": "Neural Information Processing Systems",
+        "citation_count": 149,
+        "relevance_score": 0.1757
+      },
+      {
+        "corpus_id": "253158042",
+        "title": "First is Better Than Last for Language Data Influence",
+        "doi": "10.52202/068431-2339",
+        "year": 2022,
+        "venue": "Neural Information Processing Systems",
+        "citation_count": 39,
+        "relevance_score": 0.1679
+      },
+      {
+        "corpus_id": "258479968",
+        "title": "Lift Yourself Up: Retrieval-augmented Text Generation with Self Memory",
+        "doi": "10.48550/arXiv.2305.02437",
+        "year": 2023,
+        "venue": "Neural Information Processing Systems",
+        "citation_count": 164,
+        "relevance_score": 0.1507
+      },
+      {
+        "corpus_id": "260165114",
+        "title": "Quantifying & Modeling Multimodal Interactions: An Information Decomposition Framework",
+        "doi": "10.52202/075280-1192",
+        "year": 2023,
+        "venue": "Neural Information Processing Systems",
+        "citation_count": 89,
+        "relevance_score": 0.1471
+      },
+      {
+        "corpus_id": "267028569",
+        "title": "One-Step Diffusion Distillation via Deep Equilibrium Models",
+        "doi": "10.48550/arXiv.2401.08639",
+        "year": 2023,
+        "venue": "Neural Information Processing Systems",
+        "citation_count": 72,
+        "relevance_score": 0.1459
+      },
+      {
+        "corpus_id": "252873712",
+        "title": "When Do Flat Minima Optimizers Work?",
+        "doi": "10.52202/068431-1206",
+        "year": 2022,
+        "venue": "Neural Information Processing Systems",
+        "citation_count": 98,
+        "relevance_score": 0.1456
+      },
+      {
+        "corpus_id": "249462026",
+        "title": "Fault-Aware Neural Code Rankers",
+        "doi": "10.48550/arXiv.2206.03865",
+        "year": 2022,
+        "venue": "Neural Information Processing Systems",
+        "citation_count": 55,
+        "relevance_score": 0.1422
+      },
+      {
+        "corpus_id": "260611350",
+        "title": "Convolutions Die Hard: Open-Vocabulary Segmentation with Single Frozen Convolutional CLIP",
+        "doi": "10.48550/arXiv.2308.02487",
+        "year": 2023,
+        "venue": "Neural Information Processing Systems",
+        "citation_count": 263,
+        "relevance_score": 0.1535
+      },
+      {
+        "corpus_id": "249674874",
+        "title": "Coarse-to-Fine Vision-Language Pre-training with Fusion in the Backbone",
+        "doi": "10.48550/arXiv.2206.07643",
+        "year": 2022,
+        "venue": "Neural Information Processing Systems",
+        "citation_count": 164,
+        "relevance_score": 0.1486
+      },
+      {
+        "corpus_id": "259075732",
+        "title": "Benchmarking Large Language Models on CMExam - A Comprehensive Chinese Medical Exam Dataset",
+        "doi": "10.48550/arXiv.2306.03030",
+        "year": 2023,
+        "venue": "Neural Information Processing Systems",
+        "citation_count": 140,
+        "relevance_score": 0.1498
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 14,
+      "latency_ms": 65457.16,
+      "token_usage": {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+        "requests": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": null
+  }
+]

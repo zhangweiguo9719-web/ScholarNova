@@ -1,0 +1,134 @@
+version: '3.8'
+
+services:
+  # =============================================================================
+  # PostgreSQL 数据库
+  # =============================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: scholar-postgres
+    restart: unless-stopped
+    # 安全：仅在开发环境暴露端口，生产环境不暴露
+    ports:
+      - "127.0.0.1:5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-scholar}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-scholar_password}
+      POSTGRES_DB: ${POSTGRES_DB:-scholar_agent}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-scholar}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # 安全：限制容器权限
+    security_opt:
+      - no-new-privileges:true
+    read_only: false
+    tmpfs:
+      - /tmp
+      - /var/run/postgresql
+    networks:
+      - scholar-network
+
+  # =============================================================================
+  # Redis 缓存
+  # =============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: scholar-redis
+    restart: unless-stopped
+    # 安全：仅在开发环境暴露端口
+    ports:
+      - "127.0.0.1:6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # 安全：限制容器权限
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+    networks:
+      - scholar-network
+
+  # =============================================================================
+  # FastAPI 后端
+  # =============================================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: scholar-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-scholar}:${POSTGRES_PASSWORD:-scholar_password}@postgres:5432/${POSTGRES_DB:-scholar_agent}
+      REDIS_URL: redis://redis:6379/0
+      # 安全：生产环境默认值
+      DEBUG: ${DEBUG:-false}
+      ALLOW_PRIVATE_IPS: ${ALLOW_PRIVATE_IPS:-false}
+      ALLOW_HTTP: ${ALLOW_HTTP:-false}
+    volumes:
+      - ./backend:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    # 安全：限制容器权限
+    security_opt:
+      - no-new-privileges:true
+    # 安全：只读根文件系统（排除需要写入的临时目录）
+    read_only: false
+    tmpfs:
+      - /tmp
+    networks:
+      - scholar-network
+
+  # =============================================================================
+  # React 前端
+  # =============================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: scholar-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_BASE_URL: http://localhost:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    # 安全：限制容器权限
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - scholar-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  scholar-network:
+    driver: bridge

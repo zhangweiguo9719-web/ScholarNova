@@ -1,0 +1,117 @@
+# =============================================================================
+# Python
+# =============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# mypy
+.mypy_cache/
+
+# ruff
+.ruff_cache/
+
+# =============================================================================
+# Node.js
+# =============================================================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build outputs
+frontend/dist/
+frontend/build/
+
+# =============================================================================
+# IDE
+# =============================================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# =============================================================================
+# Environment
+# =============================================================================
+.env
+.env.local
+.env.*.local
+
+# =============================================================================
+# Docker
+# =============================================================================
+docker-compose.override.yml
+
+# =============================================================================
+# OS
+# =============================================================================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =============================================================================
+# Project specific
+# =============================================================================
+*.log
+*.pid
+data/
+uploads/
+temp/
+.cache/
+
+# Database
+*.db
+
+# Config files with secrets
+backend/model_config.json
+backend/network_config.json
+backend/generated/
+backend/debug_output.txt
+backend/stderr.txt
+backend/stdout.txt
+
+# Authorized benchmark datasets and generated run artifacts
+outputs/benchmarks/data/
+outputs/benchmarks/predictions/*
+!outputs/benchmarks/predictions/asta-hybrid-validation18-baseline-2026-07-02.json
+!outputs/benchmarks/predictions/asta-hybrid-validation18-final-2026-07-02.json
+!outputs/benchmarks/predictions/asta-s2-validation18-v2-2026-07-02.json
+
+# Alembic
+backend/alembic/versions/*.pyc
+
+# Coverage reports
+coverage.xml
+*.cover

@@ -1,0 +1,924 @@
+openapi: 3.1.0
+info:
+  title: ScholarAgent API
+  description: |
+    ScholarAgent - 学术智能体 API
+
+    一个基于 AI 的学术文献检索与分析智能体系统，支持多数据源检索、智能查询规划、
+    证据验证和文献推荐。
+
+    ## 主要功能
+
+    - **智能查询规划**: 使用 LLM 将复杂学术问题分解为多个子查询
+    - **多数据源检索**: 集成 Semantic Scholar、OpenAlex、CrossRef、arXiv
+    - **证据验证**: 从论文全文中提取支持/反驳证据
+    - **文献推荐**: 基于用户反馈的个性化推荐
+  version: 1.0.0
+  contact:
+    name: ScholarAgent Team
+    email: team@scholar-agent.dev
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8000
+    description: 本地开发服务器
+  - url: https://api.scholar-agent.dev
+    description: 生产服务器
+
+tags:
+  - name: search
+    description: 文献检索相关接口
+  - name: papers
+    description: 论文管理接口
+  - name: analysis
+    description: 论文分析接口
+  - name: recommendations
+    description: 推荐系统接口
+  - name: evidence
+    description: 证据验证接口
+  - name: model
+    description: 模型配置接口
+  - name: health
+    description: 健康检查接口
+
+paths:
+  # =============================================================================
+  # 搜索接口
+  # =============================================================================
+  /api/v1/search:
+    post:
+      operationId: createSearch
+      summary: 创建复杂查询搜索
+      description: |
+        接收用户的自然语言查询，使用 LLM 进行查询规划，然后并行检索多个学术数据源。
+        返回搜索运行 ID，可通过 SSE 获取实时进度。
+      tags: [search]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchRequest'
+            examples:
+              basic:
+                summary: 基础搜索
+                value:
+                  query: "transformer model for protein structure prediction"
+                  max_results: 50
+                  sources: ["semantic_scholar", "openalex"]
+              advanced:
+                summary: 高级搜索（带时间范围）
+                value:
+                  query: "deep learning in medical imaging, focus on CT scans"
+                  max_results: 100
+                  sources: ["semantic_scholar", "crossref", "arxiv"]
+                  date_from: "2020-01-01"
+                  date_to: "2024-12-31"
+                  min_citations: 10
+      responses:
+        '202':
+          description: 搜索任务已创建
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/search/{run_id}:
+    get:
+      operationId: getSearchRun
+      summary: 获取搜索运行详情
+      description: 获取指定搜索运行的状态、进度和结果
+      tags: [search]
+      parameters:
+        - $ref: '#/components/parameters/RunId'
+      responses:
+        '200':
+          description: 搜索运行详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchRunDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # =============================================================================
+  # 论文接口
+  # =============================================================================
+  /api/v1/papers/{paper_id}:
+    get:
+      operationId: getPaper
+      summary: 获取论文详情
+      description: 获取指定论文的详细信息，包括元数据、引用信息等
+      tags: [papers]
+      parameters:
+        - $ref: '#/components/parameters/PaperId'
+      responses:
+        '200':
+          description: 论文详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaperDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/papers/{paper_id}/analyze:
+    post:
+      operationId: analyzePaper
+      summary: 单篇论文分析
+      description: |
+        对单篇论文进行深度分析，包括：
+        - 摘要总结
+        - 方法论提取
+        - 关键发现
+        - 优缺点分析
+        - 与查询的相关性评估
+      tags: [analysis]
+      parameters:
+        - $ref: '#/components/parameters/PaperId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnalysisRequest'
+      responses:
+        '200':
+          description: 分析结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisResult'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/papers/compare:
+    post:
+      operationId: comparePapers
+      summary: 多篇论文对比
+      description: |
+        对多篇论文进行对比分析，包括：
+        - 方法论对比
+        - 结果对比
+        - 优缺点对比
+        - 综合推荐
+      tags: [analysis]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompareRequest'
+      responses:
+        '200':
+          description: 对比结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompareResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  # =============================================================================
+  # 推荐接口
+  # =============================================================================
+  /api/v1/recommendations:
+    post:
+      operationId: getRecommendations
+      summary: 获取文献推荐
+      description: 基于用户历史和偏好获取个性化文献推荐
+      tags: [recommendations]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecommendationRequest'
+      responses:
+        '200':
+          description: 推荐结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecommendationResponse'
+
+  /api/v1/recommendations/feedback:
+    post:
+      operationId: submitFeedback
+      summary: 提交推荐反馈
+      description: 用户对推荐结果的反馈，用于改进推荐算法
+      tags: [recommendations]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecommendationFeedback'
+      responses:
+        '200':
+          description: 反馈已记录
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  # =============================================================================
+  # 证据接口
+  # =============================================================================
+  /api/v1/evidence/{run_id}/{paper_id}:
+    get:
+      operationId: getEvidence
+      summary: 获取证据
+      description: 获取指定论文在特定搜索运行中的证据片段
+      tags: [evidence]
+      parameters:
+        - $ref: '#/components/parameters/RunId'
+        - $ref: '#/components/parameters/PaperId'
+      responses:
+        '200':
+          description: 证据列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvidenceResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # =============================================================================
+  # 模型配置接口
+  # =============================================================================
+  /api/v1/model/config:
+    post:
+      operationId: saveModelConfig
+      summary: 保存模型配置
+      description: 保存用户的 LLM 模型配置
+      tags: [model]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModelConfig'
+      responses:
+        '200':
+          description: 配置已保存
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /api/v1/model/test:
+    post:
+      operationId: testModelConnection
+      summary: 测试模型连通性
+      description: 测试 LLM 模型配置是否正确，能否正常调用
+      tags: [model]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModelTestRequest'
+      responses:
+        '200':
+          description: 测试结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelTestResponse'
+
+  # =============================================================================
+  # 健康检查
+  # =============================================================================
+  /api/v1/health:
+    get:
+      operationId: healthCheck
+      summary: 健康检查
+      description: 检查服务及其依赖的健康状态
+      tags: [health]
+      responses:
+        '200':
+          description: 服务健康
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+# =============================================================================
+# 组件定义
+# =============================================================================
+components:
+  # =============================================================================
+  # 参数
+  # =============================================================================
+  parameters:
+    RunId:
+      name: run_id
+      in: path
+      required: true
+      description: 搜索运行 ID
+      schema:
+        type: string
+        format: uuid
+
+    PaperId:
+      name: paper_id
+      in: path
+      required: true
+      description: 论文 ID
+      schema:
+        type: string
+        format: uuid
+
+  # =============================================================================
+  # Schema 定义
+  # =============================================================================
+  schemas:
+    # ----- 请求 Schema -----
+    SearchRequest:
+      type: object
+      required: [query]
+      properties:
+        query:
+          type: string
+          description: 用户的自然语言查询
+          minLength: 1
+          maxLength: 2000
+          example: "transformer model for protein structure prediction"
+        max_results:
+          type: integer
+          description: 最大返回结果数
+          default: 50
+          minimum: 1
+          maximum: 500
+        sources:
+          type: array
+          description: 指定数据源
+          items:
+            $ref: '#/components/schemas/DataSource'
+          default: ["semantic_scholar", "openalex"]
+        date_from:
+          type: string
+          format: date
+          description: 起始日期
+        date_to:
+          type: string
+          format: date
+          description: 结束日期
+        min_citations:
+          type: integer
+          description: 最小引用数
+          minimum: 0
+        open_access_only:
+          type: boolean
+          description: 仅开放获取论文
+          default: false
+
+    AnalysisRequest:
+      type: object
+      required: [query]
+      properties:
+        query:
+          type: string
+          description: 分析上下文/问题
+          example: "What are the main contributions of this paper?"
+        analysis_type:
+          type: string
+          enum: [summary, methodology, findings, pros_cons, full]
+          default: full
+          description: 分析类型
+
+    CompareRequest:
+      type: object
+      required: [paper_ids, query]
+      properties:
+        paper_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 2
+          maxItems: 10
+          description: 要对比的论文 ID 列表
+        query:
+          type: string
+          description: 对比的上下文/问题
+          example: "Which paper has better methodology for protein folding?"
+
+    RecommendationRequest:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: 用户 ID（可选）
+        context:
+          type: string
+          description: 推荐上下文
+          example: "papers similar to my recent searches on transformer models"
+        limit:
+          type: integer
+          default: 10
+          minimum: 1
+          maximum: 50
+
+    RecommendationFeedback:
+      type: object
+      required: [recommendation_id, feedback_type]
+      properties:
+        recommendation_id:
+          type: string
+          format: uuid
+        feedback_type:
+          type: string
+          enum: [helpful, not_helpful, saved, dismissed]
+        comment:
+          type: string
+          maxLength: 500
+
+    ModelConfig:
+      type: object
+      required: [provider, model_name]
+      properties:
+        provider:
+          type: string
+          enum: [openai, anthropic, ollama]
+          description: LLM 提供商
+        model_name:
+          type: string
+          description: 模型名称
+          example: "gpt-4o"
+        api_key:
+          type: string
+          description: API Key（可选，使用环境变量则无需填写）
+        base_url:
+          type: string
+          format: uri
+          description: 自定义 API 地址
+        temperature:
+          type: number
+          minimum: 0
+          maximum: 2
+          default: 0.7
+        max_tokens:
+          type: integer
+          minimum: 1
+          maximum: 128000
+          default: 4096
+
+    ModelTestRequest:
+      type: object
+      required: [provider, model_name]
+      properties:
+        provider:
+          type: string
+          enum: [openai, anthropic, ollama]
+        model_name:
+          type: string
+        api_key:
+          type: string
+        base_url:
+          type: string
+          format: uri
+
+    # ----- 响应 Schema -----
+    SearchResponse:
+      type: object
+      properties:
+        run_id:
+          type: string
+          format: uuid
+          description: 搜索运行 ID
+        status:
+          $ref: '#/components/schemas/SearchStatus'
+        query_plan:
+          $ref: '#/components/schemas/QueryPlan'
+        message:
+          type: string
+          description: 状态消息
+
+    SearchRunDetail:
+      type: object
+      properties:
+        run_id:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/SearchStatus'
+        original_query:
+          type: string
+        query_plan:
+          $ref: '#/components/schemas/QueryPlan'
+        progress:
+          $ref: '#/components/schemas/SearchProgress'
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Paper'
+        created_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    QueryPlan:
+      type: object
+      properties:
+        sub_queries:
+          type: array
+          items:
+            type: object
+            properties:
+              query:
+                type: string
+              source:
+                $ref: '#/components/schemas/DataSource'
+              rationale:
+                type: string
+          description: LLM 生成的子查询列表
+        strategy:
+          type: string
+          description: 检索策略说明
+
+    SearchProgress:
+      type: object
+      properties:
+        total_sources:
+          type: integer
+        completed_sources:
+          type: integer
+        total_papers:
+          type: integer
+        deduplicated_papers:
+          type: integer
+        current_phase:
+          type: string
+          enum: [planning, searching, deduplicating, ranking, completed, failed]
+
+    Paper:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        authors:
+          type: array
+          items:
+            type: string
+        abstract:
+          type: string
+        year:
+          type: integer
+        venue:
+          type: string
+          nullable: true
+        citation_count:
+          type: integer
+        doi:
+          type: string
+          nullable: true
+        url:
+          type: string
+          format: uri
+        pdf_url:
+          type: string
+          format: uri
+          nullable: true
+        source:
+          $ref: '#/components/schemas/DataSource'
+        relevance_score:
+          type: number
+          minimum: 0
+          maximum: 1
+        is_open_access:
+          type: boolean
+
+    PaperDetail:
+      allOf:
+        - $ref: '#/components/schemas/Paper'
+        - type: object
+          properties:
+            references:
+              type: array
+              items:
+                $ref: '#/components/schemas/PaperReference'
+            citations:
+              type: array
+              items:
+                $ref: '#/components/schemas/PaperReference'
+            fields_of_study:
+              type: array
+              items:
+                type: string>
+            keywords:
+              type: array
+              items:
+                type: string
+            publication_date:
+              type: string
+              format: date
+              nullable: true
+            volume:
+              type: string
+              nullable: true
+            issue:
+              type: string
+              nullable: true
+            pages:
+              type: string
+              nullable: true
+
+    PaperReference:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        year:
+          type: integer
+          nullable: true
+        citation_count:
+          type: integer
+
+    EvidenceSpan:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        paper_id:
+          type: string
+          format: uuid
+        run_id:
+          type: string
+          format: uuid
+        claim:
+          type: string
+          description: 被验证的声明
+        evidence_text:
+          type: string
+          description: 原文证据片段
+        verdict:
+          type: string
+          enum: [supports, contradicts, neutral, insufficient]
+          description: 验证结论
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: 置信度
+        page_number:
+          type: integer
+          nullable: true
+        section:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    AnalysisResult:
+      type: object
+      properties:
+        paper_id:
+          type: string
+          format: uuid
+        analysis_type:
+          type: string
+        summary:
+          type: string
+        methodology:
+          type: string
+          nullable: true
+        key_findings:
+          type: array
+          items:
+            type: string
+        strengths:
+          type: array
+          items:
+            type: string
+        weaknesses:
+          type: array
+          items:
+            type: string>
+        relevance_to_query:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    CompareResult:
+      type: object
+      properties:
+        papers:
+          type: array
+          items:
+            type: object
+            properties:
+              paper_id:
+                type: string
+                format: uuid
+              title:
+                type: string
+        comparison:
+          type: object
+          properties:
+            methodology:
+              type: string
+            results:
+              type: string
+            strengths_weaknesses:
+              type: string
+            recommendation:
+              type: string
+        created_at:
+          type: string
+          format: date-time
+
+    Recommendation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        paper:
+          $ref: '#/components/schemas/Paper'
+        score:
+          type: number
+          minimum: 0
+          maximum: 1
+        reason:
+          type: string
+          description: 推荐理由
+
+    RecommendationResponse:
+      type: object
+      properties:
+        recommendations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Recommendation'
+        has_more:
+          type: boolean
+
+    EvidenceResponse:
+      type: object
+      properties:
+        paper_id:
+          type: string
+          format: uuid
+        run_id:
+          type: string
+          format: uuid
+        evidence_spans:
+          type: array
+          items:
+            $ref: '#/components/schemas/EvidenceSpan'
+
+    ModelTestResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        latency_ms:
+          type: number
+          description: 响应延迟（毫秒）
+        model_info:
+          type: object
+          properties:
+            provider:
+              type: string
+            model:
+              type: string
+            context_window:
+              type: integer
+        error:
+          type: string
+          nullable: true
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        version:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        services:
+          type: object
+          properties:
+            database:
+              type: string
+              enum: [connected, disconnected]
+            redis:
+              type: string
+              enum: [connected, disconnected]
+            llm:
+              type: string
+              enum: [available, unavailable]
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+
+    # ----- 枚举 -----
+    DataSource:
+      type: string
+      enum:
+        - semantic_scholar
+        - openalex
+        - crossref
+        - arxiv
+      description: 学术数据源
+
+    SearchStatus:
+      type: string
+      enum:
+        - pending
+        - running
+        - completed
+        - failed
+      description: 搜索状态
+
+    # ----- 错误响应 -----
+    Error:
+      type: object
+      required: [detail]
+      properties:
+        detail:
+          type: string
+          description: 错误详情
+        code:
+          type: string
+          description: 错误代码
+        timestamp:
+          type: string
+          format: date-time
+
+  # =============================================================================
+  # 响应模板
+  # =============================================================================
+  responses:
+    BadRequest:
+      description: 请求参数错误
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            detail: "Invalid request parameters"
+            code: "BAD_REQUEST"
+
+    NotFound:
+      description: 资源不存在
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            detail: "Resource not found"
+            code: "NOT_FOUND"
+
+    ValidationError:
+      description: 数据验证错误
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            detail: "Validation error"
+            code: "VALIDATION_ERROR"
+
+    InternalError:
+      description: 服务器内部错误
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            detail: "Internal server error"
+            code: "INTERNAL_ERROR"

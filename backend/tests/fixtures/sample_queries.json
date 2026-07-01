@@ -1,0 +1,218 @@
+[
+  {
+    "id": 1,
+    "level": 1,
+    "query": "attention mechanism in transformers",
+    "expected_intent": "literature_search",
+    "expected_min_sub_queries": 1
+  },
+  {
+    "id": 2,
+    "level": 1,
+    "query": "BERT pre-training language model",
+    "expected_intent": "literature_search",
+    "expected_min_sub_queries": 1
+  },
+  {
+    "id": 3,
+    "level": 1,
+    "query": "deep learning for image classification",
+    "expected_intent": "literature_search",
+    "expected_min_sub_queries": 1
+  },
+  {
+    "id": 4,
+    "level": 1,
+    "query": "reinforcement learning robot control",
+    "expected_intent": "literature_search",
+    "expected_min_sub_queries": 1
+  },
+  {
+    "id": 5,
+    "level": 1,
+    "query": "natural language processing survey",
+    "expected_intent": "survey",
+    "expected_min_sub_queries": 1
+  },
+  {
+    "id": 6,
+    "level": 2,
+    "query": "attention mechanism papers from 2020 to 2024 with more than 100 citations",
+    "expected_intent": "literature_search",
+    "expected_constraints": {"min_citations": 100, "date_range": "2020-2024"},
+    "expected_min_sub_queries": 2
+  },
+  {
+    "id": 7,
+    "level": 2,
+    "query": "open access papers about CRISPR gene editing published in Nature or Science",
+    "expected_intent": "literature_search",
+    "expected_constraints": {"open_access": true, "venue": ["Nature", "Science"]},
+    "expected_min_sub_queries": 1
+  },
+  {
+    "id": 8,
+    "level": 2,
+    "query": "transformer models for medical image analysis, only from 2022 onwards",
+    "expected_intent": "literature_search",
+    "expected_constraints": {"date_from": "2022"},
+    "expected_min_sub_queries": 2
+  },
+  {
+    "id": 9,
+    "level": 2,
+    "query": "graph neural networks for drug discovery, highly cited papers",
+    "expected_intent": "literature_search",
+    "expected_constraints": {"min_citations": 50},
+    "expected_min_sub_queries": 2
+  },
+  {
+    "id": 10,
+    "level": 2,
+    "query": "federated learning privacy preserving machine learning recent papers",
+    "expected_intent": "literature_search",
+    "expected_constraints": {"date_from": "2021"},
+    "expected_min_sub_queries": 2
+  },
+  {
+    "id": 11,
+    "level": 3,
+    "query": "compare the effectiveness of transformer-based models vs CNN-based models for medical image segmentation",
+    "expected_intent": "comparison",
+    "expected_min_sub_queries": 3
+  },
+  {
+    "id": 12,
+    "level": 3,
+    "query": "what are the main differences between BERT and GPT for text classification tasks",
+    "expected_intent": "comparison",
+    "expected_min_sub_queries": 2
+  },
+  {
+    "id": 13,
+    "level": 3,
+    "query": "summarize the evolution of attention mechanisms from 2014 to 2024",
+    "expected_intent": "survey",
+    "expected_min_sub_queries": 3
+  },
+  {
+    "id": 14,
+    "level": 3,
+    "query": "analyze the impact of pre-training techniques on NLP benchmarks",
+    "expected_intent": "analysis",
+    "expected_min_sub_queries": 2
+  },
+  {
+    "id": 15,
+    "level": 3,
+    "query": "evaluate the trade-offs between model size and performance in large language models",
+    "expected_intent": "analysis",
+    "expected_min_sub_queries": 2
+  },
+  {
+    "id": 16,
+    "level": 4,
+    "query": "find papers that discuss the relationship between model scale and emergent abilities in language models, including both supporting and contradicting evidence",
+    "expected_intent": "evidence_finding",
+    "expected_min_sub_queries": 3
+  },
+  {
+    "id": 17,
+    "level": 4,
+    "query": "identify the key methodological differences between reinforcement learning from human feedback (RLHF) and direct preference optimization (DPO), with citations from original papers",
+    "expected_intent": "methodology_comparison",
+    "expected_min_sub_queries": 3
+  },
+  {
+    "id": 18,
+    "level": 4,
+    "query": "analyze the reproducibility crisis in machine learning research, focusing on papers that attempted to reproduce published results",
+    "expected_intent": "analysis",
+    "expected_min_sub_queries": 3
+  },
+  {
+    "id": 19,
+    "level": 4,
+    "query": "what evidence exists for and against the scaling hypothesis in neural language models",
+    "expected_intent": "evidence_finding",
+    "expected_min_sub_queries": 3
+  },
+  {
+    "id": 20,
+    "level": 4,
+    "query": "review the current state of multimodal learning combining vision and language, identifying open research questions",
+    "expected_intent": "survey",
+    "expected_min_sub_queries": 3
+  },
+  {
+    "id": 21,
+    "level": 5,
+    "query": "I'm researching the intersection of neuroscience and AI. Find papers that discuss how biological neural circuits inspire artificial neural network architectures, and identify which brain regions have been most successfully modeled computationally.",
+    "expected_intent": "cross_domain_search",
+    "expected_min_sub_queries": 4
+  },
+  {
+    "id": 22,
+    "level": 5,
+    "query": "for my PhD thesis on trustworthy AI, I need to understand the landscape of fairness, accountability, and transparency in ML. Find seminal papers and recent surveys, identify key metrics used, and highlight any conflicting findings in the literature.",
+    "expected_intent": "comprehensive_review",
+    "expected_min_sub_queries": 4
+  },
+  {
+    "id": 23,
+    "level": 5,
+    "query": "investigate the claim that large language models exhibit reasoning abilities. Find papers both supporting and challenging this claim, focusing on chain-of-thought prompting, emergent abilities, and skeptical analyses.",
+    "expected_intent": "claim_verification",
+    "expected_min_sub_queries": 4
+  },
+  {
+    "id": 24,
+    "level": 5,
+    "query": "compare the environmental impact of training large AI models across different papers. Include estimates of carbon emissions, energy consumption, and proposed mitigation strategies.",
+    "expected_intent": "cross_domain_analysis",
+    "expected_min_sub_queries": 3
+  },
+  {
+    "id": 25,
+    "level": 5,
+    "query": "trace the intellectual lineage of the transformer architecture: what prior work influenced it (LSTMs, attention mechanisms, memory networks), and what subsequent innovations did it enable (BERT, GPT, vision transformers)?",
+    "expected_intent": "lineage_tracing",
+    "expected_min_sub_queries": 4
+  },
+  {
+    "id": 26,
+    "level": 3,
+    "query": "what are the advantages and disadvantages of using synthetic data for training machine learning models",
+    "expected_intent": "analysis",
+    "expected_min_sub_queries": 2
+  },
+  {
+    "id": 27,
+    "level": 2,
+    "query": "retrieval augmented generation RAG papers from top venues",
+    "expected_intent": "literature_search",
+    "expected_constraints": {"venue_tier": "top"},
+    "expected_min_sub_queries": 2
+  },
+  {
+    "id": 28,
+    "level": 4,
+    "query": "find contradictions in the literature about whether scaling laws continue to hold for very large models beyond 100B parameters",
+    "expected_intent": "contradiction_finding",
+    "expected_min_sub_queries": 3
+  },
+  {
+    "id": 29,
+    "level": 1,
+    "query": "knowledge graph embedding methods",
+    "expected_intent": "literature_search",
+    "expected_min_sub_queries": 1
+  },
+  {
+    "id": 30,
+    "level": 5,
+    "query": "I'm a clinician interested in AI for radiology. Find papers that evaluate the clinical utility of AI diagnostic tools, focusing on prospective studies and real-world deployment experiences rather than just benchmark performance.",
+    "expected_intent": "domain_specific_search",
+    "expected_min_sub_queries": 3
+  }
+]

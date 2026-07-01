@@ -1,0 +1,4070 @@
+[
+  {
+    "case_id": "specific_7",
+    "query": "BART by Lewis et al.",
+    "optimized_query": "BART Lewis | BART Lewis | BART Lewis",
+    "results": [
+      {
+        "corpus_id": "204960716",
+        "title": "BART: Denoising Sequence-to-Sequence Pre-training for Natural Language Generation, Translation, and Comprehension",
+        "doi": null,
+        "year": 2019,
+        "venue": "arXiv",
+        "citation_count": 12920,
+        "relevance_score": 0.9852
+      },
+      {
+        "corpus_id": "186213876",
+        "title": "XXV. On fossil shells. By Lewis Weston Dillwyn, Esq. F. R. S. In a letter addressed to the Right Honourable Sir Humphry Davy, Bart. Pres. R. S",
+        "doi": "10.1098/rstl.1823.0027",
+        "year": 1823,
+        "venue": "Philosophical Transactions of the Royal Society of London",
+        "citation_count": 0,
+        "relevance_score": 0.9
+      },
+      {
+        "corpus_id": "110260689",
+        "title": "XXI. A letter from Lewis Weston Dillwyn, Esq. addressed to Sir Humphry Davy, Bart. P. R. S",
+        "doi": "10.1098/rstl.1824.0024",
+        "year": 1824,
+        "venue": "Philosophical Transactions of the Royal Society of London",
+        "citation_count": 0,
+        "relevance_score": 0.9
+      },
+      {
+        "corpus_id": "12852360",
+        "title": "BART: Bayesian additive regression trees",
+        "doi": "10.1214/09-AOAS285",
+        "year": 2008,
+        "venue": "arXiv",
+        "citation_count": 2045,
+        "relevance_score": 0.7056
+      },
+      {
+        "corpus_id": "221970785",
+        "title": "KG-BART: Knowledge Graph-Augmented BART for Generative Commonsense Reasoning",
+        "doi": null,
+        "year": 2020,
+        "venue": "arXiv",
+        "citation_count": 224,
+        "relevance_score": 0.7106
+      },
+      {
+        "corpus_id": "247158001",
+        "title": "Deep, Deep Learning with BART",
+        "doi": "10.1002/mrm.29485",
+        "year": 2022,
+        "venue": "arXiv",
+        "citation_count": 24,
+        "relevance_score": 0.7029
+      },
+      {
+        "corpus_id": "282304188",
+        "title": "MS-BART: Unified Modeling of Mass Spectra and Molecules for Structure Elucidation",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 9,
+        "relevance_score": 0.7047
+      },
+      {
+        "corpus_id": "10731198",
+        "title": "MR-BART: Multi-Rate Available Bandwidth Estimation in Real-Time",
+        "doi": "10.1016/j.jnca.2011.11.006",
+        "year": 2009,
+        "venue": "arXiv",
+        "citation_count": 24,
+        "relevance_score": 0.6834
+      },
+      {
+        "corpus_id": "248376946",
+        "title": "Local Gaussian process extrapolation for BART models with applications to causal inference",
+        "doi": null,
+        "year": 2022,
+        "venue": "arXiv",
+        "citation_count": 17,
+        "relevance_score": 0.7012
+      },
+      {
+        "corpus_id": "248218772",
+        "title": "On the Role of Pre-trained Language Models in Word Ordering: A Case Study with BART",
+        "doi": null,
+        "year": 2022,
+        "venue": "arXiv",
+        "citation_count": 4,
+        "relevance_score": 0.6944
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 4,
+      "latency_ms": 30535.71,
+      "token_usage": {
+        "total_tokens": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": "openalex: HTTP 503: Service Unavailable"
+  },
+  {
+    "case_id": "specific_9",
+    "query": "the MS^2 DeYong2021 paper",
+    "optimized_query": "MS2 | MS2 | MS2",
+    "results": [
+      {
+        "corpus_id": null,
+        "title": "MS2: Multi-Document Summarization of Medical Studies",
+        "doi": null,
+        "year": 2021,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.9389
+      },
+      {
+        "corpus_id": "7271270",
+        "title": "ms2: A molecular simulation tool for thermodynamic properties, new version release",
+        "doi": "10.1016/j.cpc.2014.07.012",
+        "year": 2015,
+        "venue": "arXiv",
+        "citation_count": 159,
+        "relevance_score": 0.8513
+      },
+      {
+        "corpus_id": "14546306",
+        "title": "The Allosteric Switching Mechanism in Bacteriophage MS2",
+        "doi": "10.1063/1.4955187",
+        "year": 2015,
+        "venue": "arXiv",
+        "citation_count": 10,
+        "relevance_score": 0.825
+      },
+      {
+        "corpus_id": "282592368",
+        "title": "LSM-MS2: A Foundation Model Bridging Spectral Identification and Biological Interpretation",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.8201
+      },
+      {
+        "corpus_id": "247353107",
+        "title": "Abstract MS2-2: Can genomic risk be used to tailor radiation therapy?",
+        "doi": "10.1158/1538-7445.sabcs21-ms2-2",
+        "year": 2022,
+        "venue": "Cancer Research",
+        "citation_count": 0,
+        "relevance_score": 0.8134
+      },
+      {
+        "corpus_id": "166228042",
+        "title": "The pH-dependent electrostatic interaction of a metal nanoparticle with the MS2 virus-like particles",
+        "doi": "10.1016/j.cplett.2019.05.045",
+        "year": 2019,
+        "venue": "arXiv",
+        "citation_count": 7,
+        "relevance_score": 0.8282
+      },
+      {
+        "corpus_id": "119248833",
+        "title": "Atomistic study of electrostatics and carrier transport properties of CNT@MS2 (M= Mo,W) and CNT@BN core-shell nanotubes",
+        "doi": "10.1007/s10853-017-1020-y",
+        "year": 2016,
+        "venue": "arXiv",
+        "citation_count": 8,
+        "relevance_score": 0.8245
+      },
+      {
+        "corpus_id": "259501482",
+        "title": "Effect of coat-protein concentration on the self-assembly of bacteriophage MS2 capsids around RNA",
+        "doi": null,
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 4,
+        "relevance_score": 0.8314
+      },
+      {
+        "corpus_id": "257325376",
+        "title": "Abstract MS2-2: Extra cellular matrix and dormancy",
+        "doi": "10.1158/1538-7445.sabcs22-ms2-2",
+        "year": 2023,
+        "venue": "Cancer Research",
+        "citation_count": 0,
+        "relevance_score": 0.8155
+      },
+      {
+        "corpus_id": "76446903",
+        "title": "MS2-3: Breast Cancer and the Environment: Developmental Reprogramming of Cancer Susceptibility by Early Life Environmental Exposures.",
+        "doi": "10.1158/0008-5472.sabcs11-ms2-3",
+        "year": 2011,
+        "venue": "Cancer Research",
+        "citation_count": 2,
+        "relevance_score": 0.8069
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 4,
+      "latency_ms": 9362.04,
+      "token_usage": {
+        "total_tokens": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": "openalex: circuit_open"
+  },
+  {
+    "case_id": "specific_10",
+    "query": "the Multi-news fabri2019multinews paper",
+    "optimized_query": "Multi news | Multi news | Multi news",
+    "results": [
+      {
+        "corpus_id": null,
+        "title": "Table 3: Multi-document results in Multi-News.",
+        "doi": "10.7717/peerj-cs.1737/table-3",
+        "year": 2023,
+        "venue": null,
+        "citation_count": 0,
+        "relevance_score": 0.7655
+      },
+      {
+        "corpus_id": null,
+        "title": "NELA-GT-2019: A Large Multi-Labelled News Dataset for The Study of Misinformation in News Articles",
+        "doi": null,
+        "year": 2020,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.6565
+      },
+      {
+        "corpus_id": null,
+        "title": "The Local News Industry's Challenge: Recruiting and Retaining Talent in a Multi-Platform Distribution Environment",
+        "doi": "10.1177/19312431231198029",
+        "year": 2024,
+        "venue": "Electronic News",
+        "citation_count": 2,
+        "relevance_score": 0.6233
+      },
+      {
+        "corpus_id": null,
+        "title": "Multi-Task Ordinal Regression for Jointly Predicting the Trustworthiness and the Leading Political Ideology of News Media",
+        "doi": null,
+        "year": 2019,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.5952
+      },
+      {
+        "corpus_id": null,
+        "title": "Towards Multi-Aspect Diversification of News Recommendations Using Neuro-Symbolic AI for Individual and Societal Benefit",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.5566
+      },
+      {
+        "corpus_id": null,
+        "title": "Localization of Fake News Detection via Multitask Transfer Learning",
+        "doi": "10.13140/RG.2.2.23028.40322",
+        "year": 2019,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.4847
+      },
+      {
+        "corpus_id": null,
+        "title": "Co-NAML-LSTUR: A Combined Model with Attentive Multi-View Learning and Long- and Short-term User Representations for News Recommendation",
+        "doi": "10.1007/978-981-95-4960-3_9",
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.4971
+      },
+      {
+        "corpus_id": null,
+        "title": "Augmenting the action space with conventions to improve multi-agent cooperation in Hanabi",
+        "doi": "10.1007/s10458-025-09709-5",
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.4947
+      },
+      {
+        "corpus_id": null,
+        "title": "Improving and Evaluating the Detection of Fragmentation in News Recommendations with the Clustering of News Story Chains",
+        "doi": null,
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.4925
+      },
+      {
+        "corpus_id": null,
+        "title": "MiDAS: Multi-integrated Domain Adaptive Supervision for Fake News Detection",
+        "doi": null,
+        "year": 2022,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.4904
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 4,
+      "latency_ms": 8119.95,
+      "token_usage": {
+        "total_tokens": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": "openalex: circuit_open; semantic_scholar_batch: HTTP 429: "
+  },
+  {
+    "case_id": "specific_11",
+    "query": "the paper about the Objaverse dataset",
+    "optimized_query": "Objaverse dataset | Objaverse dataset | Objaverse dataset",
+    "results": [
+      {
+        "corpus_id": "277667467",
+        "title": "Objaverse++: Curated 3D Object Dataset with Quality Annotations",
+        "doi": "10.1109/iccvw69036.2025.00710",
+        "year": 2025,
+        "venue": "2025 IEEE/CVF International Conference on Computer Vision Workshops (ICCVW)",
+        "citation_count": 19,
+        "relevance_score": 0.4182
+      },
+      {
+        "corpus_id": "202122594",
+        "title": "The Oxford Radar RobotCar Dataset: A Radar Extension to the Oxford RobotCar Dataset",
+        "doi": null,
+        "year": 2019,
+        "venue": "arXiv",
+        "citation_count": 462,
+        "relevance_score": 0.3823
+      },
+      {
+        "corpus_id": "218487328",
+        "title": "Open Graph Benchmark: Datasets for Machine Learning on Graphs",
+        "doi": null,
+        "year": 2020,
+        "venue": "arXiv",
+        "citation_count": 3670,
+        "relevance_score": 0.3337
+      },
+      {
+        "corpus_id": "265659318",
+        "title": "RS5M and GeoRSCLIP: A Large Scale Vision-Language Dataset and A Large Vision-Language Model for Remote Sensing",
+        "doi": "10.1109/TGRS.2024.3449154",
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 244,
+        "relevance_score": 0.3385
+      },
+      {
+        "corpus_id": "254685588",
+        "title": "Objaverse: A Universe of Annotated 3D Objects",
+        "doi": "10.1109/cvpr52729.2023.01263",
+        "year": 2023,
+        "venue": "2023 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)",
+        "citation_count": 1718,
+        "relevance_score": 0.3741
+      },
+      {
+        "corpus_id": "271516182",
+        "title": "VoxSim: A perceptual voice similarity dataset",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 15,
+        "relevance_score": 0.3348
+      },
+      {
+        "corpus_id": "279306023",
+        "title": "The RSNA Lumbar Degenerative Imaging Spine Classification (LumbarDISC) Dataset",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 8,
+        "relevance_score": 0.3406
+      },
+      {
+        "corpus_id": "284704536",
+        "title": "Sesame Plant Segmentation Dataset: A YOLO Formatted Annotated Dataset",
+        "doi": null,
+        "year": 2026,
+        "venue": "arXiv",
+        "citation_count": 1,
+        "relevance_score": 0.3157
+      },
+      {
+        "corpus_id": "280984942",
+        "title": "The Rosario Dataset v2: Multimodal Dataset for Agricultural Robotics",
+        "doi": "10.1177/02783649251368909",
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 5,
+        "relevance_score": 0.3332
+      },
+      {
+        "corpus_id": "267770215",
+        "title": "Aria Everyday Activities Dataset",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 34,
+        "relevance_score": 0.3176
+      },
+      {
+        "corpus_id": "270562351",
+        "title": "Insect Identification in the Wild: The AMI Dataset",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 15,
+        "relevance_score": 0.3303
+      },
+      {
+        "corpus_id": "269449864",
+        "title": "Generative Dataset Distillation: Balancing Global Structure and Local Details",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 19,
+        "relevance_score": 0.3074
+      },
+      {
+        "corpus_id": "256598368",
+        "title": "MOSE: A New Dataset for Video Object Segmentation in Complex Scenes",
+        "doi": null,
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 282,
+        "relevance_score": 0.3097
+      },
+      {
+        "corpus_id": "270123591",
+        "title": "The RSNA Abdominal Traumatic Injury CT (RATIC) Dataset",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 13,
+        "relevance_score": 0.3279
+      },
+      {
+        "corpus_id": "287432945",
+        "title": "Towards Realistic 3D Emission Materials: Dataset, Baseline, and Evaluation for Emission Texture Generation",
+        "doi": null,
+        "year": 2026,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.303
+      },
+      {
+        "corpus_id": "59316646",
+        "title": "The Music Streaming Sessions Dataset",
+        "doi": null,
+        "year": 2018,
+        "venue": "arXiv",
+        "citation_count": 90,
+        "relevance_score": 0.3185
+      },
+      {
+        "corpus_id": "256389555",
+        "title": "RGB Arabic Alphabets Sign Language Dataset",
+        "doi": null,
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 17,
+        "relevance_score": 0.2908
+      },
+      {
+        "corpus_id": "270559992",
+        "title": "From Pixels to Prose: A Large Dataset of Dense Image Captions",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 50,
+        "relevance_score": 0.293
+      },
+      {
+        "corpus_id": "10164018",
+        "title": "Reader-Aware Multi-Document Summarization: An Enhanced Model and The First Dataset",
+        "doi": null,
+        "year": 2017,
+        "venue": "arXiv",
+        "citation_count": 24,
+        "relevance_score": 0.2931
+      },
+      {
+        "corpus_id": "216868877",
+        "title": "Natural Hazards Twitter Dataset",
+        "doi": null,
+        "year": 2020,
+        "venue": "arXiv",
+        "citation_count": 10,
+        "relevance_score": 0.2906
+      },
+      {
+        "corpus_id": "251442543",
+        "title": "SDWPF: A Dataset for Spatial Dynamic Wind Power Forecasting Challenge at KDD Cup 2022",
+        "doi": "10.1038/s41597-024-03427-5",
+        "year": 2022,
+        "venue": "arXiv",
+        "citation_count": 70,
+        "relevance_score": 0.2741
+      },
+      {
+        "corpus_id": "284738203",
+        "title": "ChartComplete: A Taxonomy-based Inclusive Chart Dataset",
+        "doi": null,
+        "year": 2026,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2715
+      },
+      {
+        "corpus_id": "288652233",
+        "title": "L-FAME: Longitudinal Focused Attention Meditation EEG Dataset and Benchmark",
+        "doi": null,
+        "year": 2026,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2715
+      },
+      {
+        "corpus_id": "270560437",
+        "title": "SUGARCREPE++ Dataset: Vision-Language Model Sensitivity to Semantic and Lexical Alterations",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 42,
+        "relevance_score": 0.3214
+      },
+      {
+        "corpus_id": "264555075",
+        "title": "Hyper-Skin: A Hyperspectral Dataset for Reconstructing Facial Skin-Spectra from RGB Images",
+        "doi": null,
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 26,
+        "relevance_score": 0.2667
+      },
+      {
+        "corpus_id": "281420065",
+        "title": "HausaMovieReview: A Benchmark Dataset for Sentiment Analysis in Low-Resource African Language",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2735
+      },
+      {
+        "corpus_id": "265158176",
+        "title": "ChoralSynth: Synthetic Dataset of Choral Singing",
+        "doi": null,
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.265
+      },
+      {
+        "corpus_id": "271543810",
+        "title": "MMTrail: A Multimodal Trailer Video Dataset with Language and Music Descriptions",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 14,
+        "relevance_score": 0.2706
+      },
+      {
+        "corpus_id": "275954060",
+        "title": "AI-assisted German Employment Contract Review: A Benchmark Dataset",
+        "doi": "10.38023/a3788d39-3278-4ae5-b5b7-c73b01e6a6f2",
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 1,
+        "relevance_score": 0.2546
+      },
+      {
+        "corpus_id": "249674827",
+        "title": "Waymo Open Dataset: Panoramic Video Panoptic Segmentation",
+        "doi": null,
+        "year": 2022,
+        "venue": "arXiv",
+        "citation_count": 90,
+        "relevance_score": 0.2786
+      },
+      {
+        "corpus_id": "286222425",
+        "title": "Exploring 3D Dataset Pruning",
+        "doi": null,
+        "year": 2026,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2715
+      },
+      {
+        "corpus_id": "232185439",
+        "title": "MediaSum: A Large-scale Media Interview Dataset for Dialogue Summarization",
+        "doi": null,
+        "year": 2021,
+        "venue": "arXiv",
+        "citation_count": 163,
+        "relevance_score": 0.2821
+      },
+      {
+        "corpus_id": "37020846",
+        "title": "BanglaLekha-Isolated: A Comprehensive Bangla Handwritten Character Dataset",
+        "doi": null,
+        "year": 2017,
+        "venue": "arXiv",
+        "citation_count": 24,
+        "relevance_score": 0.2346
+      },
+      {
+        "corpus_id": "270560990",
+        "title": "MusicScore: A Dataset for Music Score Modeling and Generation",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 4,
+        "relevance_score": 0.2821
+      },
+      {
+        "corpus_id": "220546041",
+        "title": "CloudCast: A Satellite-Based Dataset and Baseline for Forecasting Clouds",
+        "doi": "10.1109/JSTARS.2021.3062936",
+        "year": 2020,
+        "venue": "arXiv",
+        "citation_count": 27,
+        "relevance_score": 0.2761
+      },
+      {
+        "corpus_id": "257631590",
+        "title": "BlanketSet -- A clinical real-world in-bed action recognition and qualitative semi-synchronised MoCap dataset",
+        "doi": "10.1109/ENBENG58165.2023.10175335",
+        "year": 2022,
+        "venue": "arXiv",
+        "citation_count": 6,
+        "relevance_score": 0.2317
+      },
+      {
+        "corpus_id": "256697503",
+        "title": "Rehabilitating Homeless: Dataset and Key Insights",
+        "doi": "10.1609/aaai.v37i12.26654",
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.238
+      },
+      {
+        "corpus_id": "266374432",
+        "title": "FiFAR: A Fraud Detection Dataset for Learning to Defer",
+        "doi": null,
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 3,
+        "relevance_score": 0.2318
+      },
+      {
+        "corpus_id": "54459647",
+        "title": "Photo-Realistic Blocksworld Dataset",
+        "doi": null,
+        "year": 2018,
+        "venue": "arXiv",
+        "citation_count": 12,
+        "relevance_score": 0.2245
+      },
+      {
+        "corpus_id": "261530287",
+        "title": "NumHG: A Dataset for Number-Focused Headline Generation",
+        "doi": null,
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 15,
+        "relevance_score": 0.2572
+      },
+      {
+        "corpus_id": "209444394",
+        "title": "Measuring Dataset Granularity",
+        "doi": null,
+        "year": 2019,
+        "venue": "arXiv",
+        "citation_count": 13,
+        "relevance_score": 0.2284
+      },
+      {
+        "corpus_id": "40395289",
+        "title": "EgoNet-UIUC: A Dataset For Ego Network Research",
+        "doi": null,
+        "year": 2013,
+        "venue": "arXiv",
+        "citation_count": 2,
+        "relevance_score": 0.2241
+      },
+      {
+        "corpus_id": "257079031",
+        "title": "Balanced Audiovisual Dataset for Imbalance Analysis",
+        "doi": null,
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 5,
+        "relevance_score": 0.2392
+      },
+      {
+        "corpus_id": null,
+        "title": "Table 4: Experimental specifications and cycling conditions of the University of Oxford Dataset (Dataset 1) and the University of Michigan Dataset (Dataset 2) used in this study.",
+        "doi": "10.7717/peerj-cs.3497/table-4",
+        "year": 2026,
+        "venue": null,
+        "citation_count": 0,
+        "relevance_score": 0.217
+      },
+      {
+        "corpus_id": "251040834",
+        "title": "ALTO: A Large-Scale Dataset for UAV Visual Place Recognition and Localization",
+        "doi": null,
+        "year": 2022,
+        "venue": "arXiv",
+        "citation_count": 27,
+        "relevance_score": 0.2571
+      },
+      {
+        "corpus_id": "281079669",
+        "title": "HiGraph: A Large-Scale Hierarchical Graph Dataset for Malware Analysis",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 1,
+        "relevance_score": 0.2546
+      },
+      {
+        "corpus_id": "283250410",
+        "title": "MobileViews: A Million-scale and Diverse Mobile GUI Dataset",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2212
+      },
+      {
+        "corpus_id": "209202276",
+        "title": "Oktoberfest Food Dataset",
+        "doi": null,
+        "year": 2019,
+        "venue": "arXiv",
+        "citation_count": 7,
+        "relevance_score": 0.2181
+      },
+      {
+        "corpus_id": "251881642",
+        "title": "Lib-SibGMU -- A University Library Circulation Dataset for Recommender Systems Developmen",
+        "doi": null,
+        "year": 2022,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1962
+      },
+      {
+        "corpus_id": null,
+        "title": "Supplemental Information 9: Loss curves of the proposed model (a) Dataset 1, (b) Dataset 2, (c) Dataset 3, (d) (Dataset 4, (e) Mix dataset",
+        "doi": "10.7717/peerj-cs.2362/supp-9",
+        "year": 2024,
+        "venue": null,
+        "citation_count": 0,
+        "relevance_score": 0.1667
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 3,
+      "latency_ms": 9920.68,
+      "token_usage": {
+        "total_tokens": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": "openalex: circuit_open"
+  },
+  {
+    "case_id": "specific_15",
+    "query": "the AlphaGeometry paper",
+    "optimized_query": "AlphaGeometry | AlphaGeometry | AlphaGeometry",
+    "results": [
+      {
+        "corpus_id": null,
+        "title": "The Topological Dual of a Dataset: A Logic-to-Topology Encoding for AlphaGeometry-Style Data",
+        "doi": null,
+        "year": 2026,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.7658
+      },
+      {
+        "corpus_id": null,
+        "title": "Gold-medalist Performance in Solving Olympiad Geometry with AlphaGeometry2",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.4801
+      },
+      {
+        "corpus_id": null,
+        "title": "The disruptive AlphaGeometry: is it the beginning of the end of mathematics education?",
+        "doi": "10.1007/s00146-024-02010-1",
+        "year": 2025,
+        "venue": "AI &amp; SOCIETY",
+        "citation_count": 2,
+        "relevance_score": 0.5159
+      },
+      {
+        "corpus_id": null,
+        "title": "Wu's Method can Boost Symbolic AI to Rival Silver Medalists and AlphaGeometry to Outperform Gold Medalists at IMO Geometry",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.4777
+      },
+      {
+        "corpus_id": null,
+        "title": "Newclid: A User-Friendly Replacement for AlphaGeometry",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.4777
+      },
+      {
+        "corpus_id": null,
+        "title": "Reinforcement Learning and Life Cycle Assessment for a Circular Economy -- Towards Progressive Computer Science",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.3951
+      },
+      {
+        "corpus_id": null,
+        "title": "Gold-Medal-Level Olympiad Geometry Solving with Efficient Heuristic Auxiliary Constructions",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.3951
+      },
+      {
+        "corpus_id": null,
+        "title": "AlphaGeometry-type progress will boost AI adoption",
+        "doi": "10.1108/oxan-es284655",
+        "year": 2024,
+        "venue": "Emerald Expert Briefings",
+        "citation_count": 0,
+        "relevance_score": 0.3286
+      },
+      {
+        "corpus_id": null,
+        "title": "Beyond Final Answers: Evaluating Large Language Models for Math Tutoring",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2959
+      },
+      {
+        "corpus_id": null,
+        "title": "Achieving Olympia-Level Geometry Large Language Model Agent via Complexity Boosting Reinforcement Learning",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2959
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 4,
+      "latency_ms": 5093.24,
+      "token_usage": {
+        "total_tokens": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": "openalex: circuit_open; semantic_scholar_batch: HTTP 429: "
+  },
+  {
+    "case_id": "specific_20",
+    "query": "the cnn paper",
+    "optimized_query": "cnn | cnn | cnn",
+    "results": [
+      {
+        "corpus_id": null,
+        "title": "A CNN adapted to time series for the classification of Supernovae",
+        "doi": null,
+        "year": 2019,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.7511
+      },
+      {
+        "corpus_id": null,
+        "title": "Testing predictions of representation cost theory with CNNs",
+        "doi": null,
+        "year": 2022,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.6576
+      },
+      {
+        "corpus_id": null,
+        "title": "Decomposing the Deep: Finding Class Specific Filters in Deep CNNs",
+        "doi": null,
+        "year": 2021,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.6556
+      },
+      {
+        "corpus_id": null,
+        "title": "Resource-Scalable CNN Synthesis for IoT Applications",
+        "doi": null,
+        "year": 2018,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.6502
+      },
+      {
+        "corpus_id": null,
+        "title": "CNN Fixations: An unraveling approach to visualize the discriminative image regions",
+        "doi": null,
+        "year": 2017,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.6485
+      },
+      {
+        "corpus_id": null,
+        "title": "Exploring the Interchangeability of CNN Embedding Spaces",
+        "doi": null,
+        "year": 2020,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.6537
+      },
+      {
+        "corpus_id": null,
+        "title": "Privacy-Preserving CNN Training with Transfer Learning: Multiclass Logistic Regression",
+        "doi": null,
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.5747
+      },
+      {
+        "corpus_id": null,
+        "title": "DietCNN: Multiplication-free Inference for Quantized CNNs",
+        "doi": "10.1109/IJCNN54540.2023.10191771",
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.5747
+      },
+      {
+        "corpus_id": null,
+        "title": "Optimizing CNN Using HPC Tools",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.5769
+      },
+      {
+        "corpus_id": null,
+        "title": "Unit panel nodes detection by CNN on FAST reflector",
+        "doi": "10.1088/1674-4527/19/1/11",
+        "year": 2019,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.5669
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 4,
+      "latency_ms": 8807.4,
+      "token_usage": {
+        "total_tokens": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": "openalex: circuit_open; semantic_scholar_batch: HTTP 429: "
+  },
+  {
+    "case_id": "specific_24",
+    "query": "the gpt-2 paper",
+    "optimized_query": "gpt-2 | gpt-2 | gpt-2",
+    "results": [
+      {
+        "corpus_id": null,
+        "title": "The use of chat GPT  in educational process",
+        "doi": "10.26577/jes2024v81.i4.8",
+        "year": 2024,
+        "venue": "Journal of Educational Sciences",
+        "citation_count": 0,
+        "relevance_score": 0.7611
+      },
+      {
+        "corpus_id": null,
+        "title": "How does GPT-2 compute greater-than?: Interpreting mathematical abilities in a pre-trained language model",
+        "doi": null,
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.7589
+      },
+      {
+        "corpus_id": null,
+        "title": "GPT-2 Through the Lens of Vector Symbolic Architectures",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.7611
+      },
+      {
+        "corpus_id": null,
+        "title": "LSTM and GPT-2 Synthetic Speech Transfer Learning for Speaker Recognition to Overcome Data Scarcity",
+        "doi": null,
+        "year": 2020,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.6537
+      },
+      {
+        "corpus_id": null,
+        "title": "Custom GPTs Enhancing Performance and Evidence Compared with GPT-3.5, GPT-4, and GPT-4o? A Study on the Emergency Medicine Specialist Examination",
+        "doi": "10.3390/healthcare12171726",
+        "year": 2024,
+        "venue": "Healthcare",
+        "citation_count": 40,
+        "relevance_score": 0.6613
+      },
+      {
+        "corpus_id": null,
+        "title": "Exploring Next Token Prediction in Theory of Mind (ToM) Tasks: Comparative Experiments with GPT-2 and LLaMA-2 AI Models",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.6642
+      },
+      {
+        "corpus_id": null,
+        "title": "Reading Task Failure Off the Activations: A Sparse-Feature Audit of GPT-2 Small on Indirect Object Identification",
+        "doi": null,
+        "year": 2026,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.6667
+      },
+      {
+        "corpus_id": null,
+        "title": "The Stability-Efficiency Dilemma: Investigating Sequence Length Warmup for Training GPT Models",
+        "doi": null,
+        "year": 2021,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.6556
+      },
+      {
+        "corpus_id": null,
+        "title": "Transformers Don't Need LayerNorm at Inference Time: Scaling LayerNorm Removal to GPT-2 XL and the Implications for Mechanistic Interpretability",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.6642
+      },
+      {
+        "corpus_id": null,
+        "title": "As Good as New. How to Successfully Recycle English GPT-2 to Make Models for Other Languages",
+        "doi": "10.18653/v1/2021.findings-acl.74",
+        "year": 2020,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.6537
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 5,
+      "latency_ms": 11036.74,
+      "token_usage": {
+        "total_tokens": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": "openalex: HTTP 503: Service Unavailable; semantic_scholar_batch: HTTP 429: "
+  },
+  {
+    "case_id": "specific_33",
+    "query": "the squad paper",
+    "optimized_query": "squad | squad | squad",
+    "results": [
+      {
+        "corpus_id": "4561735",
+        "title": "Spoken SQuAD: A Study of Mitigating the Impact of Speech Recognition Errors on Listening Comprehension",
+        "doi": null,
+        "year": 2018,
+        "venue": "arXiv",
+        "citation_count": 122,
+        "relevance_score": 0.7756
+      },
+      {
+        "corpus_id": "287980190",
+        "title": "AI Advocate: Educational Path to Transform Squads to the Future",
+        "doi": null,
+        "year": 2026,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.7658
+      },
+      {
+        "corpus_id": "260445152",
+        "title": "Tackling the Awkward Squad for Reactive Programming: The Actor-Reactor Model",
+        "doi": "10.4230/LIPIcs.ECOOP.2020.19",
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.7589
+      },
+      {
+        "corpus_id": "117744489",
+        "title": "A 4-state solution to the Firing Squad Synchronization Problem based on hybrid rule 60 and 102 cellular automata",
+        "doi": null,
+        "year": 2012,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.7407
+      },
+      {
+        "corpus_id": "270711017",
+        "title": "Advancing Question Answering on Handwritten Documents: A State-of-the-Art Recognition-Based Model for HW-SQuAD",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.7611
+      },
+      {
+        "corpus_id": "202566027",
+        "title": "The firing squad synchronization problem for squares with holes",
+        "doi": null,
+        "year": 2019,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.7511
+      },
+      {
+        "corpus_id": "54061154",
+        "title": "The UVES Spectral Quasar Absorption Database (SQUAD) Data Release 1: The first 10 million seconds",
+        "doi": "10.1093/mnras/sty2834",
+        "year": 2018,
+        "venue": "arXiv",
+        "citation_count": 59,
+        "relevance_score": 0.6725
+      },
+      {
+        "corpus_id": "249443252",
+        "title": "SQUAD: Combining Sketching and Sampling Is Better than Either for Per-item Quantile Estimation",
+        "doi": null,
+        "year": 2022,
+        "venue": "arXiv",
+        "citation_count": 9,
+        "relevance_score": 0.6702
+      },
+      {
+        "corpus_id": "283055181",
+        "title": "SQuaD: The Software Quality Dataset",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.6642
+      },
+      {
+        "corpus_id": "3177169",
+        "title": "Signal Machine And Cellular Automaton Time-Optimal Quasi-Solutions Of The Firing Squad/Mob Synchronisation Problem On Connected Graphs",
+        "doi": null,
+        "year": 2017,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.6485
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 3,
+      "latency_ms": 8988.49,
+      "token_usage": {
+        "total_tokens": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": "openalex: circuit_open"
+  },
+  {
+    "case_id": "specific_39",
+    "query": "the SPIKE paper",
+    "optimized_query": "SPIKE | SPIKE | SPIKE",
+    "results": [
+      {
+        "corpus_id": "119326586",
+        "title": "On the structure of spikes",
+        "doi": null,
+        "year": 2018,
+        "venue": "arXiv",
+        "citation_count": 1,
+        "relevance_score": 0.7557
+      },
+      {
+        "corpus_id": "62830237",
+        "title": "Estimation of the number of spikes using a generalized spike population model and application to RNA-seq data",
+        "doi": null,
+        "year": 2018,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.7493
+      },
+      {
+        "corpus_id": "268987335",
+        "title": "Spike-driven Transformer V2: Meta Spiking Neural Network Architecture Inspiring the Design of Next-generation Neuromorphic Chips",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 177,
+        "relevance_score": 0.7096
+      },
+      {
+        "corpus_id": "274776507",
+        "title": "High-speed and High-quality Vision Reconstruction of Spike Camera with Spike Stability Theorem",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 2,
+        "relevance_score": 0.672
+      },
+      {
+        "corpus_id": "271874482",
+        "title": "Fast computation of the statistical significance test for spatio-temporal receptive field estimates obtained using spike-triggered averaging of binary pseudo-random sequences",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.6619
+      },
+      {
+        "corpus_id": "271533427",
+        "title": "To Spike or Not to Spike, that is the Question",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.6619
+      },
+      {
+        "corpus_id": "268358470",
+        "title": "Finding Visual Saliency in Continuous Spike Stream",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 8,
+        "relevance_score": 0.5971
+      },
+      {
+        "corpus_id": "266162449",
+        "title": "Ternary Spike: Learning Ternary Spikes for Spiking Neural Networks",
+        "doi": null,
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 81,
+        "relevance_score": 0.6153
+      },
+      {
+        "corpus_id": "235670229",
+        "title": "Spiking-GAN: A Spiking Generative Adversarial Network Using Time-To-First-Spike Coding",
+        "doi": null,
+        "year": 2021,
+        "venue": "arXiv",
+        "citation_count": 22,
+        "relevance_score": 0.5995
+      },
+      {
+        "corpus_id": "7320553",
+        "title": "A Neuromorphic VLSI Design for Spike Timing and Rate Based Synaptic Plasticity",
+        "doi": "10.1016/j.neunet.2013.03.003",
+        "year": 2013,
+        "venue": "arXiv",
+        "citation_count": 59,
+        "relevance_score": 0.5954
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 3,
+      "latency_ms": 9085.68,
+      "token_usage": {
+        "total_tokens": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": "openalex: circuit_open"
+  },
+  {
+    "case_id": "specific_44",
+    "query": "SPIKE syntactic search paper",
+    "optimized_query": "SPIKE syntactic search | SPIKE syntactic search | SPIKE syntactic search",
+    "results": [
+      {
+        "corpus_id": null,
+        "title": "Syntactic Search by Example",
+        "doi": "10.18653/v1/2020.acl-demos.3",
+        "year": 2020,
+        "venue": "Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics: System Demonstrations",
+        "citation_count": 10,
+        "relevance_score": 0.3969
+      },
+      {
+        "corpus_id": null,
+        "title": "Framing the Possibility Space for Technosignature Searches",
+        "doi": null,
+        "year": 2026,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.3019
+      },
+      {
+        "corpus_id": null,
+        "title": "Syntactic Processing Using the Generalized Perceptron and Beam Search",
+        "doi": "10.1162/coli_a_00037",
+        "year": 2011,
+        "venue": "Computational Linguistics",
+        "citation_count": 79,
+        "relevance_score": 0.354
+      },
+      {
+        "corpus_id": null,
+        "title": "Syntactic Code Search with Sequence-to-Tree Matching: Supporting Syntactic Search with Incomplete Code Fragments",
+        "doi": "10.1145/3656460",
+        "year": 2024,
+        "venue": "Proceedings of the ACM on Programming Languages",
+        "citation_count": 2,
+        "relevance_score": 0.3069
+      },
+      {
+        "corpus_id": null,
+        "title": "Syntactic Patterns Improve Information Extraction for Medical Search",
+        "doi": null,
+        "year": 2018,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.3205
+      },
+      {
+        "corpus_id": null,
+        "title": "A PyTorch-Compatible Spike Encoding Framework for Energy-Efficient Neuromorphic Applications",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2723
+      },
+      {
+        "corpus_id": null,
+        "title": "RPF-Search: Field-based Search for Robot Person Following in Unknown Dynamic Environments",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2723
+      },
+      {
+        "corpus_id": null,
+        "title": "Search for optimal measure for discriminating spike trains with different randomness",
+        "doi": null,
+        "year": 2005,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2751
+      },
+      {
+        "corpus_id": null,
+        "title": "Dep-Search: Learning Dependency-Aware Reasoning Traces with Persistent Memory",
+        "doi": null,
+        "year": 2026,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2625
+      },
+      {
+        "corpus_id": null,
+        "title": "A Case-Driven Multi-Agent Framework for E-Commerce Search Relevance",
+        "doi": null,
+        "year": 2026,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2625
+      },
+      {
+        "corpus_id": null,
+        "title": "DocArena: Turning Raw Documents into Controllable Training Environments for Document Search Agents",
+        "doi": null,
+        "year": 2026,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2625
+      },
+      {
+        "corpus_id": null,
+        "title": "SPIKE-RL: Video-LLMs meet Bayesian Surprise",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.233
+      },
+      {
+        "corpus_id": null,
+        "title": "Neural Architecture Search for Spiking Neural Networks",
+        "doi": null,
+        "year": 2022,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2659
+      },
+      {
+        "corpus_id": null,
+        "title": "spike: A tool to drizzle HST, JWST, and Roman PSFs for improved analyses",
+        "doi": "10.21105/joss.08200",
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.233
+      },
+      {
+        "corpus_id": null,
+        "title": "OTESGN: Optimal Transport-Enhanced Syntactic-Semantic Graph Networks for Aspect-Based Sentiment Analysis",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.233
+      },
+      {
+        "corpus_id": null,
+        "title": "Google Translate search strategies used by learners of Spanish L3: A complex lexico-morpho-syntactic weave of trial and error",
+        "doi": "10.22201/enallt.01852647p.2021.72.926",
+        "year": 2021,
+        "venue": "Estudios de Lingüística Aplicada",
+        "citation_count": 2,
+        "relevance_score": 0.2458
+      },
+      {
+        "corpus_id": null,
+        "title": "SPIKE: An Adaptive Dual Controller Framework for Cost-Efficient Long-Horizon Game Agents",
+        "doi": null,
+        "year": 2026,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2625
+      },
+      {
+        "corpus_id": null,
+        "title": "Search Arena: Analyzing Search-Augmented LLMs",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.233
+      },
+      {
+        "corpus_id": null,
+        "title": "MMSearch-R1: Incentivizing LMMs to Search",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.233
+      },
+      {
+        "corpus_id": null,
+        "title": "A statistical significance test for spatio-temporal receptive field estimates obtained using spike-triggered averaging of binary pseudo-random sequences",
+        "doi": "10.1007/s11760-023-02603-1",
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2122
+      },
+      {
+        "corpus_id": null,
+        "title": "Cognitive archaeology: in search of the earliest syntactic language-users in Himalaya",
+        "doi": "10.3126/gipan.v4i0.35452",
+        "year": 2019,
+        "venue": "Gipan",
+        "citation_count": 0,
+        "relevance_score": 0.2443
+      },
+      {
+        "corpus_id": null,
+        "title": "Is syntactic knowledge probabilistic? Experiments\n      with the English dative alternation",
+        "doi": "10.1515/9783110198621.75",
+        "year": 2007,
+        "venue": "Roots",
+        "citation_count": 166,
+        "relevance_score": 0.2233
+      },
+      {
+        "corpus_id": null,
+        "title": "Machine learning of syntactic parse trees for search and classification of text",
+        "doi": "10.1016/j.engappai.2012.09.017",
+        "year": 2013,
+        "venue": "Engineering Applications of Artificial Intelligence",
+        "citation_count": 27,
+        "relevance_score": 0.245
+      },
+      {
+        "corpus_id": null,
+        "title": "A Joint Multitask Model for Morpho-Syntactic Parsing",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.233
+      },
+      {
+        "corpus_id": null,
+        "title": "Bootstrapping Relation Extractors using Syntactic Search by Examples",
+        "doi": null,
+        "year": 2021,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2924
+      },
+      {
+        "corpus_id": null,
+        "title": "Search-TTA: A Multimodal Test-Time Adaptation Framework for Visual Search in the Wild",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.233
+      },
+      {
+        "corpus_id": null,
+        "title": "Breadth-first search strategies for trie-based syntactic pattern recognition",
+        "doi": "10.1007/s10044-006-0032-z",
+        "year": 2007,
+        "venue": "Pattern Analysis and Applications",
+        "citation_count": 4,
+        "relevance_score": 0.2435
+      },
+      {
+        "corpus_id": null,
+        "title": "Optimizing Airbnb Search Journey with Multi-task Learning",
+        "doi": "10.1145/3580305.3599881",
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2369
+      },
+      {
+        "corpus_id": null,
+        "title": "Semi-Supervised Record Linkage for Construction of Large-Scale Sociocentric Networks in Resource-limited Settings: An application to the SEARCH Study in Rural Uganda and Kenya",
+        "doi": null,
+        "year": 2019,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2105
+      },
+      {
+        "corpus_id": null,
+        "title": "Syntactic Cut-Elimination for Intuitionistic Fuzzy Logic via Linear Nested Sequents",
+        "doi": "10.1007/978-3-030-36755-8_11",
+        "year": 2019,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2105
+      },
+      {
+        "corpus_id": null,
+        "title": "ManuSearch: Democratizing Deep Search in Large Language Models with a Transparent and Open Multi-Agent Framework",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.233
+      },
+      {
+        "corpus_id": null,
+        "title": "Spike-driven Transformer V2: Meta Spiking Neural Network Architecture Inspiring the Design of Next-generation Neuromorphic Chips",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2122
+      },
+      {
+        "corpus_id": null,
+        "title": "Integrated Semantic–Syntactic Video Modeling for Search and Browsing",
+        "doi": "10.1109/tmm.2004.837238",
+        "year": 2004,
+        "venue": "IEEE Transactions on Multimedia",
+        "citation_count": 26,
+        "relevance_score": 0.2429
+      },
+      {
+        "corpus_id": null,
+        "title": "Search Strategies in Syntactic Reanalysis",
+        "doi": "10.1023/a:1005145028351",
+        "year": 2000,
+        "venue": "Journal of Psycholinguistic Research",
+        "citation_count": 5,
+        "relevance_score": 0.2488
+      },
+      {
+        "corpus_id": null,
+        "title": "Syntactic Surprisal From Neural Models Predicts, But Underestimates, Human Processing Difficulty From Syntactic Ambiguities",
+        "doi": null,
+        "year": 2022,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1872
+      },
+      {
+        "corpus_id": null,
+        "title": "Automating Agential Reasoning: Proof-Calculi and Syntactic Decidability for STIT Logics",
+        "doi": "10.1007/978-3-030-33792-6_13",
+        "year": 2019,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2105
+      },
+      {
+        "corpus_id": null,
+        "title": "A Neuromorphic VLSI Design for Spike Timing and Rate Based Synaptic Plasticity",
+        "doi": "10.1016/j.neunet.2013.03.003",
+        "year": 2013,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2029
+      },
+      {
+        "corpus_id": null,
+        "title": "Tree Search for Language Model Agents",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2122
+      },
+      {
+        "corpus_id": null,
+        "title": "What Users See - Structures in Search Engine Results Pages",
+        "doi": null,
+        "year": 2015,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.204
+      },
+      {
+        "corpus_id": null,
+        "title": "HMCNAS: Neural Architecture Search using Hidden Markov Chains and Bayesian Optimization",
+        "doi": null,
+        "year": 2020,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2141
+      },
+      {
+        "corpus_id": null,
+        "title": "Learning with Spike Synchrony in Spiking Neural Networks",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.233
+      },
+      {
+        "corpus_id": null,
+        "title": "Problems with the use of Web search engines to find results in foreign languages",
+        "doi": null,
+        "year": 2015,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.204
+      },
+      {
+        "corpus_id": null,
+        "title": "Transfer learning of syntactic structures for building taxonomies for search engines",
+        "doi": "10.1016/j.engappai.2013.08.010",
+        "year": 2013,
+        "venue": "Engineering Applications of Artificial Intelligence",
+        "citation_count": 24,
+        "relevance_score": 0.2416
+      },
+      {
+        "corpus_id": null,
+        "title": "Variant-driven multi-wave pattern of COVID-19 via a Machine Learning analysis of spike protein mutations",
+        "doi": null,
+        "year": 2021,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1799
+      },
+      {
+        "corpus_id": null,
+        "title": "Syntactic Features and the Limits of Syntactic Change",
+        "doi": "10.1093/oso/9780198832584.001.0001",
+        "year": 2021,
+        "venue": null,
+        "citation_count": 3,
+        "relevance_score": 0.2099
+      },
+      {
+        "corpus_id": null,
+        "title": "Comparative Study of Syntactic Search Engine and Semantic Search Engine: A Survey",
+        "doi": "10.1109/iconstem.2019.8918837",
+        "year": 2019,
+        "venue": "2019 Fifth International Conference on Science Technology Engineering and Mathematics (ICONSTEM)",
+        "citation_count": 11,
+        "relevance_score": 0.2277
+      },
+      {
+        "corpus_id": null,
+        "title": "Joint Modeling and Optimization of Search and Recommendation",
+        "doi": null,
+        "year": 2018,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.208
+      },
+      {
+        "corpus_id": null,
+        "title": "Quantum Architecture Search with Unsupervised Representation Learning",
+        "doi": "10.22331/q-2026-02-03-1994",
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2122
+      },
+      {
+        "corpus_id": null,
+        "title": "Spike detection using a syntactic pattern recognition approach",
+        "doi": "10.1109/iembs.1989.96473",
+        "year": 2003,
+        "venue": "Images of the Twenty-First Century. Proceedings of the Annual International Engineering in Medicine and Biology Society",
+        "citation_count": 4,
+        "relevance_score": 0.1935
+      },
+      {
+        "corpus_id": null,
+        "title": "Complementary Pocket and Network-Based Approach to Search for Spike Protein Allosteric Pocket Sites",
+        "doi": "10.1021/acsomega.3c04007.s001",
+        "year": 2023,
+        "venue": null,
+        "citation_count": 0,
+        "relevance_score": 0.1812
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 3,
+      "latency_ms": 8690.36,
+      "token_usage": {
+        "total_tokens": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": "openalex: circuit_open; semantic_scholar_batch: HTTP 429: "
+  },
+  {
+    "case_id": "metadata_4",
+    "query": "a Nature portfolio papers by David Harel",
+    "optimized_query": "Nature portfolio David Harel | Nature portfolio David Harel | Nature portfolio David Harel",
+    "results": [
+      {
+        "corpus_id": null,
+        "title": "Performance Evaluation of Equal-Weight Portfolio and Optimum Risk Portfolio on Indian Stocks",
+        "doi": null,
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.3339
+      },
+      {
+        "corpus_id": null,
+        "title": "Switching Portfolios",
+        "doi": null,
+        "year": 2013,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.3169
+      },
+      {
+        "corpus_id": null,
+        "title": "DAViD: Modeling Dynamic Affordance of 3D Objects Using Pre-trained Video Diffusion Models",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2888
+      },
+      {
+        "corpus_id": null,
+        "title": "The Sherman-Morrison-Markowitz Portfolio",
+        "doi": null,
+        "year": 2026,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2912
+      },
+      {
+        "corpus_id": null,
+        "title": "Enhancing Primary Teacher Training through Academic Portfolios in Advanced Mathematics Courses",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2888
+      },
+      {
+        "corpus_id": null,
+        "title": "Adjust factor with volatility model using MAXFLAT low-pass filter and construct portfolio in China A share market",
+        "doi": null,
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2843
+      },
+      {
+        "corpus_id": null,
+        "title": "Class of topological portfolios: Are they better than classical portfolios?",
+        "doi": null,
+        "year": 2026,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2912
+      },
+      {
+        "corpus_id": null,
+        "title": "Wasserstein-Kelly Portfolios: A Robust Data-Driven Solution to Optimize Portfolio Growth",
+        "doi": null,
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2843
+      },
+      {
+        "corpus_id": null,
+        "title": "Deep Stock Trading: A Hierarchical Reinforcement Learning Framework for Portfolio Optimization and Order Execution",
+        "doi": null,
+        "year": 2020,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2783
+      },
+      {
+        "corpus_id": null,
+        "title": "Cross-validated covariance estimators for high-dimensional minimum-variance portfolios",
+        "doi": "10.1007/s11408-020-00376-y",
+        "year": 2019,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2765
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 5,
+      "latency_ms": 14858.48,
+      "token_usage": {
+        "total_tokens": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": "openalex: circuit_open; semantic_scholar_match: HTTP 404: Not Found; semantic_scholar_batch: HTTP 429: "
+  },
+  {
+    "case_id": "metadata_14",
+    "query": "NAACL 2010 or 2012 papers co-authored by one of the authors of the \"BERT\" paper and at least one additional author",
+    "optimized_query": "NAACL co-authored one authors BERT least additional author | NAACL co-authored one authors BERT least additional author | NAACL co-authored one authors BERT least additional author",
+    "results": [
+      {
+        "corpus_id": null,
+        "title": "How do Authors' Perceptions of their Papers Compare with Co-authors' Perceptions and Peer-review Decisions?",
+        "doi": null,
+        "year": 2022,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.5405
+      },
+      {
+        "corpus_id": null,
+        "title": "Assessing Co-Authored Papers in Tenure Decisions: Implications for Research Independence and Career Strategies in Economics",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.5024
+      },
+      {
+        "corpus_id": null,
+        "title": "Formation of subject area and the co-authors network by sounding of Google Scholar Citations service",
+        "doi": null,
+        "year": 2016,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.4986
+      },
+      {
+        "corpus_id": null,
+        "title": "Assessing the true role of coauthors in the h-index measure of an author scientific impact",
+        "doi": "10.1016/j.physa.2014.12.004",
+        "year": 2015,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.4412
+      },
+      {
+        "corpus_id": null,
+        "title": "Intellectual and social similarity among scholarly journals: an exploratory comparison of the networks of editors, authors and co-citations",
+        "doi": "10.1162/qss_a_00006",
+        "year": 2019,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.4901
+      },
+      {
+        "corpus_id": null,
+        "title": "Crediting multi-authored papers to single authors",
+        "doi": "10.1016/j.physa.2020.124652",
+        "year": 2019,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.4476
+      },
+      {
+        "corpus_id": null,
+        "title": "AgentPack: A Dataset of Code Changes, Co-Authored by Agents and Humans",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.4711
+      },
+      {
+        "corpus_id": null,
+        "title": "Do central country authors of international co-authored publication networks obtain a high research impact?",
+        "doi": "10.22452/mjlis.vol22no3.1",
+        "year": 2017,
+        "venue": "Malaysian Journal of Library and Information Science",
+        "citation_count": 2,
+        "relevance_score": 0.4595
+      },
+      {
+        "corpus_id": null,
+        "title": "Characterising authors on the extent of their paper acceptance: A case study of the Journal of High Energy Physics",
+        "doi": "10.1145/3383583.3398527",
+        "year": 2020,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.4338
+      },
+      {
+        "corpus_id": null,
+        "title": "Measuring institutional research productivity for the life sciences: the importance of accounting for the order of authors in the byline",
+        "doi": "10.1007/s11192-013-1013-9",
+        "year": 2018,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.428
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 5,
+      "latency_ms": 11498.47,
+      "token_usage": {
+        "total_tokens": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": "openalex: circuit_open; semantic_scholar_match: HTTP 429: ; semantic_scholar_batch: HTTP 429: "
+  },
+  {
+    "case_id": "metadata_15",
+    "query": "Claire Cardie ACL papers published at 2014 or 2017",
+    "optimized_query": "Claire Cardie ACL published | Claire Cardie ACL published | Claire Cardie ACL published",
+    "results": [
+      {
+        "corpus_id": null,
+        "title": "Corpus Poisoning via Approximate Greedy Gradient Descent",
+        "doi": "10.18653/v1/2025.findings-acl.222",
+        "year": 2025,
+        "venue": "Findings of the Association for Computational Linguistics: ACL 2025",
+        "citation_count": 2,
+        "relevance_score": 0.4953
+      },
+      {
+        "corpus_id": null,
+        "title": "Better LLM Reasoning via Dual-Play",
+        "doi": "10.18653/v1/2026.findings-acl.1752",
+        "year": 2026,
+        "venue": "Findings of the Association for Computational Linguistics: ACL 2026",
+        "citation_count": 0,
+        "relevance_score": 0.435
+      },
+      {
+        "corpus_id": null,
+        "title": "Improving machine learning approaches to coreference resolution",
+        "doi": "10.3115/1073083.1073102",
+        "year": 2001,
+        "venue": "Proceedings of the 40th Annual Meeting on Association for Computational Linguistics  - ACL '02",
+        "citation_count": 156,
+        "relevance_score": 0.3966
+      },
+      {
+        "corpus_id": null,
+        "title": "Overview of the 2014 NLP Unshared Task in PoliInformatics",
+        "doi": "10.3115/v1/w14-2505",
+        "year": 2014,
+        "venue": "Proceedings of the ACL 2014 Workshop on Language Technologies and Computational Social Science",
+        "citation_count": 1,
+        "relevance_score": 0.3646
+      },
+      {
+        "corpus_id": null,
+        "title": "GSM-Noise: Exploring and Enhancing Large Language Models’ Reasoning under Noisy Inputs",
+        "doi": "10.18653/v1/2026.findings-acl.1748",
+        "year": 2026,
+        "venue": "Findings of the Association for Computational Linguistics: ACL 2026",
+        "citation_count": 0,
+        "relevance_score": 0.3825
+      },
+      {
+        "corpus_id": null,
+        "title": "Leveraging Topic Relatedness for Argument Persuasion",
+        "doi": "10.18653/v1/2021.findings-acl.386",
+        "year": 2021,
+        "venue": "Findings of the Association for Computational Linguistics: ACL-IJCNLP 2021",
+        "citation_count": 1,
+        "relevance_score": 0.348
+      },
+      {
+        "corpus_id": null,
+        "title": "Conundrums in noun phrase coreference resolution",
+        "doi": "10.3115/1690219.1690238",
+        "year": 2009,
+        "venue": "Proceedings of the Joint Conference of the 47th Annual Meeting of the ACL and the 4th International Joint Conference on Natural Language Processing of the AFNLP: Volume 2 - ACL-IJCNLP '09",
+        "citation_count": 34,
+        "relevance_score": 0.363
+      },
+      {
+        "corpus_id": null,
+        "title": "Selecting sentences for multidocument summaries using randomized local search",
+        "doi": "10.3115/1118162.1118164",
+        "year": 2002,
+        "venue": "Proceedings of the ACL-02 Workshop on Automatic Summarization  -",
+        "citation_count": 4,
+        "relevance_score": 0.3188
+      },
+      {
+        "corpus_id": null,
+        "title": "Combining sample selection and error-driven pruning for machine learning of coreference rules",
+        "doi": "10.3115/1118693.1118701",
+        "year": 2002,
+        "venue": "Proceedings of the ACL-02 conference on Empirical methods in natural language processing  - EMNLP '02",
+        "citation_count": 13,
+        "relevance_score": 0.3421
+      },
+      {
+        "corpus_id": null,
+        "title": "Event Extraction by Answering (Almost) Natural Questions",
+        "doi": "10.18653/v1/2020.emnlp-main.49",
+        "year": 2020,
+        "venue": "Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)",
+        "citation_count": 229,
+        "relevance_score": 0.2524
+      },
+      {
+        "corpus_id": null,
+        "title": "CLIPer: Tailoring Diverse User Preference via Classifier-Guided Inference-Time Personalization",
+        "doi": null,
+        "year": 2026,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.25
+      },
+      {
+        "corpus_id": null,
+        "title": "Good Intentions Beyond ACL: Who Does NLP for Social Good, and Where?",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2555
+      },
+      {
+        "corpus_id": null,
+        "title": "Automating Conflict-Aware ACL Configurations with Natural Language Intents",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.238
+      },
+      {
+        "corpus_id": null,
+        "title": "CARDIE: clustering algorithm on relevant descriptors for image enhancement",
+        "doi": "10.1117/1.JEI.34.4.043043",
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.238
+      },
+      {
+        "corpus_id": null,
+        "title": "The ACL OCL Corpus: Advancing Open Science in Computational Linguistics",
+        "doi": null,
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2525
+      },
+      {
+        "corpus_id": null,
+        "title": "Fast or Better? Balancing Accuracy and Cost in Retrieval-Augmented Generation with Flexible User Control",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2205
+      },
+      {
+        "corpus_id": null,
+        "title": "How Far Are We From True Auto-Research?",
+        "doi": null,
+        "year": 2026,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2025
+      },
+      {
+        "corpus_id": null,
+        "title": "Annotating Expressions of Opinions and Emotions in Language",
+        "doi": "10.1007/s10579-005-7880-9",
+        "year": 2005,
+        "venue": "Language Resources and Evaluation",
+        "citation_count": 771,
+        "relevance_score": 0.2326
+      },
+      {
+        "corpus_id": null,
+        "title": "CLAIRE -- Parallelized Diffeomorphic Image Registration for Large-Scale Biomedical Imaging Applications",
+        "doi": null,
+        "year": 2022,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2247
+      },
+      {
+        "corpus_id": null,
+        "title": "HAPO: Training Language Models to Reason Concisely via History-Aware Policy Optimization",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2205
+      },
+      {
+        "corpus_id": null,
+        "title": "ACL Anthology Helper: A Tool to Retrieve and Manage Literature from ACL Anthology",
+        "doi": null,
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.22
+      },
+      {
+        "corpus_id": null,
+        "title": "Bootstrapping Post-training Signals for Open-ended Tasks via Rubric-based Self-play on Pre-training Text",
+        "doi": null,
+        "year": 2026,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2175
+      },
+      {
+        "corpus_id": null,
+        "title": "Dialogue-Based Relation Extraction",
+        "doi": "10.18653/v1/2020.acl-main.444",
+        "year": 2020,
+        "venue": "Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics",
+        "citation_count": 46,
+        "relevance_score": 0.2166
+      },
+      {
+        "corpus_id": null,
+        "title": "Towards More Robust Retrieval-Augmented Generation: Evaluating RAG Under Adversarial Poisoning Attacks",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1997
+      },
+      {
+        "corpus_id": null,
+        "title": "MovieRecapsQA: A Multimodal Open-Ended Video Question-Answering Benchmark",
+        "doi": null,
+        "year": 2026,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.185
+      },
+      {
+        "corpus_id": null,
+        "title": "A Piece of My Mind: A Sentiment Analysis Approach for Online Dispute Detection",
+        "doi": "10.3115/v1/p14-2113",
+        "year": 2014,
+        "venue": "Proceedings of the 52nd Annual Meeting of the Association for Computational Linguistics (Volume 2: Short Papers)",
+        "citation_count": 17,
+        "relevance_score": 0.1842
+      },
+      {
+        "corpus_id": null,
+        "title": "ClaiRE at SemEval-2018 Task 7 - Extended Version",
+        "doi": null,
+        "year": 2018,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1736
+      },
+      {
+        "corpus_id": null,
+        "title": "Document-Level Event Role Filler Extraction using Multi-Granularity Contextualized Encoding",
+        "doi": "10.18653/v1/2020.acl-main.714",
+        "year": 2020,
+        "venue": "Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics",
+        "citation_count": 61,
+        "relevance_score": 0.1904
+      },
+      {
+        "corpus_id": null,
+        "title": "WikiLingua: A New Benchmark Dataset for Cross-Lingual Abstractive Summarization",
+        "doi": "10.18653/v1/2020.findings-emnlp.360",
+        "year": 2020,
+        "venue": "Findings of the Association for Computational Linguistics: EMNLP 2020",
+        "citation_count": 65,
+        "relevance_score": 0.1718
+      },
+      {
+        "corpus_id": null,
+        "title": "Modeling Compositionality with Multiplicative Recurrent Neural Networks",
+        "doi": null,
+        "year": 2014,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.169
+      },
+      {
+        "corpus_id": null,
+        "title": "Pairs in discrete lattice orbits with applications to Veech surfaces",
+        "doi": "10.4171/jems/1563",
+        "year": 2022,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1747
+      },
+      {
+        "corpus_id": null,
+        "title": "Reasoning Court: Combining Reasoning, Action, and Judgment for Multi-Hop Reasoning",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.188
+      },
+      {
+        "corpus_id": null,
+        "title": "Comparing Published Scientific Journal Articles to Their Pre-print Versions",
+        "doi": null,
+        "year": 2016,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1555
+      },
+      {
+        "corpus_id": null,
+        "title": "Faithful or Extractive? On Mitigating the Faithfulness-Abstractiveness Trade-off in Abstractive Summarization",
+        "doi": null,
+        "year": 2021,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1674
+      },
+      {
+        "corpus_id": null,
+        "title": "Between Underthinking and Overthinking: An Empirical Study of Reasoning Length and correctness in LLMs",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.188
+      },
+      {
+        "corpus_id": null,
+        "title": "Guest Editors' Introduction: Machine Learning and Natural Language",
+        "doi": "10.1023/a:1007580931600",
+        "year": 1999,
+        "venue": "Machine Learning",
+        "citation_count": 20,
+        "relevance_score": 0.1837
+      },
+      {
+        "corpus_id": null,
+        "title": "MASH: Modeling Abstention via Selective Help-Seeking",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1555
+      },
+      {
+        "corpus_id": null,
+        "title": "Unsupervised Multilingual Word Embeddings",
+        "doi": "10.18653/v1/d18-1024",
+        "year": 2018,
+        "venue": "Proceedings of the 2018 Conference on Empirical Methods in Natural Language Processing",
+        "citation_count": 45,
+        "relevance_score": 0.125
+      },
+      {
+        "corpus_id": null,
+        "title": "Abductive Commonsense Reasoning Exploiting Mutually Exclusive Explanations",
+        "doi": null,
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1525
+      },
+      {
+        "corpus_id": null,
+        "title": "A Cognitive Bias Approach to Feature Selection and Weighting for Case-Based Learners",
+        "doi": "10.1023/a:1007665204628",
+        "year": 2000,
+        "venue": "Machine Learning",
+        "citation_count": 9,
+        "relevance_score": 0.167
+      },
+      {
+        "corpus_id": null,
+        "title": "Variation of Stable Birational Types of Hypersurfaces",
+        "doi": null,
+        "year": 2019,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1436
+      },
+      {
+        "corpus_id": null,
+        "title": "A Sentence Compression Based Framework to Query-Focused Multi-Document Summarization",
+        "doi": null,
+        "year": 2016,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.153
+      },
+      {
+        "corpus_id": null,
+        "title": "Identifying Appropriate Support for Propositions in Online User Comments",
+        "doi": "10.3115/v1/w14-2105",
+        "year": 2014,
+        "venue": "Proceedings of the First Workshop on Argumentation Mining",
+        "citation_count": 44,
+        "relevance_score": 0.1524
+      },
+      {
+        "corpus_id": null,
+        "title": "Timeline Generation: Tracking individuals on Twitter",
+        "doi": null,
+        "year": 2013,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1361
+      },
+      {
+        "corpus_id": null,
+        "title": "Automatic Error Analysis for Document-level Information Extraction",
+        "doi": "10.18653/v1/2022.acl-long.274",
+        "year": 2022,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1747
+      },
+      {
+        "corpus_id": null,
+        "title": "Error-driven pruning of Treebank grammars for base noun phrase identification",
+        "doi": "10.3115/980845.980881",
+        "year": 1998,
+        "venue": "Proceedings of the 36th annual meeting on Association for Computational Linguistics  -",
+        "citation_count": 7,
+        "relevance_score": 0.1969
+      },
+      {
+        "corpus_id": null,
+        "title": "Learning to Ask: Neural Question Generation for Reading Comprehension",
+        "doi": null,
+        "year": 2017,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1543
+      },
+      {
+        "corpus_id": null,
+        "title": "Improving Event Duration Prediction via Time-aware Pre-training",
+        "doi": "10.18653/v1/2020.findings-emnlp.302",
+        "year": 2020,
+        "venue": "Findings of the Association for Computational Linguistics: EMNLP 2020",
+        "citation_count": 3,
+        "relevance_score": 0.161
+      },
+      {
+        "corpus_id": null,
+        "title": "Joint extraction of entities and relations for opinion recognition",
+        "doi": "10.3115/1610075.1610136",
+        "year": 2006,
+        "venue": "Proceedings of the 2006 Conference on Empirical Methods in Natural Language Processing - EMNLP '06",
+        "citation_count": 56,
+        "relevance_score": 0.1563
+      },
+      {
+        "corpus_id": null,
+        "title": "Multi-Hop Question Answering: When Can Humans Help, and Where do They Struggle?",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1555
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 4,
+      "latency_ms": 9972.76,
+      "token_usage": {
+        "total_tokens": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": "openalex: HTTP 503: Service Unavailable; semantic_scholar_batch: HTTP 429: "
+  },
+  {
+    "case_id": "metadata_25",
+    "query": "Papers citing the DistilBERT paper after 2022 with more than 50 citations",
+    "optimized_query": "citing DistilBERT citations | citing DistilBERT citations | citing DistilBERT citations",
+    "results": [
+      {
+        "corpus_id": "277104405",
+        "title": "Self-Citations in Academic Excellence: Analysis of the Top 1% Highly Cited India-Affiliated Research Papers",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 2,
+        "relevance_score": 0.5744
+      },
+      {
+        "corpus_id": "270619578",
+        "title": "Learning to Generate Answers with Citations via Factual Consistency Models",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 13,
+        "relevance_score": 0.5438
+      },
+      {
+        "corpus_id": "273345976",
+        "title": "HLM-Cite: Hybrid Language Model Workflow for Text-based Scientific Citation Prediction",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 18,
+        "relevance_score": 0.5027
+      },
+      {
+        "corpus_id": "282057805",
+        "title": "Lightweight Baselines for Medical Abstract Classification: DistilBERT with Cross-Entropy as a Strong Default",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 5,
+        "relevance_score": 0.5038
+      },
+      {
+        "corpus_id": "281103820",
+        "title": "The changing role of cited papers over time: An analysis of highly cited papers based on a large full-text dataset",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 2,
+        "relevance_score": 0.5632
+      },
+      {
+        "corpus_id": "270357662",
+        "title": "Streamlining and standardizing software citations with The Software Citation Station",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 10,
+        "relevance_score": 0.5227
+      },
+      {
+        "corpus_id": "287634875",
+        "title": "MasterSet: A Large-Scale Benchmark for Must-Cite Citation Recommendation in the AI/ML Literature",
+        "doi": null,
+        "year": 2026,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.5162
+      },
+      {
+        "corpus_id": "286238732",
+        "title": "How LLMs Cite and Why It Matters: A Cross-Model Audit of Reference Fabrication in AI-Assisted Academic Writing and Methods to Detect Phantom Citations",
+        "doi": null,
+        "year": 2026,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.5031
+      },
+      {
+        "corpus_id": "257365885",
+        "title": "Are self-citations a normal feature of knowledge accumulation?",
+        "doi": null,
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 6,
+        "relevance_score": 0.5135
+      },
+      {
+        "corpus_id": "277313493",
+        "title": "Guarding against artificial intelligence--hallucinated citations: the case for full-text reference deposit",
+        "doi": "10.3897/ese.2025.e153973",
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 2,
+        "relevance_score": 0.4994
+      },
+      {
+        "corpus_id": "282393068",
+        "title": "Citation proximus: the role of social and semantic ties in citing behaviour",
+        "doi": "10.1371/journal.pone.0335366",
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 2,
+        "relevance_score": 0.5126
+      },
+      {
+        "corpus_id": "229293276",
+        "title": "BERTino: an Italian DistilBERT model",
+        "doi": null,
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 20,
+        "relevance_score": 0.4756
+      },
+      {
+        "corpus_id": "247839223",
+        "title": "Cite-seeing and Reviewing: A Study on Citation Bias in Peer Review",
+        "doi": "10.1371/journal.pone.0283980",
+        "year": 2022,
+        "venue": "arXiv",
+        "citation_count": 20,
+        "relevance_score": 0.4934
+      },
+      {
+        "corpus_id": "278789213",
+        "title": "Citation Parsing and Analysis with Language Models",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 4,
+        "relevance_score": 0.5142
+      },
+      {
+        "corpus_id": "258170351",
+        "title": "ChatGPT cites the most-cited articles and journals, relying solely on Google Scholar's citation counts. As a result, AI may amplify the Matthew Effect in environmental science",
+        "doi": null,
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 11,
+        "relevance_score": 0.4746
+      },
+      {
+        "corpus_id": "283438585",
+        "title": "Sentiment Analysis Of Shopee Product Reviews Using Distilbert",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.4605
+      },
+      {
+        "corpus_id": "258108320",
+        "title": "Do \"bad\" citations have \"good\" effects?",
+        "doi": null,
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.4512
+      },
+      {
+        "corpus_id": "288862347",
+        "title": "Citation Grounding: Detecting and Reducing LLM Citation Hallucinations via Legal Citation Graphs",
+        "doi": null,
+        "year": 2026,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.4656
+      },
+      {
+        "corpus_id": "280677044",
+        "title": "Citation accuracy, citation noise, and citation bias: A foundation of citation analysis",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 3,
+        "relevance_score": 0.4842
+      },
+      {
+        "corpus_id": "276580356",
+        "title": "A Unified Model of Text and Citations for Topic-Specific Citation Networks",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.4605
+      },
+      {
+        "corpus_id": null,
+        "title": "Figure 14: Comparison of DistilBERT &amp; XLM-RoBERTa with traditional models.",
+        "doi": "10.7717/peerj-cs.3672/fig-14",
+        "year": 2026,
+        "venue": null,
+        "citation_count": 0,
+        "relevance_score": 0.3988
+      },
+      {
+        "corpus_id": null,
+        "title": "Table 13: Per-class F1-scores for DistilBERT across all domains.",
+        "doi": "10.7717/peerj-cs.3641/table-13",
+        "year": 2026,
+        "venue": null,
+        "citation_count": 0,
+        "relevance_score": 0.3744
+      },
+      {
+        "corpus_id": "274131581",
+        "title": "A Bibliometric Analysis of Highly Cited Artificial Intelligence Publications in Science Citation Index Expanded",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.4153
+      },
+      {
+        "corpus_id": null,
+        "title": "&lt;p&gt;On Citing &lt;em&gt;Van Gend &lt;/em&gt;&amp; Citing it Correctly&lt;/p&gt;",
+        "doi": "10.59704/fe0e7c25d550e92b",
+        "year": 2024,
+        "venue": null,
+        "citation_count": 0,
+        "relevance_score": 0.3503
+      },
+      {
+        "corpus_id": null,
+        "title": "Thai tokenizer invariant classification based on bi-lstm and distilbert encoders",
+        "doi": "10.58837/chula.the.2021.113",
+        "year": 2023,
+        "venue": null,
+        "citation_count": 1,
+        "relevance_score": 0.3662
+      },
+      {
+        "corpus_id": null,
+        "title": "Table 7: Results of DistilBERT on both datasets.",
+        "doi": "10.7717/peerj-cs.3672/table-7",
+        "year": 2026,
+        "venue": null,
+        "citation_count": 0,
+        "relevance_score": 0.3744
+      },
+      {
+        "corpus_id": "285271235",
+        "title": "C$^2$-Cite: Contextual-Aware Citation Generation for Attributed Large Language Models",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.3967
+      },
+      {
+        "corpus_id": "257357491",
+        "title": "Sentence Transformers and DistilBERT for Arabic Word Sense Induction",
+        "doi": "10.5220/0011891700003393",
+        "year": 2023,
+        "venue": "Proceedings of the 15th International Conference on Agents and Artificial Intelligence",
+        "citation_count": 5,
+        "relevance_score": 0.3546
+      },
+      {
+        "corpus_id": null,
+        "title": "Algorithm 1: Training multitask MobileBERT/DistilBERT prototypical network.",
+        "doi": "10.7717/peerj-cs.3287/table-4",
+        "year": 2025,
+        "venue": null,
+        "citation_count": 0,
+        "relevance_score": 0.3448
+      },
+      {
+        "corpus_id": null,
+        "title": "Nepali Grievance Classification Using DistilBERT",
+        "doi": "10.2139/ssrn.6149471",
+        "year": 2026,
+        "venue": null,
+        "citation_count": 0,
+        "relevance_score": 0.3744
+      },
+      {
+        "corpus_id": null,
+        "title": "Cited Text Spans for Citation Text Generation",
+        "doi": null,
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.3875
+      },
+      {
+        "corpus_id": null,
+        "title": "Figure 2: DistilBERT architecture of embeddings generation.",
+        "doi": "10.7717/peerj-cs.3672/fig-2",
+        "year": 2026,
+        "venue": null,
+        "citation_count": 0,
+        "relevance_score": 0.3744
+      },
+      {
+        "corpus_id": null,
+        "title": "Figure 12: Results of DistilBERT and XLM-RoBERTa, (A) DistilBERT on Daigt-V4 (B) DistilBERT on LLM-Detect AI-Generated Text dataset (C) XLM-RoBERTa on Daigt-V4 (D) XLM-RoBERTa LLM-Detect AI-Generated text dataset.",
+        "doi": "10.7717/peerj-cs.3672/fig-12",
+        "year": 2026,
+        "venue": null,
+        "citation_count": 0,
+        "relevance_score": 0.3744
+      },
+      {
+        "corpus_id": null,
+        "title": "Re-citing Citing Practices",
+        "doi": "10.3138/9781487559403-022",
+        "year": 2024,
+        "venue": "Vitalizing Vocabulary",
+        "citation_count": 0,
+        "relevance_score": 0.324
+      },
+      {
+        "corpus_id": null,
+        "title": "Table 5: Nemenyi\n                      <i>post-hoc</i>\n                      comparison of domains for DistilBERT.",
+        "doi": "10.7717/peerj-cs.3641/table-5",
+        "year": 2026,
+        "venue": null,
+        "citation_count": 0,
+        "relevance_score": 0.3744
+      },
+      {
+        "corpus_id": "13079316",
+        "title": "Men Set Their Own Cites High: Gender and Self-citation across Fields and over Time",
+        "doi": "10.1177/2378023117738903",
+        "year": 2016,
+        "venue": "arXiv",
+        "citation_count": 380,
+        "relevance_score": 0.3193
+      },
+      {
+        "corpus_id": "50784913",
+        "title": "The negative effects of citing with a national orientation in terms of recognition: National and international citations in natural-sciences papers from Germany, the Netherlands, and the UK",
+        "doi": "10.1016/j.joi.2018.07.009",
+        "year": 2018,
+        "venue": "Journal of Informetrics",
+        "citation_count": 18,
+        "relevance_score": 0.3423
+      },
+      {
+        "corpus_id": null,
+        "title": "Apocalypsis",
+        "doi": "10.5040/9798881810566.ch-1",
+        "year": 2022,
+        "venue": "Diplomatic Para-citations",
+        "citation_count": 0,
+        "relevance_score": 0.2747
+      },
+      {
+        "corpus_id": null,
+        "title": "Supplemental Information 1: DistilBERT Emotion Recognition and Sentiment Analysis Code.",
+        "doi": "10.7717/peerj-cs.3287/supp-1",
+        "year": 2025,
+        "venue": null,
+        "citation_count": 0,
+        "relevance_score": 0.3448
+      },
+      {
+        "corpus_id": null,
+        "title": "Table 8: Textual features only extracted by DistilBERT.",
+        "doi": "10.7717/peerj-cs.2252/table-8",
+        "year": 2024,
+        "venue": null,
+        "citation_count": 0,
+        "relevance_score": 0.324
+      },
+      {
+        "corpus_id": null,
+        "title": "Citations",
+        "doi": "10.1093/oseo/instance.00296882",
+        "year": 2023,
+        "venue": "Livy: The Fragments and Periochae, Vol. 1: Fragments, Citations, Testimonia",
+        "citation_count": 0,
+        "relevance_score": 0.3094
+      },
+      {
+        "corpus_id": "184487447",
+        "title": "What Do Citation Counts Measure? An Updated Review of Studies on Citations in Scientific Documents Published between 2006 and 2018",
+        "doi": null,
+        "year": 2019,
+        "venue": "arXiv",
+        "citation_count": 209,
+        "relevance_score": 0.2967
+      },
+      {
+        "corpus_id": "52289711",
+        "title": "Are all citations worth the same? Valuing citations by the value of the citing items",
+        "doi": "10.1016/j.joi.2019.02.008",
+        "year": 2019,
+        "venue": "Journal of Informetrics",
+        "citation_count": 19,
+        "relevance_score": 0.2861
+      },
+      {
+        "corpus_id": null,
+        "title": "Table 3: The effectiveness of using AMPLIFY on DistilBERT.",
+        "doi": "10.7717/peerjcs.2011/table-3",
+        "year": 2024,
+        "venue": null,
+        "citation_count": 0,
+        "relevance_score": 0.3484
+      },
+      {
+        "corpus_id": null,
+        "title": "A Distilbert-Based Hierarchical Text Classification",
+        "doi": "10.2139/ssrn.4596434",
+        "year": 2023,
+        "venue": null,
+        "citation_count": 0,
+        "relevance_score": 0.3094
+      },
+      {
+        "corpus_id": null,
+        "title": "citing, adj.",
+        "doi": "10.1093/oed/1959812112",
+        "year": 2023,
+        "venue": "Oxford English Dictionary",
+        "citation_count": 0,
+        "relevance_score": 0.3094
+      },
+      {
+        "corpus_id": "268198",
+        "title": "Manipulating Google Scholar Citations and Google Scholar Metrics: simple, easy and tempting",
+        "doi": null,
+        "year": 2012,
+        "venue": "arXiv",
+        "citation_count": 97,
+        "relevance_score": 0.2565
+      },
+      {
+        "corpus_id": "57380027",
+        "title": "A Discussion of citations from the perspective of the contribution of the cited paper to the citing paper",
+        "doi": "10.1002/asi.24066",
+        "year": 2018,
+        "venue": "Journal of the Association for Information Science and Technology",
+        "citation_count": 6,
+        "relevance_score": 0.2814
+      },
+      {
+        "corpus_id": "216212120",
+        "title": "Exploring direct citations between citing publications",
+        "doi": "10.1177/0165551520917654",
+        "year": 2021,
+        "venue": "Journal of Information Science",
+        "citation_count": 9,
+        "relevance_score": 0.2661
+      },
+      {
+        "corpus_id": "4565482",
+        "title": "Core Elements in the Process of Citing Publications: A Conceptual Overview of the Literature",
+        "doi": "10.1016/j.joi.2018.01.002",
+        "year": 2017,
+        "venue": "arXiv",
+        "citation_count": 123,
+        "relevance_score": 0.2772
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 3,
+      "latency_ms": 8623.99,
+      "token_usage": {
+        "total_tokens": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": "openalex: circuit_open"
+  },
+  {
+    "case_id": "metadata_26",
+    "query": "paper citing the T5 paper and the spider paper",
+    "optimized_query": "citing T5 spider | citing T5 spider | citing T5 spider",
+    "results": [
+      {
+        "corpus_id": null,
+        "title": "Fine-Tuned T5 Transformer with LSTM and Spider Monkey Optimizer for Redundancy Reduction in Automatic Question Generation",
+        "doi": "10.1007/s42979-024-02826-0",
+        "year": 2024,
+        "venue": "SN Computer Science",
+        "citation_count": 7,
+        "relevance_score": 0.3385
+      },
+      {
+        "corpus_id": null,
+        "title": "SPIDER: Two Server Functionality for the Cost of Zero",
+        "doi": null,
+        "year": 2026,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.3262
+      },
+      {
+        "corpus_id": null,
+        "title": "Countries’ share in core and citing papers 1999 - 2004 &amp; Ratio of international co-authorship in citing articles 1999 - 2004",
+        "doi": "10.1787/118504387323",
+        "year": 2008,
+        "venue": null,
+        "citation_count": 28,
+        "relevance_score": 0.2964
+      },
+      {
+        "corpus_id": null,
+        "title": "Gamma-ray Orbital Modulation in Spider Pulsars: Three Discoveries and a Universal Modulated Fraction",
+        "doi": "10.3847/1538-4357/ae2ff4",
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2967
+      },
+      {
+        "corpus_id": null,
+        "title": "Brownian Motion on The Spider Like Quantum Graphs",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.3022
+      },
+      {
+        "corpus_id": null,
+        "title": "Spiders and their Kin: An Investigation of Stanley's Chromatic Symmetric Function for Spiders and Related Graphs",
+        "doi": null,
+        "year": 2018,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2811
+      },
+      {
+        "corpus_id": null,
+        "title": "The politics of citing papers",
+        "doi": "10.59350/em0kp-d5817",
+        "year": 2025,
+        "venue": null,
+        "citation_count": 0,
+        "relevance_score": 0.2955
+      },
+      {
+        "corpus_id": null,
+        "title": "A thermodynamic analysis of the spider silk and the importance of complexity",
+        "doi": null,
+        "year": 2017,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.3055
+      },
+      {
+        "corpus_id": null,
+        "title": "A real-time spatio-temporal syndromic surveillance system with application to small companion animals",
+        "doi": "10.1038/s41598-019-53352-6",
+        "year": 2019,
+        "venue": "Scientific Reports",
+        "citation_count": 11,
+        "relevance_score": 0.2481
+      },
+      {
+        "corpus_id": null,
+        "title": "SPIDER: Scalable Physics-Informed Dexterous Retargeting",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.248
+      },
+      {
+        "corpus_id": null,
+        "title": "On the $e$-positivity of trees and spiders",
+        "doi": null,
+        "year": 2020,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2872
+      },
+      {
+        "corpus_id": null,
+        "title": "Bangla Grammatical Error Detection Using T5 Transformer Model",
+        "doi": null,
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2387
+      },
+      {
+        "corpus_id": null,
+        "title": "Graphix-T5: Mixing Pre-Trained Transformers with Graph-Aware Layers for Text-to-SQL Parsing",
+        "doi": null,
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2387
+      },
+      {
+        "corpus_id": null,
+        "title": "A new approach to the $SL_n$ spider",
+        "doi": null,
+        "year": 2018,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2586
+      },
+      {
+        "corpus_id": null,
+        "title": "Citing Data Sets",
+        "doi": "10.64000/sr5dm-f8d66",
+        "year": 2025,
+        "venue": null,
+        "citation_count": 0,
+        "relevance_score": 0.248
+      },
+      {
+        "corpus_id": null,
+        "title": "nanoT5: A PyTorch Framework for Pre-training and Fine-tuning T5-style Models with Limited Resources",
+        "doi": null,
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2612
+      },
+      {
+        "corpus_id": null,
+        "title": "Analysis of Polarized Dust Emission Using Data from the First Flight of SPIDER",
+        "doi": "10.3847/1538-4357/ad900c",
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2759
+      },
+      {
+        "corpus_id": null,
+        "title": "Spiders can be recognized by counting their legs",
+        "doi": null,
+        "year": 2014,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2277
+      },
+      {
+        "corpus_id": null,
+        "title": "Spiders in random environment",
+        "doi": "10.1051/ps/2010008",
+        "year": 2010,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2266
+      },
+      {
+        "corpus_id": null,
+        "title": "Spider networks",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2272
+      },
+      {
+        "corpus_id": null,
+        "title": "On the diameter of the stopped spider process",
+        "doi": null,
+        "year": 2021,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2699
+      },
+      {
+        "corpus_id": null,
+        "title": "Design and pre-flight performance of SPIDER 280 GHz receivers",
+        "doi": "10.1117/12.2562941",
+        "year": 2020,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2385
+      },
+      {
+        "corpus_id": null,
+        "title": "Are Clinical T5 Models Better for Clinical Text?",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2272
+      },
+      {
+        "corpus_id": null,
+        "title": "Ballooning Spiders: The Case for Electrostatic Flight",
+        "doi": null,
+        "year": 2013,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2273
+      },
+      {
+        "corpus_id": null,
+        "title": "Citing is earlier than Cited?",
+        "doi": null,
+        "year": 2020,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.216
+      },
+      {
+        "corpus_id": null,
+        "title": "Sparse Image Reconstruction for the SPIDER Optical Interferometric Telescope",
+        "doi": "10.5220/0010322601040109",
+        "year": 2019,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2349
+      },
+      {
+        "corpus_id": null,
+        "title": "Simulation for Evolution of the Australian Netting Spider PM Eye",
+        "doi": null,
+        "year": 2011,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.253
+      },
+      {
+        "corpus_id": null,
+        "title": "NT5?! Training T5 to Perform Numerical Reasoning",
+        "doi": null,
+        "year": 2021,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1949
+      },
+      {
+        "corpus_id": null,
+        "title": "Spider: Any-to-Many Multimodal LLM",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2272
+      },
+      {
+        "corpus_id": null,
+        "title": "Cooperative effects enhance the transport properties of molecular spider teams",
+        "doi": "10.1103/PhysRevE.87.032706",
+        "year": 2013,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2273
+      },
+      {
+        "corpus_id": null,
+        "title": "Spider Evaluation and Representations of Web Groups",
+        "doi": null,
+        "year": 2017,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2305
+      },
+      {
+        "corpus_id": null,
+        "title": "Spider Solitaire is NP-Complete",
+        "doi": null,
+        "year": 2011,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2043
+      },
+      {
+        "corpus_id": null,
+        "title": "Interactive Query Formulation using Spider Queries",
+        "doi": null,
+        "year": 2021,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1949
+      },
+      {
+        "corpus_id": null,
+        "title": "Giant Surface Plasmon Induced Drag Effect (SPIDEr) in Metal Nanowires",
+        "doi": "10.1117/12.825742",
+        "year": 2009,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1778
+      },
+      {
+        "corpus_id": null,
+        "title": "Adaptive Intelligent Spider Robot",
+        "doi": "10.1109/SPC.2013.6735153",
+        "year": 2018,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2098
+      },
+      {
+        "corpus_id": null,
+        "title": "The trace reconstruction problem for spider graphs",
+        "doi": "10.1016/j.disc.2022.113115",
+        "year": 2022,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2509
+      },
+      {
+        "corpus_id": null,
+        "title": "Citing a blog",
+        "doi": "10.63485/x87s8-f7m35",
+        "year": 2025,
+        "venue": null,
+        "citation_count": 0,
+        "relevance_score": 0.2217
+      },
+      {
+        "corpus_id": null,
+        "title": "A Constraint on Primordial $B$-Modes from the First Flight of the SPIDER Balloon-Borne Telescope",
+        "doi": null,
+        "year": 2021,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2436
+      },
+      {
+        "corpus_id": null,
+        "title": "Molecular Spiders with Memory",
+        "doi": "10.1103/PhysRevE.76.021121",
+        "year": 2007,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1776
+      },
+      {
+        "corpus_id": null,
+        "title": "YAD: Leveraging T5 for Improved Automatic Diacritization of Yorùbá Text",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2009
+      },
+      {
+        "corpus_id": null,
+        "title": "Exercising Control When Confronted by a (Brownian) Spider",
+        "doi": null,
+        "year": 2016,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1805
+      },
+      {
+        "corpus_id": null,
+        "title": "Occupation times on the legs of a diffusion spider",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2497
+      },
+      {
+        "corpus_id": null,
+        "title": "On $k$-Shifted Antimagic Spider Forests",
+        "doi": "10.1016/j.dam.2024.07.036",
+        "year": 2021,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1949
+      },
+      {
+        "corpus_id": null,
+        "title": "Citing Seeds, Citing People: Bibliography and Indigenous Memory, Relations, and Living Knowledge-Keepers",
+        "doi": "10.1353/crt.2022.a899734",
+        "year": 2022,
+        "venue": "Criticism",
+        "citation_count": 1,
+        "relevance_score": 0.153
+      },
+      {
+        "corpus_id": null,
+        "title": "The T5 Base Modulator Hypothesis: A Dynamic Model of T5 Neuron Function in Toads",
+        "doi": "10.1007/978-1-4899-0897-1_8",
+        "year": 1989,
+        "venue": "Visuomotor Coordination",
+        "citation_count": 4,
+        "relevance_score": 0.1692
+      },
+      {
+        "corpus_id": null,
+        "title": "The Erdös-Sós Conjecture for Spiders",
+        "doi": null,
+        "year": 2018,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2323
+      },
+      {
+        "corpus_id": null,
+        "title": "Lambek pregroups are Frobenius spiders in preorders",
+        "doi": "10.32408/compositionality-4-1",
+        "year": 2021,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1949
+      },
+      {
+        "corpus_id": null,
+        "title": "&lt;p&gt;On Citing &lt;em&gt;Van Gend &lt;/em&gt;&amp; Citing it Correctly&lt;/p&gt;",
+        "doi": "10.59704/fe0e7c25d550e92b",
+        "year": 2024,
+        "venue": null,
+        "citation_count": 0,
+        "relevance_score": 0.1509
+      },
+      {
+        "corpus_id": null,
+        "title": "A Social Spider Algorithm for Global Optimization",
+        "doi": null,
+        "year": 2015,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1796
+      },
+      {
+        "corpus_id": null,
+        "title": "Citing, Reading and Searching",
+        "doi": "10.1093/oso/9780198804789.003.0003",
+        "year": 2019,
+        "venue": "An Editor's Guide to Writing and Publishing Science",
+        "citation_count": 0,
+        "relevance_score": 0.1849
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 3,
+      "latency_ms": 8223.51,
+      "token_usage": {
+        "total_tokens": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": "openalex: circuit_open; semantic_scholar_batch: HTTP 429: "
+  },
+  {
+    "case_id": "metadata_31",
+    "query": "Journal articles by David Harel with at least 10 citations, citing papers by Gera Weiss, but not self-citations of Gera Weiss",
+    "optimized_query": "Journal articles David Harel least citations citing Gera Weiss self-citations | Journal articles David Harel least citations citing Gera Weiss self-citations | Journal articles David Harel least citations citing Gera Weiss self-citations",
+    "results": [
+      {
+        "corpus_id": "165059828",
+        "title": "On the skewness of journal self‐citations and publisher self‐citations: Cues for discussion from a case study",
+        "doi": "10.1002/leap.1235",
+        "year": 2019,
+        "venue": "Learned Publishing",
+        "citation_count": 22,
+        "relevance_score": 0.4383
+      },
+      {
+        "corpus_id": null,
+        "title": "Medical articles in questionable journals are less impactful than those in non-questionable journals but still extensively cited",
+        "doi": null,
+        "year": 2022,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.3483
+      },
+      {
+        "corpus_id": null,
+        "title": "Citations to articles citing Benford's law: a Benford analysis",
+        "doi": null,
+        "year": 2016,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.3519
+      },
+      {
+        "corpus_id": null,
+        "title": "Discontinuities in Citation Relations among Journals: Self-organized Criticality as a Model of Scientific Revolutions and Change",
+        "doi": null,
+        "year": 2018,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.3716
+      },
+      {
+        "corpus_id": null,
+        "title": "Self-Citations in Academic Excellence: Analysis of the Top 1% Highly Cited India-Affiliated Research Papers",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.3833
+      },
+      {
+        "corpus_id": null,
+        "title": "Within-Journal Self-citations and the Pinski-Narin Influence Weights",
+        "doi": null,
+        "year": 2019,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.404
+      },
+      {
+        "corpus_id": null,
+        "title": "A Comparison between the China Scientific and Technical Papers and Citations Database and the Science Citation Index in terms of journal hierarchies and inter-journal citation relations",
+        "doi": null,
+        "year": 2009,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.3736
+      },
+      {
+        "corpus_id": null,
+        "title": "Are self-citations a normal feature of knowledge accumulation?",
+        "doi": null,
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.348
+      },
+      {
+        "corpus_id": null,
+        "title": "Microsoft Academic Automatic Document Searches: Accuracy for Journal Articles and Suitability for Citation Analysis",
+        "doi": "10.1016/j.joi.2017.11.001",
+        "year": 2017,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.3369
+      },
+      {
+        "corpus_id": null,
+        "title": "Citation Analysis of Computer Systems Papers",
+        "doi": null,
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.3504
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 5,
+      "latency_ms": 11580.2,
+      "token_usage": {
+        "total_tokens": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": "openalex: circuit_open; semantic_scholar_match: HTTP 404: Not Found; semantic_scholar_batch: HTTP 429: "
+  },
+  {
+    "case_id": "metadata_33",
+    "query": "A SPLASH 2019 and beyond paper that cites any NeurIPS",
+    "optimized_query": "SPLASH beyond cites NeurIPS | SPLASH beyond cites NeurIPS | SPLASH beyond cites NeurIPS",
+    "results": [
+      {
+        "corpus_id": null,
+        "title": "Mahogany and CITES: moving beyond the veneer of legality",
+        "doi": "10.1017/s0030605303000164",
+        "year": 2003,
+        "venue": "Oryx",
+        "citation_count": 18,
+        "relevance_score": 0.35
+      },
+      {
+        "corpus_id": null,
+        "title": "EMC2-NIPS 2019 Reviewers",
+        "doi": "10.1109/emc2-nips53020.2019.00006",
+        "year": 2019,
+        "venue": "2019 Fifth Workshop on Energy Efficient Machine Learning and Cognitive Computing - NeurIPS Edition (EMC2-NIPS)",
+        "citation_count": 0,
+        "relevance_score": 0.2911
+      },
+      {
+        "corpus_id": null,
+        "title": "Author Index",
+        "doi": "10.1109/emc2-nips53020.2019.00024",
+        "year": 2019,
+        "venue": "2019 Fifth Workshop on Energy Efficient Machine Learning and Cognitive Computing - NeurIPS Edition (EMC2-NIPS)",
+        "citation_count": 0,
+        "relevance_score": 0.2586
+      },
+      {
+        "corpus_id": null,
+        "title": "[Copyright notice]",
+        "doi": "10.1109/emc2-nips53020.2019.00003",
+        "year": 2019,
+        "venue": "2019 Fifth Workshop on Energy Efficient Machine Learning and Cognitive Computing - NeurIPS Edition (EMC2-NIPS)",
+        "citation_count": 0,
+        "relevance_score": 0.2586
+      },
+      {
+        "corpus_id": null,
+        "title": "NeurIPS should lead scientific consensus on AI policy",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.258
+      },
+      {
+        "corpus_id": null,
+        "title": "RMIT-ADM+S at the MMU-RAG NeurIPS 2025 Competition",
+        "doi": null,
+        "year": 2026,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2525
+      },
+      {
+        "corpus_id": null,
+        "title": "The Low-$α$ Splash Population in the Milky Way",
+        "doi": null,
+        "year": 2026,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2525
+      },
+      {
+        "corpus_id": null,
+        "title": "Table of Contents",
+        "doi": "10.1109/emc2-nips53020.2019.00004",
+        "year": 2019,
+        "venue": "2019 Fifth Workshop on Energy Efficient Machine Learning and Cognitive Computing - NeurIPS Edition (EMC2-NIPS)",
+        "citation_count": 0,
+        "relevance_score": 0.2586
+      },
+      {
+        "corpus_id": null,
+        "title": "Measuring and modelling the Splash with APOGEE/Gaia and ARTEMIS",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.238
+      },
+      {
+        "corpus_id": null,
+        "title": "Proceedings to the 27th Workshop \"What Comes Beyond the Standard Models\" Bled, July 8-17, 2024",
+        "doi": "10.51746/9789612974848",
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2205
+      },
+      {
+        "corpus_id": null,
+        "title": "First-Place Solution to NeurIPS 2024 Invisible Watermark Removal Challenge",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2055
+      },
+      {
+        "corpus_id": null,
+        "title": "The State of Data Curation at NeurIPS: An Assessment of Dataset Development Practices in the Datasets and Benchmarks Track",
+        "doi": null,
+        "year": 2024,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2172
+      },
+      {
+        "corpus_id": null,
+        "title": "Beyond CITES: Trade-Based Wildlife Conservation, Ecological Legality and Vietnam’s Compliance Infrastructure",
+        "doi": "10.1080/13880292.2026.2688006",
+        "year": 2026,
+        "venue": "Journal of International Wildlife Law &amp; Policy",
+        "citation_count": 0,
+        "relevance_score": 0.2475
+      },
+      {
+        "corpus_id": null,
+        "title": "Liquid drop splashing on smooth, rough and textured surfaces",
+        "doi": "10.1103/PhysRevE.75.056316",
+        "year": 2007,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1851
+      },
+      {
+        "corpus_id": null,
+        "title": "Post-Workshop Report on Science meets Engineering in Deep Learning, NeurIPS 2019, Vancouver",
+        "doi": null,
+        "year": 2020,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1972
+      },
+      {
+        "corpus_id": null,
+        "title": "ESA-Ariel Data Challenge NeurIPS 2022: Introduction to exo-atmospheric studies and presentation of the Atmospheric Big Challenge (ABC) Database",
+        "doi": null,
+        "year": 2022,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2097
+      },
+      {
+        "corpus_id": null,
+        "title": "NightFeats @ MMU-RAGent NeurIPS 2025: A Context-Optimized Multi-Agent RAG System for the Text-to-Text Track",
+        "doi": null,
+        "year": 2026,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.235
+      },
+      {
+        "corpus_id": null,
+        "title": "The role of drop shape in impact and splash",
+        "doi": "10.1038/s41467-021-23138-4",
+        "year": 2022,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.2272
+      },
+      {
+        "corpus_id": null,
+        "title": "Splash: User-friendly Programming Interface for Parallelizing Stochastic Algorithms",
+        "doi": null,
+        "year": 2015,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1721
+      },
+      {
+        "corpus_id": null,
+        "title": "NeurIPS 2020 NLC2CMD Competition: Translating Natural Language to Bash Commands",
+        "doi": null,
+        "year": 2021,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1849
+      },
+      {
+        "corpus_id": null,
+        "title": "SPLASH: Learnable Activation Functions for Improving Accuracy and Adversarial Robustness",
+        "doi": null,
+        "year": 2020,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1797
+      },
+      {
+        "corpus_id": null,
+        "title": "Splash singularity for the free boundary incompressible viscous MHD",
+        "doi": "10.1016/j.jde.2023.10.001",
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1875
+      },
+      {
+        "corpus_id": null,
+        "title": "CITES '92 and beyond",
+        "doi": "10.69649/pachyderm.v15i1.738",
+        "year": 1992,
+        "venue": "Pachyderm",
+        "citation_count": 1,
+        "relevance_score": 0.2353
+      },
+      {
+        "corpus_id": null,
+        "title": "CITES in Spain: Blueprints and Challenges of Spanish Practice on CITES and Welfare of Trafficked Victims",
+        "doi": "10.1332/policypress/9781529223354.003.0007",
+        "year": 2024,
+        "venue": "Criminal Justice, Wildlife Conservation and Animal Rights in the Anthropocene",
+        "citation_count": 0,
+        "relevance_score": 0.1847
+      },
+      {
+        "corpus_id": null,
+        "title": "SPLASH: An interactive visualisation tool for Smoothed Particle Hydrodynamics simulations",
+        "doi": "10.1071/AS07022",
+        "year": 2007,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1701
+      },
+      {
+        "corpus_id": null,
+        "title": "Insights From the NeurIPS 2021 NetHack Challenge",
+        "doi": null,
+        "year": 2022,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1772
+      },
+      {
+        "corpus_id": null,
+        "title": "Splash wave and crown breakup after disc impact on a liquid surface",
+        "doi": "10.1017/jfm.2013.160",
+        "year": 2012,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1857
+      },
+      {
+        "corpus_id": null,
+        "title": "NeurIPS 2019 Disentanglement Challenge: Improved Disentanglement through Learned Aggregation of Convolutional Feature Maps",
+        "doi": null,
+        "year": 2020,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1622
+      },
+      {
+        "corpus_id": null,
+        "title": "NeurIPS 2020 EfficientQA Competition: Systems, Analyses and Lessons Learned",
+        "doi": null,
+        "year": 2021,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1849
+      },
+      {
+        "corpus_id": null,
+        "title": "Exterior splashes and linear sets of rank 3",
+        "doi": null,
+        "year": 2014,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.169
+      },
+      {
+        "corpus_id": null,
+        "title": "Splashes in isotropic media",
+        "doi": "10.1103/PhysRevE.107.024117",
+        "year": 2022,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1422
+      },
+      {
+        "corpus_id": null,
+        "title": "Liquid Splash Modeling with Neural Networks",
+        "doi": null,
+        "year": 2017,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1568
+      },
+      {
+        "corpus_id": null,
+        "title": "Comparison of splashing in high and low viscosity liquids",
+        "doi": "10.1103/PhysRevE.89.063006",
+        "year": 2014,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.169
+      },
+      {
+        "corpus_id": null,
+        "title": "Wetting Splashing",
+        "doi": null,
+        "year": 2010,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1354
+      },
+      {
+        "corpus_id": null,
+        "title": "NeurIPS 2025 Workshop on Biosecurity Safeguards for Generative AI",
+        "doi": "10.59350/ep7k2-ngq70",
+        "year": 2025,
+        "venue": null,
+        "citation_count": 1,
+        "relevance_score": 0.1733
+      },
+      {
+        "corpus_id": null,
+        "title": "Review for \"Epoxy-glass fibre composite splash ring suppresses metal-derived lubricant contamination in splash lubrication systems\"",
+        "doi": "10.1039/d6ma00365f/v1/review2",
+        "year": 2026,
+        "venue": null,
+        "citation_count": 0,
+        "relevance_score": 0.1325
+      },
+      {
+        "corpus_id": null,
+        "title": "Star Formation in Splash Bridges",
+        "doi": "10.3847/1538-4357/abc82a",
+        "year": 2020,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1647
+      },
+      {
+        "corpus_id": null,
+        "title": "Recent Results from SPLASH: Chemical Abundances and Kinematics of Andromeda's Stellar Halo",
+        "doi": "10.1017/S1743921315008479",
+        "year": 2016,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.153
+      },
+      {
+        "corpus_id": null,
+        "title": "SPLASH: The Southern Parkes Large-Area Survey in Hydroxyl -- Data Description & Release",
+        "doi": "10.1093/mnras/stac636",
+        "year": 2022,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1597
+      },
+      {
+        "corpus_id": null,
+        "title": "It's harder to splash on soft solids",
+        "doi": "10.1103/PhysRevLett.117.184502",
+        "year": 2015,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1371
+      },
+      {
+        "corpus_id": null,
+        "title": "On the existence of stationary splash singularities for the Euler equations",
+        "doi": null,
+        "year": 2014,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.154
+      },
+      {
+        "corpus_id": null,
+        "title": "Splashing onset in dense suspension droplets",
+        "doi": "10.1103/PhysRevLett.111.028301",
+        "year": 2013,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1361
+      },
+      {
+        "corpus_id": null,
+        "title": "Rayleigh-Plateau instability causes the crown splash",
+        "doi": null,
+        "year": 2008,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1352
+      },
+      {
+        "corpus_id": null,
+        "title": "Controlling the direction and amount of a splash with textured surface",
+        "doi": null,
+        "year": 2007,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1676
+      },
+      {
+        "corpus_id": null,
+        "title": "The Biggest Splash",
+        "doi": "10.1093/mnras/staa876",
+        "year": 2019,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1611
+      },
+      {
+        "corpus_id": null,
+        "title": "3rd Place Solution for NeurIPS 2021 Shifts Challenge: Vehicle Motion Prediction",
+        "doi": null,
+        "year": 2021,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1524
+      },
+      {
+        "corpus_id": null,
+        "title": "Pommerman &amp; NeurIPS 2018",
+        "doi": "10.1007/978-3-030-29135-8_2",
+        "year": 2020,
+        "venue": "The Springer Series on Challenges in Machine Learning",
+        "citation_count": 2,
+        "relevance_score": 0.1007
+      },
+      {
+        "corpus_id": null,
+        "title": "Supressed splashing on elastic membranes",
+        "doi": null,
+        "year": 2017,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1218
+      },
+      {
+        "corpus_id": null,
+        "title": "Ultrafast Interference Imaging of Air in Splashing Dynamics",
+        "doi": "10.1103/PhysRevLett.107.154502",
+        "year": 2011,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1355
+      },
+      {
+        "corpus_id": null,
+        "title": "An investigation of the tangent splash of a subplane of PG(2,q^3)",
+        "doi": null,
+        "year": 2013,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.1361
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 3,
+      "latency_ms": 7710.3,
+      "token_usage": {
+        "total_tokens": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": "openalex: circuit_open; semantic_scholar_batch: HTTP 429: "
+  },
+  {
+    "case_id": "metadata_42",
+    "query": "NeurIPS papers 2022-2023 that cite the \"RoBERTa\" paper that are cited by at least 30 other paper written by more than 3 authors",
+    "optimized_query": "NeurIPS cite RoBERTa cited least written authors | NeurIPS cite RoBERTa cited least written authors | NeurIPS cite RoBERTa cited least written authors",
+    "results": [
+      {
+        "corpus_id": null,
+        "title": "Are astronomical papers with more authors cited more?",
+        "doi": null,
+        "year": 2009,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.5027
+      },
+      {
+        "corpus_id": null,
+        "title": "Barriers for the performance of graph neural networks (GNN) in discrete random structures. A comment on~\\cite{schuetz2022combinatorial},\\cite{angelini2023modern},\\cite{schuetz2023reply}",
+        "doi": null,
+        "year": 2023,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.4097
+      },
+      {
+        "corpus_id": null,
+        "title": "The changing role of cited papers over time: An analysis of highly cited papers based on a large full-text dataset",
+        "doi": null,
+        "year": 2025,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.4269
+      },
+      {
+        "corpus_id": null,
+        "title": "Are Papers Written by Women Authors Cited Less Frequently?",
+        "doi": "10.1017/pan.2018.24",
+        "year": 2018,
+        "venue": "Political Analysis",
+        "citation_count": 13,
+        "relevance_score": 0.483
+      },
+      {
+        "corpus_id": null,
+        "title": "Highly-cited papers in Library and Information Science (LIS): Authors, institutions, and network structures",
+        "doi": null,
+        "year": 2015,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.4231
+      },
+      {
+        "corpus_id": null,
+        "title": "Sleeping Beauties Cited in Patents: Is there also a Dormitory of Inventions?",
+        "doi": null,
+        "year": 2016,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.3842
+      },
+      {
+        "corpus_id": null,
+        "title": "Highly Cited Papers of Ukrainian Scientists Written in Collaboration: A Bibliometric Analysis (2011-2015)",
+        "doi": "10.1080/09737766.2017.1332613",
+        "year": 2018,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.4129
+      },
+      {
+        "corpus_id": null,
+        "title": "The negative effects of citing with a national orientation in terms of recognition: national and international citations in natural-sciences papers from Germany, the Netherlands, and the UK",
+        "doi": null,
+        "year": 2018,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.3725
+      },
+      {
+        "corpus_id": null,
+        "title": "Is it true that papers written by joint-authors are cited more than papers written by single ones? What else matters?",
+        "doi": "10.1007/s11192-015-1799-8",
+        "year": 2016,
+        "venue": "Scientometrics",
+        "citation_count": 2,
+        "relevance_score": 0.4326
+      },
+      {
+        "corpus_id": null,
+        "title": "Creativity in Science and the Link to Cited References: Is the Creative Potential of Papers Reflected in their Cited References?",
+        "doi": null,
+        "year": 2018,
+        "venue": "arXiv",
+        "citation_count": 0,
+        "relevance_score": 0.398
+      }
+    ],
+    "runtime_metrics": {
+      "api_calls": 5,
+      "latency_ms": 10224.49,
+      "token_usage": {
+        "total_tokens": 0,
+        "mode": "rule_based_query_planning"
+      }
+    },
+    "source_error": "openalex: circuit_open; semantic_scholar_match: HTTP 429: ; semantic_scholar_batch: HTTP 429: "
+  }
+]
