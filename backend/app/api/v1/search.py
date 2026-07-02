@@ -163,6 +163,7 @@ async def _execute_search_task(run_id: str, request: SearchRequest) -> None:
                 elif source_value == "openalex":
                     sources_map[source_type] = OpenAlexSource(
                         email=settings.OPENALEX_EMAIL,
+                        api_key=settings.OPENALEX_API_KEY,
                     )
                 elif source_value == "crossref":
                     sources_map[source_type] = CrossRefSource(

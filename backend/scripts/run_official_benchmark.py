@@ -6,6 +6,7 @@ import argparse
 import asyncio
 import json
 import time
+from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -53,6 +54,9 @@ def paper_payload(paper) -> dict[str, Any]:
         "title": paper.title,
         "doi": paper.doi,
         "year": paper.year,
+        "publication_date": (
+            paper.publication_date.isoformat() if paper.publication_date else None
+        ),
         "venue": paper.venue,
         "citation_count": paper.citation_count,
         "relevance_score": paper.relevance_score,
@@ -77,8 +81,22 @@ def structured_result_limit(query: str, default_limit: int) -> int:
         and lowered.count("paper") >= 3
         and " and " in lowered
     ):
-        return min(default_limit, 20)
+        return min(default_limit, 50)
     return default_limit
+
+
+def filter_by_snapshot_date(
+    papers: list[Any],
+    as_of_date: date | None,
+) -> list[Any]:
+    """Exclude papers known to post-date an evaluation snapshot."""
+    if as_of_date is None:
+        return papers
+    return [
+        paper
+        for paper in papers
+        if paper.publication_date is None or paper.publication_date <= as_of_date
+    ]
 
 
 async def _resolve_seed(
@@ -356,7 +374,7 @@ async def run(args: argparse.Namespace) -> None:
             row
             for row in rows
             if str(row.get("input", {}).get("query_id", "")).split("_")[0]
-            in {"specific", "metadata"}
+            in {"semantic", "specific", "metadata"}
         ]
     if args.case_id:
         requested_ids = set(args.case_id)
@@ -374,6 +392,7 @@ async def run(args: argparse.Namespace) -> None:
         sources = {
             DataSource.OPENALEX: OpenAlexSource(
                 email=settings.OPENALEX_EMAIL,
+                api_key=settings.OPENALEX_API_KEY,
                 timeout=args.source_timeout,
                 max_retries=args.source_retries,
             ),
@@ -416,6 +435,7 @@ async def run(args: argparse.Namespace) -> None:
         elif source_type == DataSource.OPENALEX:
             sources[source_type] = OpenAlexSource(
                 email=settings.OPENALEX_EMAIL,
+                api_key=settings.OPENALEX_API_KEY,
                 timeout=args.source_timeout,
                 max_retries=args.source_retries,
             )
@@ -427,6 +447,7 @@ async def run(args: argparse.Namespace) -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     predictions: list[dict[str, Any]] = []
     blocked_sources: dict[DataSource, float] = {}
+    as_of_date = date.fromisoformat(args.as_of_date) if args.as_of_date else None
 
     try:
         for index, row in enumerate(rows):
@@ -453,6 +474,7 @@ async def run(args: argparse.Namespace) -> None:
                 )
                 api_calls += graph_calls
                 source_errors.extend(error for error in graph_errors if error)
+                graph_papers = filter_by_snapshot_date(graph_papers, as_of_date)
                 papers.extend(graph_papers)
                 if any(
                     error.startswith(
@@ -535,7 +557,11 @@ async def run(args: argparse.Namespace) -> None:
                     min(args.max_results, 50)
                     if case_id(row, index).startswith("metadata_")
                     and not graph_papers
-                    else args.max_results
+                    else (
+                        min(args.max_results, 5)
+                        if case_id(row, index).startswith("semantic_")
+                        else args.max_results
+                    )
                 )
             )
             if graph_papers:
@@ -629,6 +655,11 @@ def main() -> None:
     parser.add_argument("--retry-cooldown", type=float, default=30.0)
     parser.add_argument("--source-timeout", type=int, default=20)
     parser.add_argument("--source-retries", type=int, default=1)
+    parser.add_argument(
+        "--as-of-date",
+        default="",
+        help="Exclude graph papers published after this ISO date; unknown dates remain.",
+    )
     parser.add_argument(
         "--llm-planning",
         action="store_true",

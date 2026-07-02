@@ -95,6 +95,7 @@ class Settings(BaseSettings):
     # =============================================================================
     SEMANTIC_SCHOLAR_API_KEY: Optional[str] = None
     OPENALEX_EMAIL: Optional[str] = None
+    OPENALEX_API_KEY: Optional[str] = None
     CROSSREF_EMAIL: Optional[str] = None
     HF_ACCESS_TOKEN: Optional[str] = None
     HF_TOKEN: Optional[str] = None

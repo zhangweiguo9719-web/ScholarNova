@@ -46,10 +46,13 @@ class OpenAlexSource(BaseSource):
         return "https://api.openalex.org"
 
     def _get_polite_params(self) -> dict:
-        """获取 Polite Pool 参数"""
+        """Return optional identification and API-key parameters."""
+        params = {}
         if self.email:
-            return {"mailto": self.email}
-        return {}
+            params["mailto"] = self.email
+        if self.api_key:
+            params["api_key"] = self.api_key
+        return params
 
     # ------------------------------------------------------------------
     # 搜索

@@ -24,6 +24,7 @@ MOCK_SEARCH_RESPONSE = {
                 {"name": "Noam Shazeer"},
             ],
             "year": 2017,
+            "publicationDate": "2017-06-12",
             "venue": "NeurIPS",
             "citationCount": 120000,
             "externalIds": {"DOI": "10.48550/arXiv.1706.03762"},
@@ -123,6 +124,7 @@ class TestSemanticScholarSource:
         assert papers[0].source == "semantic_scholar"
         assert papers[0].doi == "10.48550/arXiv.1706.03762"
         assert papers[0].corpus_id == "123456"
+        assert papers[0].publication_date.isoformat() == "2017-06-12"
         assert papers[0].is_open_access is True
 
     async def test_search_empty_result(self):

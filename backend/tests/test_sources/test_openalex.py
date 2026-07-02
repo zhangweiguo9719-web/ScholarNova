@@ -95,6 +95,10 @@ class TestOpenAlexSource:
         params = source._get_polite_params()
         assert params == {}
 
+    def test_api_key_in_params(self):
+        source = OpenAlexSource(api_key="test-openalex-key")
+        assert source._get_polite_params()["api_key"] == "test-openalex-key"
+
     async def test_search_success(self):
         mock_response = _make_mock_response(MOCK_SEARCH_RESPONSE)
         source = OpenAlexSource(email="test@example.com")

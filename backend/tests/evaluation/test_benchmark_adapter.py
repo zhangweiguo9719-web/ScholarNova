@@ -1,5 +1,8 @@
+from datetime import date
+from types import SimpleNamespace
+
 from app.services.evaluation.benchmark import evaluate_cases, extract_gold, extract_predictions
-from scripts.run_official_benchmark import structured_result_limit
+from scripts.run_official_benchmark import filter_by_snapshot_date, structured_result_limit
 
 
 def test_pasa_answer_and_tree_are_supported():
@@ -66,5 +69,15 @@ def test_structured_result_limit_reflects_query_selectivity():
     assert structured_result_limit(
         "paper citing the T5 paper and the spider paper",
         300,
-    ) == 20
+    ) == 50
     assert structured_result_limit("broad literature review", 300) == 300
+
+
+def test_snapshot_filter_excludes_only_known_future_papers():
+    papers = [
+        SimpleNamespace(publication_date=date(2025, 5, 1)),
+        SimpleNamespace(publication_date=date(2025, 6, 1)),
+        SimpleNamespace(publication_date=None),
+    ]
+    filtered = filter_by_snapshot_date(papers, date(2025, 5, 31))
+    assert filtered == [papers[0], papers[2]]

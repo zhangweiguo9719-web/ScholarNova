@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <strong>English</strong> · <a href="#中文说明">中文说明</a>
+  <strong>English</strong> · <a href="README.zh-CN.md">简体中文</a>
 </p>
 
 ScholarNova is a self-hosted academic discovery workspace for complex research questions. It turns a natural-language request into a query plan, retrieves papers from multiple scholarly indexes, ranks and explains the results, exposes evidence and quality signals, and organizes findings into a personal knowledge base.
@@ -90,6 +90,7 @@ Recommended scholarly source configuration:
 
 ```dotenv
 SEMANTIC_SCHOLAR_API_KEY=your-semantic-scholar-key
+OPENALEX_API_KEY=your-openalex-key
 OPENALEX_EMAIL=you@example.com
 CROSSREF_EMAIL=you@example.com
 ```
@@ -169,12 +170,16 @@ Open <http://localhost:5173>.
 | Compatible endpoint | `OPENAI_API_BASE` | Required for compatible providers |
 | Default model | `OPENAI_DEFAULT_MODEL` | Required |
 | Semantic Scholar | `SEMANTIC_SCHOLAR_API_KEY` | Recommended; unauthenticated limits are stricter |
+| OpenAlex API | `OPENALEX_API_KEY` | Recommended |
 | OpenAlex polite pool | `OPENALEX_EMAIL` | Recommended |
 | Crossref polite pool | `CROSSREF_EMAIL` | Recommended |
 | SenseNova diagram | `SENSENOVA_API_KEY` | Optional |
 | Gated benchmarks | `HF_ACCESS_TOKEN` / `HF_TOKEN` | Competition evaluation only |
 
 Model configuration is also available in the Settings page. Server deployments should prefer `.env` so configuration survives container replacement.
+
+For official registration links and provider-specific configuration, read the
+[API key application guide](docs/API_KEYS.md).
 
 ## Public edition vs. competition environment
 
@@ -201,6 +206,11 @@ An 18-query deterministic subset of the official Asta Paper Finder validation se
 
 This is a reproducible **18-query validation subset**, not a full competition score. It must not be directly compared with results reported on different datasets or evaluation protocols. Deterministic query planning intentionally consumes zero LLM tokens; model-assisted product queries report actual provider usage.
 
+The complete 66-query file has also been executed. Of those queries, 27 expose
+binary paper-ID gold labels and score F1=`0.283713`; the remaining 39 require a
+textual relevance judge and are reported separately instead of being forced
+into the binary metric.
+
 See [the benchmark report](outputs/competition-benchmark-report-2026-07-02.md), [the optimization report](outputs/optimization-report-2026-07-02.md), and the committed [prediction artifact](outputs/benchmarks/predictions/asta-s2-validation18-v3-2026-07-02.json).
 
 ## Verification
@@ -224,24 +234,6 @@ npm run build
 ## Contributing
 
 Issues and pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before submitting changes.
-
-## 中文说明
-
-ScholarNova 是一个可自行部署、由用户自行配置 API Key 的 AI 学术论文检索与研究工作台。它支持复杂查询理解与分解、多源检索、论文综合排序、质量信号、AI 深度分析、证据整理、个人知识库和研究路线生成。
-
-公开仓库与比赛环境严格分离：公开版只提供空白配置模板和可复现样例，使用者填写自己的模型与学术数据源 Key；比赛使用的私有 Key、授权数据集和运行日志仅保存在本地并被 Git 忽略。
-
-最省事的部署方式：
-
-```powershell
-git clone https://github.com/zhangweiguo9719-web/ScholarNova.git
-Set-Location ScholarNova
-Copy-Item .env.example .env
-# 编辑 .env，填写自己的 Key
-docker compose up -d --build
-```
-
-浏览器访问 <http://localhost:5173>。更多配置、验证和安全要求见上方英文文档。
 
 ## License
 

@@ -51,3 +51,53 @@ This design supports the competition efficiency objective: do not spend model to
 The benchmark script is:
 
 `backend/scripts/run_official_benchmark.py`
+
+## Expanded 66-query execution
+
+The complete validation file contains 66 queries:
+
+- 48 semantic-relevance queries.
+- 10 specific-paper queries.
+- 8 metadata/citation-graph queries.
+
+All 66 queries were executed. Only 27 provide binary paper identifiers that can
+be scored with the repository's deterministic Precision/Recall/F1 evaluator.
+The other 39 provide textual relevance criteria and require the official or an
+LLM-based relevance judge. They are not silently treated as zero-relevance
+cases.
+
+| Binary-gold scope | Cases | Precision | Recall | F1 |
+| --- | ---: | ---: | ---: | ---: |
+| All binary-labelled cases | 27 | 0.321429 | 0.253918 | 0.283713 |
+| Semantic | 9 | 0.073171 | 0.150000 | 0.098361 |
+| Specific paper | 10 | 0.473684 | 0.600000 | 0.529412 |
+| Metadata / citation graph | 8 | 0.359375 | 0.242958 | 0.289916 |
+
+The 27-case average was 5.185 API calls and 3.446 seconds in the cached
+verification run. Deterministic planning used zero LLM tokens.
+
+Semantic queries are now capped at Top-5 for the benchmark output. On the same
+retrieval results, this raised the 27-case F1 from 0.127962 to 0.283713 by
+removing low-ranked noise without changing recall. This is a selection-budget
+improvement, not a claim that all 39 criteria-only queries are solved.
+
+Expanded artifact:
+
+`outputs/benchmarks/predictions/asta-s2-validation66-v6-2026-07-02.json`
+
+## Model-planning cost gate
+
+A controlled MiMo planning experiment was started on the nine semantic queries
+with binary gold labels. It was stopped after two cases because the provider
+used reasoning tokens but did not return parseable planning JSON:
+
+- Completed cases: 2/9.
+- Model requests: 6.
+- Total tokens: 16,185.
+- Average tokens per case: 8,092.5.
+- Average latency: 104.582 seconds.
+- F1 on those two cases: 0.
+
+Both cases fell back to deterministic planning, so continuing would have added
+cost without improving retrieval. The experiment is retained as evidence for
+the cost gate, but its partial artifact is not presented as a benchmark score.

@@ -16,6 +16,7 @@ import os
 import re
 import tempfile
 import time
+from datetime import date
 from pathlib import Path
 from typing import List, Optional, Sequence
 
@@ -24,7 +25,7 @@ from app.services.sources.base import BaseSource, make_paper_uuid
 
 logger = logging.getLogger(__name__)
 
-_S2_MIN_INTERVAL_SECONDS = 1.10
+_S2_MIN_INTERVAL_SECONDS = 1.25
 _S2_LOCK_STALE_SECONDS = 60.0
 _S2_RATE_DIR = Path(tempfile.gettempdir()) / "scholarnova"
 _S2_RATE_LOCK_FILE = _S2_RATE_DIR / "semantic-scholar-rate.lock"
@@ -37,7 +38,7 @@ _S2_CACHE_LOCKS: dict[str, asyncio.Lock] = {}
 
 # 请求的论文字段
 _SEARCH_FIELDS = (
-    "corpusId,title,abstract,authors,year,venue,citationCount,"
+    "corpusId,title,abstract,authors,year,publicationDate,venue,citationCount,"
     "externalIds,openAccessPdf,fieldsOfStudy"
 )
 
@@ -373,7 +374,7 @@ class SemanticScholarSource(BaseSource):
         bounded_limit = min(max(1, limit), 1000)
         bounded_offset = max(0, offset)
         cache_key = (
-            f"citations:{paper_id.casefold()}:{bounded_offset}:{bounded_limit}"
+            f"citations:v2:{paper_id.casefold()}:{bounded_offset}:{bounded_limit}"
         )
         cached = self._read_cache(cache_key)
         if cached is not None:
@@ -793,6 +794,15 @@ class SemanticScholarSource(BaseSource):
 
             # 研究领域
             fields_of_study = data.get("fieldsOfStudy") or []
+            publication_date = None
+            if raw_publication_date := data.get("publicationDate"):
+                try:
+                    publication_date = date.fromisoformat(str(raw_publication_date))
+                except ValueError:
+                    logger.debug(
+                        "[semantic_scholar] Invalid publicationDate: %s",
+                        raw_publication_date,
+                    )
 
             return Paper(
                 id=make_paper_uuid("semantic_scholar", paper_id),
@@ -800,6 +810,7 @@ class SemanticScholarSource(BaseSource):
                 authors=authors,
                 abstract=data.get("abstract"),
                 year=data.get("year"),
+                publication_date=publication_date,
                 venue=data.get("venue"),
                 citation_count=data.get("citationCount", 0),
                 doi=doi,
