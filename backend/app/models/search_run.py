@@ -6,13 +6,17 @@
 
 import uuid
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from sqlalchemy import DateTime, Float, Integer, String, Text, func
 from sqlalchemy.types import JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
+
+if TYPE_CHECKING:
+    from app.models.evidence import EvidenceSpan
+    from app.models.recommendation import Recommendation
 
 
 class SearchRun(Base):

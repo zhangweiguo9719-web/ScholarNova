@@ -18,9 +18,9 @@ class TestGetPaper:
         assert response.status_code == 404
 
     async def test_get_paper_invalid_uuid(self, client: AsyncClient):
-        """无效的 UUID 应返回 422"""
+        """Paper IDs may come from external sources; unknown strings return 404."""
         response = await client.get("/api/v1/papers/not-a-uuid")
-        assert response.status_code == 422
+        assert response.status_code == 404
 
     async def test_get_paper_error_detail(self, client: AsyncClient):
         """404 响应应包含 detail 字段"""
@@ -37,7 +37,7 @@ class TestGetEvidence:
         """获取证据应返回 EvidenceResponse 结构"""
         run_id = str(uuid.uuid4())
         paper_id = str(uuid.uuid4())
-        response = await client.get(f"/api/v1/papers/{run_id}/{paper_id}/evidence")
+        response = await client.get(f"/api/v1/evidence/{run_id}/{paper_id}")
         assert response.status_code == 200
         data = response.json()
         assert "paper_id" in data
@@ -48,21 +48,23 @@ class TestGetEvidence:
         """不存在的论文证据应返回空列表"""
         run_id = str(uuid.uuid4())
         paper_id = str(uuid.uuid4())
-        response = await client.get(f"/api/v1/papers/{run_id}/{paper_id}/evidence")
+        response = await client.get(f"/api/v1/evidence/{run_id}/{paper_id}")
         data = response.json()
         assert data["evidence_spans"] == []
 
-    async def test_get_evidence_invalid_run_id(self, client: AsyncClient):
-        """无效的 run_id 应返回 422"""
+    async def test_get_evidence_external_run_id(self, client: AsyncClient):
+        """External run identifiers are accepted and return an empty result."""
         paper_id = str(uuid.uuid4())
-        response = await client.get(f"/api/v1/papers/not-a-uuid/{paper_id}/evidence")
-        assert response.status_code == 422
+        response = await client.get(f"/api/v1/evidence/external-run/{paper_id}")
+        assert response.status_code == 200
+        assert response.json()["run_id"] == "external-run"
 
-    async def test_get_evidence_invalid_paper_id(self, client: AsyncClient):
-        """无效的 paper_id 应返回 422"""
+    async def test_get_evidence_external_paper_id(self, client: AsyncClient):
+        """External paper identifiers are accepted and returned verbatim."""
         run_id = str(uuid.uuid4())
-        response = await client.get(f"/api/v1/papers/{run_id}/not-a-uuid/evidence")
-        assert response.status_code == 422
+        response = await client.get(f"/api/v1/evidence/{run_id}/CorpusId:123")
+        assert response.status_code == 200
+        assert response.json()["paper_id"] == "CorpusId:123"
 
 
 class TestAnalyzePaper:
@@ -96,48 +98,15 @@ class TestAnalyzePaper:
         assert response.status_code == 422
 
 
-class TestComparePapers:
-    """POST /api/v1/papers/compare 测试套件"""
+class TestListPapers:
+    """GET /api/v1/papers endpoint contract."""
 
-    async def test_compare_papers_empty_list(self, client: AsyncClient):
-        """空论文列表应返回 422"""
-        response = await client.post(
-            "/api/v1/papers/compare",
-            json={"paper_ids": [], "query": "compare methods"},
-        )
-        assert response.status_code == 422
-
-    async def test_compare_papers_single_paper(self, client: AsyncClient):
-        """只有1篇论文应返回 422（最少需要2篇）"""
-        response = await client.post(
-            "/api/v1/papers/compare",
-            json={
-                "paper_ids": [str(uuid.uuid4())],
-                "query": "compare methods",
-            },
-        )
-        assert response.status_code == 422
-
-    async def test_compare_papers_valid_request(self, client: AsyncClient):
-        """有效的对比请求应返回 200"""
-        response = await client.post(
-            "/api/v1/papers/compare",
-            json={
-                "paper_ids": [str(uuid.uuid4()), str(uuid.uuid4())],
-                "query": "compare methods",
-            },
-        )
+    async def test_list_papers_returns_list(self, client: AsyncClient):
+        response = await client.get("/api/v1/papers")
         assert response.status_code == 200
-        data = response.json()
-        assert "papers" in data
-        assert "comparison" in data
+        assert isinstance(response.json(), list)
 
-    async def test_compare_papers_missing_query(self, client: AsyncClient):
-        """缺少 query 应返回 422"""
-        response = await client.post(
-            "/api/v1/papers/compare",
-            json={
-                "paper_ids": [str(uuid.uuid4()), str(uuid.uuid4())],
-            },
-        )
-        assert response.status_code == 422
+    async def test_list_papers_accepts_pagination(self, client: AsyncClient):
+        response = await client.get("/api/v1/papers?page=2&page_size=5")
+        assert response.status_code == 200
+        assert isinstance(response.json(), list)

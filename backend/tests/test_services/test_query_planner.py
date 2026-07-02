@@ -139,6 +139,14 @@ class TestQueryPlanner:
     def test_ambiguous_acronym_lookup_keeps_multiple_results(self):
         assert not QueryPlanner.is_confident_single_paper_lookup("the SPIKE paper")
 
+    def test_bibkey_alias_expands_to_canonical_title(self):
+        optimized = QueryPlanner._optimize_query_for_source(
+            "the MS^2 DeYong2021 paper",
+            ["MS2", "DeYong2021"],
+            DataSource.SEMANTIC_SCHOLAR,
+        )
+        assert optimized == "MS2: Multi-Document Summarization of Medical Studies"
+
     async def test_complex_query_extracts_multidimensional_constraints(self):
         planner = QueryPlanner()
         result = await planner.plan(

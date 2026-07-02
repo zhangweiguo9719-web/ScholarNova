@@ -1,4 +1,5 @@
 from app.services.evaluation.benchmark import evaluate_cases, extract_gold, extract_predictions
+from scripts.run_official_benchmark import structured_result_limit
 
 
 def test_pasa_answer_and_tree_are_supported():
@@ -55,3 +56,15 @@ def test_pasa_released_qid_and_answer_fields_are_supported():
     report = evaluate_cases(gold, predictions)
     assert report["cases"] == 1
     assert report["micro"]["f1"] == 1.0
+
+
+def test_structured_result_limit_reflects_query_selectivity():
+    assert structured_result_limit(
+        "Papers citing DistilBERT after 2022 with more than 50 citations",
+        300,
+    ) == 200
+    assert structured_result_limit(
+        "paper citing the T5 paper and the spider paper",
+        300,
+    ) == 20
+    assert structured_result_limit("broad literature review", 300) == 300

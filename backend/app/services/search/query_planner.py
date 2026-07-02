@@ -702,7 +702,9 @@ class QueryPlanner:
             alias = alias.replace("²", "2")
             alias = re.sub(r"([A-Za-z])\s*\^\s*(\d)", r"\1\2", alias)
             alias = re.sub(r"[-–—]+", " ", alias)
-            return re.sub(r"\s+", " ", alias).strip()
+            alias = re.sub(r"\s+", " ", alias).strip()
+            canonical = cls.resolve_paper_alias(f"the {alias} paper")
+            return canonical if canonical != f"the {alias} paper" else alias
 
         expanded_alias = cls.resolve_paper_alias(query)
         if expanded_alias != query:

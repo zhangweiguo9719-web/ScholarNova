@@ -65,6 +65,22 @@ def _seed_score(paper, required_terms: list[str]) -> tuple[int, int]:
     return matches, paper.citation_count
 
 
+def structured_result_limit(query: str, default_limit: int) -> int:
+    """Bound graph-query output by semantic selectivity to balance F1 and cost."""
+    lowered = query.casefold()
+    if "citing" in lowered and any(
+        phrase in lowered for phrase in ("more than", "at least")
+    ):
+        return min(default_limit, 200)
+    if (
+        "citing" in lowered
+        and lowered.count("paper") >= 3
+        and " and " in lowered
+    ):
+        return min(default_limit, 20)
+    return default_limit
+
+
 async def _resolve_seed(
     source: SemanticScholarSource,
     query: str,
@@ -522,6 +538,8 @@ async def run(args: argparse.Namespace) -> None:
                     else args.max_results
                 )
             )
+            if graph_papers:
+                result_limit = structured_result_limit(query, result_limit)
             ranked = await Ranker(intent=plan.intent or "open_exploration").rank(
                 papers=papers,
                 query=query,

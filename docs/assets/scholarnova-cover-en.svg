@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="600" viewBox="0 0 1600 600" role="img" aria-labelledby="title desc">
+  <title id="title">ScholarNova — AI Academic Search and Evidence Workspace</title>
+  <desc id="desc">A dark navy academic technology cover with golden citation orbits, a search field, and evidence cards.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#050914"/>
+      <stop offset=".55" stop-color="#091223"/>
+      <stop offset="1" stop-color="#11182a"/>
+    </linearGradient>
+    <radialGradient id="sun">
+      <stop offset="0" stop-color="#f3c65c" stop-opacity=".5"/>
+      <stop offset=".35" stop-color="#d59a31" stop-opacity=".16"/>
+      <stop offset="1" stop-color="#d59a31" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#b77818"/>
+      <stop offset=".5" stop-color="#ffd878"/>
+      <stop offset="1" stop-color="#b77818"/>
+    </linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="7"/></filter>
+    <filter id="shadow"><feDropShadow dx="0" dy="18" stdDeviation="24" flood-color="#000" flood-opacity=".42"/></filter>
+  </defs>
+  <rect width="1600" height="600" rx="28" fill="url(#bg)"/>
+  <circle cx="1285" cy="85" r="330" fill="url(#sun)"/>
+  <circle cx="150" cy="570" r="280" fill="url(#sun)" opacity=".42"/>
+  <g fill="none" stroke="#d9aa50" stroke-opacity=".25">
+    <ellipse cx="1270" cy="250" rx="280" ry="110" transform="rotate(-18 1270 250)"/>
+    <ellipse cx="1270" cy="250" rx="205" ry="72" transform="rotate(14 1270 250)"/>
+    <ellipse cx="1270" cy="250" rx="125" ry="45" transform="rotate(-26 1270 250)"/>
+  </g>
+  <g fill="#f5ca6b">
+    <circle cx="1035" cy="168" r="8"/>
+    <circle cx="1210" cy="170" r="6"/>
+    <circle cx="1404" cy="157" r="9"/>
+    <circle cx="1490" cy="302" r="6"/>
+    <circle cx="1180" cy="334" r="7"/>
+  </g>
+  <circle cx="1270" cy="250" r="25" fill="#e8b950" opacity=".25" filter="url(#glow)"/>
+  <circle cx="1270" cy="250" r="10" fill="#ffd878"/>
+
+  <g transform="translate(105 84)">
+    <path d="M0 3h24c13 0 21 7 21 19v34c-7-8-15-11-24-11H0z" fill="none" stroke="url(#gold)" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M90 3H66c-13 0-21 7-21 19v34c7-8 15-11 24-11h21z" fill="none" stroke="url(#gold)" stroke-width="5" stroke-linejoin="round"/>
+    <text x="115" y="45" fill="#f3c65c" font-family="Inter,Segoe UI,Arial,sans-serif" font-weight="700" font-size="42">ScholarNova</text>
+  </g>
+
+  <text x="105" y="225" fill="#f8fafc" font-family="Inter,Segoe UI,Arial,sans-serif" font-weight="750" font-size="66">AI Academic Search</text>
+  <text x="105" y="300" fill="#f1c45f" font-family="Inter,Segoe UI,Arial,sans-serif" font-weight="750" font-size="66">&amp; Evidence Workspace</text>
+  <text x="108" y="352" fill="#9eabc0" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="24">Query · Retrieve · Rank · Verify · Organize</text>
+
+  <g transform="translate(105 405)" filter="url(#shadow)">
+    <rect width="810" height="82" rx="24" fill="#101a2d" fill-opacity=".92" stroke="#d2a54e" stroke-opacity=".52"/>
+    <circle cx="39" cy="41" r="11" fill="none" stroke="#edbf59" stroke-width="3"/>
+    <path d="M47 49l10 10" stroke="#edbf59" stroke-width="3" stroke-linecap="round"/>
+    <text x="78" y="49" fill="#c4ccda" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="21">Find rigorous evidence for a complex research question…</text>
+    <rect x="659" y="12" width="139" height="58" rx="18" fill="url(#gold)"/>
+    <text x="704" y="49" fill="#101522" font-family="Inter,Segoe UI,Arial,sans-serif" font-weight="700" font-size="20">Search</text>
+  </g>
+
+  <g transform="translate(1015 385)" font-family="Inter,Segoe UI,Arial,sans-serif">
+    <rect width="445" height="118" rx="22" fill="#10192b" fill-opacity=".92" stroke="#ffffff" stroke-opacity=".1"/>
+    <rect x="22" y="22" width="74" height="25" rx="12" fill="#173c32"/>
+    <text x="38" y="40" fill="#6fe0b3" font-size="13">EVIDENCE</text>
+    <text x="22" y="76" fill="#f3f5f8" font-weight="650" font-size="19">Traceable paper quality signals</text>
+    <text x="22" y="101" fill="#8d9ab0" font-size="15">Relevance · Citations · Venue · Methods</text>
+  </g>
+</svg>
