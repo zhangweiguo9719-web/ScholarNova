@@ -109,6 +109,7 @@ async def _execute_search_task(run_id: str, request: SearchRequest) -> None:
     start_time = time.time()
 
     async with async_session_factory() as db:
+        search_run: SearchRun | None = None
         try:
             # 获取搜索运行记录
             result = await db.execute(select(SearchRun).where(SearchRun.id == run_id))
@@ -477,9 +478,16 @@ async def _execute_search_task(run_id: str, request: SearchRequest) -> None:
                 await source.close()
 
         except Exception as e:
-            search_run.mark_as_failed(str(e))
-            await db.commit()
-            raise
+            if search_run is not None:
+                try:
+                    search_run.mark_as_failed(str(e))
+                    await db.commit()
+                except Exception:
+                    await db.rollback()
+            logger.exception(
+                "Background search task failed",
+                extra={"run_id": run_id},
+            )
 
 
 @router.post("", response_model=SearchResponse, status_code=202)
