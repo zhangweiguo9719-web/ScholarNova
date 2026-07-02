@@ -4,7 +4,7 @@
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -105,10 +105,24 @@ class SearchRunDetail(BaseModel):
     completed_at: Optional[datetime] = Field(None, description="完成时间")
 
 
+LLMProviderName = Literal[
+    "openai",
+    "anthropic",
+    "ollama",
+    "mimo",
+    "deepseek",
+    "zhipu",
+    "qwen",
+    "moonshot",
+    "sensenova",
+    "custom",
+]
+
+
 class TaskModelConfig(BaseModel):
     """单个任务的模型配置"""
 
-    provider: str = Field("openai", description="LLM 提供商")
+    provider: LLMProviderName = Field("openai", description="LLM 提供商")
     model_name: Optional[str] = Field(None, description="模型名称")
     api_key: Optional[str] = Field(None, description="API Key")
     base_url: Optional[str] = Field(None, description="自定义 API 地址")
@@ -118,8 +132,8 @@ class ModelConfig(BaseModel):
     """多模型配置（支持按任务类型分配不同模型）"""
 
     # 主配置（所有任务的默认）
-    provider: str = Field("openai", description="默认 LLM 提供商")
-    model_name: str = Field("gpt-4o", description="默认模型名称")
+    provider: LLMProviderName = Field(..., description="默认 LLM 提供商")
+    model_name: str = Field(..., min_length=1, description="默认模型名称")
     api_key: Optional[str] = Field(None, description="API Key")
     base_url: Optional[str] = Field(None, description="自定义 API 地址")
     temperature: float = Field(0.7, description="温度参数", ge=0, le=2)
@@ -132,8 +146,8 @@ class ModelConfig(BaseModel):
 class ModelTestRequest(BaseModel):
     """模型测试请求"""
 
-    provider: str = Field(..., description="LLM 提供商")
-    model_name: str = Field(..., description="模型名称")
+    provider: LLMProviderName = Field(..., description="LLM 提供商")
+    model_name: str = Field(..., min_length=1, description="模型名称")
     api_key: Optional[str] = Field(None, description="API Key")
     base_url: Optional[str] = Field(None, description="自定义 API 地址")
 

@@ -39,11 +39,11 @@ async def save_network_config(request: NetworkConfigRequest):
     """保存网络配置（代理地址）"""
     _network_config["proxy_url"] = request.proxy_url or ""
     # 保存到文件
-    import json, os
-    config_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "network_config.json")
-    config_path = os.path.normpath(config_path)
+    import json
+    from app.config import runtime_path
+    config_path = runtime_path("network_config.json")
     try:
-        with open(config_path, "w") as f:
+        with config_path.open("w", encoding="utf-8") as f:
             json.dump(_network_config, f, ensure_ascii=False, indent=2)
     except Exception:
         pass
@@ -132,11 +132,11 @@ async def test_proxy():
 
 # 启动时加载配置
 try:
-    import json, os
-    config_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "network_config.json")
-    config_path = os.path.normpath(config_path)
-    if os.path.exists(config_path):
-        with open(config_path) as f:
+    import json
+    from app.config import runtime_path
+    config_path = runtime_path("network_config.json")
+    if config_path.exists():
+        with config_path.open(encoding="utf-8") as f:
             _network_config.update(json.load(f))
 except Exception:
     pass

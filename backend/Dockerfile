@@ -10,11 +10,12 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# 复制依赖文件
-COPY pyproject.toml .
+# 先复制安装所需的最小项目文件，保留 Docker 依赖缓存
+COPY pyproject.toml README.md ./
+COPY app ./app
 
 # 安装 Python 依赖
-RUN pip install --no-cache-dir -e ".[dev]"
+RUN pip install --no-cache-dir .
 
 # 复制应用代码
 COPY . .

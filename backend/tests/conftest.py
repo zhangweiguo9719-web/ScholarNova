@@ -20,6 +20,14 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from app.database import Base, get_db
 
 
+@pytest.fixture(autouse=True)
+def isolate_runtime_files(tmp_path, monkeypatch):
+    """Prevent API tests from overwriting a developer's local model settings."""
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "RUNTIME_DIR", str(tmp_path))
+
+
 # ---------------------------------------------------------------------------
 # 事件循环
 # ---------------------------------------------------------------------------

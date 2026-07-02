@@ -17,7 +17,7 @@
 
 ```bash
 # 克隆项目
-git clone <repository-url>
+git clone https://github.com/zhangweiguo9719-web/ScholarNova.git
 cd scholar-agent
 
 # 查看项目结构
@@ -45,7 +45,7 @@ source venv/bin/activate
 pip install --upgrade pip
 
 # 安装依赖
-pip install -r requirements.txt
+pip install -e ".[dev]"
 
 # 安装开发依赖
 pip install -r requirements-dev.txt
@@ -438,7 +438,7 @@ virtualenv venv
 pip install --upgrade pip
 
 # 使用国内镜像
-pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip install -e ".[dev]" -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # 清除缓存
 pip cache purge

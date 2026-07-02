@@ -28,8 +28,6 @@ async def save_model_config(
     保存用户的 LLM 模型配置到内存缓存和本地文件
     """
     import json
-    import os
-
     config_data = config.model_dump()
 
     # 更新全局多模型配置
@@ -70,10 +68,10 @@ async def save_model_config(
         settings.OPENAI_DEFAULT_MODEL = model_name
 
     # 保存到本地文件
-    config_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "model_config.json")
-    config_path = os.path.normpath(config_path)
+    from app.config import runtime_path
+    config_path = runtime_path("model_config.json")
     try:
-        with open(config_path, "w", encoding="utf-8") as f:
+        with config_path.open("w", encoding="utf-8") as f:
             json.dump(config_data, f, ensure_ascii=False, indent=2)
     except Exception as e:
         import logging

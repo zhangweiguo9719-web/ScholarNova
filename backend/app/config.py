@@ -5,6 +5,8 @@
 """
 
 from typing import Any, List, Optional
+from pathlib import Path
+from urllib.parse import quote_plus
 
 from pydantic import field_validator
 from pydantic_settings import BaseSettings
@@ -20,6 +22,7 @@ class Settings(BaseSettings):
     APP_ENV: str = "development"
     DEBUG: bool = True
     SECRET_KEY: str = "change-me-to-a-random-secret-key"
+    RUNTIME_DIR: Optional[str] = None
 
     # =============================================================================
     # 数据库配置
@@ -39,8 +42,8 @@ class Settings(BaseSettings):
             return v
         data = info.data
         return (
-            f"postgresql+asyncpg://{data.get('POSTGRES_USER', 'scholar')}"
-            f":{data.get('POSTGRES_PASSWORD', 'scholar_password')}"
+            f"postgresql+asyncpg://{quote_plus(str(data.get('POSTGRES_USER', 'scholar')))}"
+            f":{quote_plus(str(data.get('POSTGRES_PASSWORD', 'scholar_password')))}"
             f"@{data.get('POSTGRES_HOST', 'localhost')}"
             f":{data.get('POSTGRES_PORT', 5432)}"
             f"/{data.get('POSTGRES_DB', 'scholar_agent')}"
@@ -156,11 +159,24 @@ class Settings(BaseSettings):
         "env_file": ".env",
         "env_file_encoding": "utf-8",
         "case_sensitive": True,
+        # Docker's shared .env also contains frontend/Compose-only variables.
+        "extra": "ignore",
     }
 
 
 # 全局配置实例
 settings = Settings()
+
+
+def runtime_path(filename: str) -> Path:
+    """Return a writable persistent path for local or container runtime state."""
+    root = (
+        Path(settings.RUNTIME_DIR).expanduser()
+        if settings.RUNTIME_DIR
+        else Path(__file__).resolve().parent.parent
+    )
+    root.mkdir(parents=True, exist_ok=True)
+    return root / filename
 
 # 多模型配置（按任务类型分配模型）
 # 未配置的任务回退到全局默认（由 load_saved_model_config 设置）
@@ -187,13 +203,10 @@ DEFAULT_MODEL_CONFIG = {
 def load_saved_model_config():
     """从本地文件加载保存的多模型配置"""
     import json
-    import os
-
-    config_path = os.path.join(os.path.dirname(__file__), "..", "model_config.json")
-    config_path = os.path.normpath(config_path)
+    config_path = runtime_path("model_config.json")
     try:
-        if os.path.exists(config_path):
-            with open(config_path, "r", encoding="utf-8") as f:
+        if config_path.exists():
+            with config_path.open("r", encoding="utf-8") as f:
                 config = json.load(f)
 
             # 兼容旧格式（单模型）

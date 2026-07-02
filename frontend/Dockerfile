@@ -1,18 +1,22 @@
-FROM node:18-alpine
+FROM node:20-alpine AS build
 
 WORKDIR /app
 
-# 复制依赖文件
-COPY package.json package-lock.json* ./
+COPY package.json package-lock.json ./
+RUN npm ci
 
-# 安装依赖
-RUN npm install
-
-# 复制应用代码
 COPY . .
 
-# 暴露端口
-EXPOSE 5173
+ARG VITE_API_BASE_URL=http://localhost:8000
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+RUN npm run build
 
-# 启动开发服务器
-CMD ["npm", "run", "dev", "--", "--host"]
+FROM nginx:1.27-alpine
+
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/dist /usr/share/nginx/html
+
+EXPOSE 80
+
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+    CMD wget -qO- http://localhost/ >/dev/null || exit 1

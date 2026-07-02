@@ -15,7 +15,7 @@ install: ## 安装所有依赖
 	@echo "安装后端依赖..."
 	cd backend && pip install -e ".[dev]"
 	@echo "安装前端依赖..."
-	cd frontend && npm install
+	cd frontend && npm ci
 
 setup: ## 初始化项目（创建 .env、数据库等）
 	@if [ ! -f .env ]; then cp .env.example .env; echo "已创建 .env 文件"; fi
@@ -25,31 +25,31 @@ setup: ## 初始化项目（创建 .env、数据库等）
 # Docker 命令
 # =============================================================================
 up: ## 启动所有服务
-	docker-compose up -d
+	docker compose up -d
 
 up-build: ## 构建并启动所有服务
-	docker-compose up -d --build
+	docker compose up -d --build
 
 down: ## 停止所有服务
-	docker-compose down
+	docker compose down
 
 down-volumes: ## 停止服务并删除数据卷
-	docker-compose down -v
+	docker compose down -v
 
 logs: ## 查看所有服务日志
-	docker-compose logs -f
+	docker compose logs -f
 
 logs-backend: ## 查看后端日志
-	docker-compose logs -f backend
+	docker compose logs -f backend
 
 logs-frontend: ## 查看前端日志
-	docker-compose logs -f frontend
+	docker compose logs -f frontend
 
 # =============================================================================
 # 开发命令
 # =============================================================================
 dev: ## 启动开发环境（前台运行）
-	docker-compose up
+	docker compose up
 
 dev-backend: ## 仅启动后端开发服务器
 	cd backend && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
@@ -128,11 +128,11 @@ clean-all: clean ## 清理所有（包括 node_modules 和虚拟环境）
 # =============================================================================
 # 生产部署
 # =============================================================================
-build: ## 构建生产镜像
-	docker-compose -f docker-compose.yml -f docker-compose.prod.yml build
+build: ## 构建部署镜像
+	docker compose build
 
-deploy: ## 部署到生产环境
-	docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+deploy: ## 启动部署
+	docker compose up -d --build
 
 # =============================================================================
 # 工具命令
@@ -141,10 +141,10 @@ seed: ## 填充测试数据
 	cd backend && python ../scripts/seed_data.py
 
 shell-backend: ## 进入后端容器 shell
-	docker-compose exec backend bash
+	docker compose exec backend bash
 
 shell-db: ## 进入数据库 shell
-	docker-compose exec postgres psql -U scholar -d scholar_agent
+	docker compose exec postgres psql -U scholar -d scholar_agent
 
 shell-redis: ## 进入 Redis shell
-	docker-compose exec redis redis-cli
+	docker compose exec redis redis-cli
