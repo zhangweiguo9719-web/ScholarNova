@@ -3,7 +3,7 @@
 """
 
 from datetime import date, datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -20,7 +20,7 @@ class PaperAuthor(BaseModel):
 class PaperReference(BaseModel):
     """论文引用"""
 
-    id: str | UUID = Field(..., description="论文 ID")
+    id: Union[str, UUID] = Field(..., description="论文 ID")
     title: str = Field(..., description="论文标题")
     year: Optional[int] = Field(None, description="发表年份")
     citation_count: int = Field(0, description="引用数")
@@ -51,7 +51,7 @@ class PaperQuality(BaseModel):
 class Paper(BaseModel):
     """论文基本信息"""
 
-    id: str | UUID = Field(..., description="论文 ID")
+    id: Union[str, UUID] = Field(..., description="论文 ID")
     title: str = Field(..., description="论文标题")
     authors: List[str] = Field(default_factory=list, description="作者列表")
     abstract: Optional[str] = Field(None, description="摘要")

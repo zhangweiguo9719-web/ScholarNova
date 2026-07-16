@@ -5,7 +5,6 @@ FastAPI 应用入口
 """
 
 from contextlib import asynccontextmanager
-from pathlib import Path
 from typing import AsyncGenerator
 
 from fastapi import FastAPI, Request, Response
@@ -14,7 +13,7 @@ from fastapi.responses import JSONResponse, ORJSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.api.v1.router import api_router
-from app.config import settings
+from app.config import runtime_path, settings
 from app.core.cache import CacheManager
 from app.core.exceptions import ScholarNovaException
 from app.core.logging import get_logger, setup_logging
@@ -226,7 +225,7 @@ def create_app() -> FastAPI:
 
     # 注册 API 路由
     app.include_router(api_router, prefix="/api/v1")
-    generated_dir = Path(__file__).resolve().parent.parent / "generated"
+    generated_dir = runtime_path("generated")
     generated_dir.mkdir(parents=True, exist_ok=True)
     app.mount(
         "/generated",

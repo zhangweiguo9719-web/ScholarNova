@@ -333,8 +333,11 @@ class LLMGateway:
             self._client = openai.AsyncOpenAI(
                 api_key=api_key,
                 base_url=base_url,
+                # Retry is owned by _chat_openai so each failed attempt can
+                # rebuild a potentially unhealthy pooled connection. Keeping
+                # SDK retries enabled here would multiply attempts and latency.
                 max_retries=0,
-                timeout=120.0,  # MiMo API 可能较慢
+                timeout=120.0,
             )
 
         response = await self._client.chat.completions.create(

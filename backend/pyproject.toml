@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "scholar-agent-backend"
-version = "0.1.0"
+version = "1.0.0"
 description = "ScholarAgent - 学术智能体后端服务"
 readme = "README.md"
 license = "MIT"
@@ -75,6 +75,7 @@ dev = [
     "ruff>=0.1.0",
     "mypy>=1.8.0",
     "pre-commit>=3.6.0",
+    "pyinstaller>=6.0.0",
 
     # 类型提示
     "sqlalchemy[mypy]>=2.0.25",

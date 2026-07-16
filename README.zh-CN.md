@@ -6,11 +6,26 @@
   <a href="README.md">English</a> · <strong>简体中文</strong>
 </p>
 
+<p align="center">
+  <a href="https://github.com/zhangweiguo9719-web/ScholarNova/releases/latest"><img alt="Windows 下载" src="https://img.shields.io/github/v/release/zhangweiguo9719-web/ScholarNova?label=Windows%20%E4%B8%8B%E8%BD%BD"></a>
+</p>
+
 # ScholarNova：AI 学术论文检索与研究工作台
 
 ScholarNova 面向复杂科研问题，将自然语言查询转化为检索计划，连接多个学术数据源，对论文进行去重、排序、质量分析和证据整理，并将研究发现沉淀到个人知识库与研究路线中。
 
 公开版采用 **BYOK（Bring Your Own Key）**：仓库不提供、不收集任何私人 API Key，也不包含授权评测数据。使用者可以自行选择模型、学术数据源和部署环境。
+
+## Windows 桌面版（推荐普通用户）
+
+无需手动安装 Python、Node.js、数据库，也不需要分别启动前后端：
+
+1. 打开 [GitHub Releases 下载页](https://github.com/zhangweiguo9719-web/ScholarNova/releases/latest)。
+2. 下载 `ScholarNova-Setup-1.0.0-x64.exe` 并安装；不想安装可下载 `ScholarNova-Portable-1.0.0-x64.exe`。
+3. 启动 ScholarNova，在“设置”中填写自己的模型和学术数据源 API Key。
+4. 进入搜索页开始论文检索、AI 分析、知识库保存与研究路线生成。
+
+桌面版会自动启动内置服务，数据与配置保存在当前 Windows 用户的 AppData 中。安装包不包含维护者的 API Key、授权数据集或本地数据库。详细说明见 [Windows 桌面版发布指南](docs/desktop-release.zh-CN.md)。
 
 ## 产品界面
 

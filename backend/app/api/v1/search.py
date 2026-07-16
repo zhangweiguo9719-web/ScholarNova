@@ -8,7 +8,7 @@ import time
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -20,6 +20,14 @@ from app.schemas.search import SearchRequest, SearchResponse, SearchRunDetail, S
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+_running_search_tasks: set[asyncio.Task[None]] = set()
+
+
+def _start_search_task(run_id: str, request: SearchRequest) -> None:
+    """Start and retain a search task until it completes."""
+    task = asyncio.create_task(_execute_search_task(run_id, request))
+    _running_search_tasks.add(task)
+    task.add_done_callback(_running_search_tasks.discard)
 
 
 def _collect_constraints(request: SearchRequest):
@@ -495,7 +503,6 @@ async def _execute_search_task(run_id: str, request: SearchRequest) -> None:
 async def create_search(
     request: SearchRequest,
     http_request: Request,
-    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
 ) -> SearchResponse:
     """
@@ -527,8 +534,8 @@ async def create_search(
     db.add(search_run)
     await db.commit()
 
-    # 异步启动检索任务
-    background_tasks.add_task(_execute_search_task, run_id, request)
+    # 真正脱离当前 HTTP 响应执行；任务对象会被保留到完成，避免被提前回收。
+    _start_search_task(run_id, request)
 
     return SearchResponse(
         run_id=search_run.id,

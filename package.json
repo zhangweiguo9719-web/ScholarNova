@@ -1,0 +1,68 @@
+{
+  "name": "scholarnova-desktop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ScholarNova desktop packaging for Windows.",
+  "author": "Zhang Weiguo and ScholarNova contributors",
+  "main": "desktop/main.cjs",
+  "scripts": {
+    "desktop:dev": "npm run build:frontend && electron .",
+    "build:frontend": "npm --prefix frontend run build",
+    "build:backend": "python -m PyInstaller scripts/packaging/ScholarNovaBackend.spec --noconfirm --clean",
+    "build:backend:venv": "powershell -ExecutionPolicy Bypass -File scripts/packaging/build-backend.ps1",
+    "build:desktop": "npm run build:frontend && npm run build:backend:venv && electron-builder --win nsis portable",
+    "dist:win": "npm run build:desktop"
+  },
+  "build": {
+    "appId": "cn.scholarnova.desktop",
+    "productName": "ScholarNova",
+    "copyright": "Copyright © 2026 ScholarNova",
+    "afterPack": "desktop/after-pack.cjs",
+    "directories": {
+      "output": "desktop/dist"
+    },
+    "files": [
+      "desktop/main.cjs",
+      "desktop/assets/icon.ico",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "frontend/dist",
+        "to": "frontend/dist"
+      },
+      {
+        "from": "desktop/release/backend/ScholarNovaBackend",
+        "to": "backend/ScholarNovaBackend"
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "desktop/assets/icon.ico",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "artifactName": "${productName}-Setup-${version}-${arch}.${ext}",
+      "installerIcon": "desktop/assets/icon.ico",
+      "uninstallerIcon": "desktop/assets/icon.ico",
+      "installerHeaderIcon": "desktop/assets/icon.ico",
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "ScholarNova"
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable-${version}-${arch}.${ext}"
+    }
+  },
+  "devDependencies": {
+    "electron": "^31.7.7",
+    "electron-builder": "^24.13.3",
+    "glob": "^13.0.6",
+    "rcedit": "^5.0.2"
+  }
+}

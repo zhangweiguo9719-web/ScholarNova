@@ -386,9 +386,10 @@ Requirements:
 - no decorative filler, no invented numeric results, no logos or watermarks
 """
 
-        from pathlib import Path
+        from app.config import runtime_path
 
-        diagram_dir = Path(__file__).resolve().parents[3] / "generated" / "route_diagrams"
+        diagram_dir = runtime_path("generated") / "route_diagrams"
+        diagram_dir.mkdir(parents=True, exist_ok=True)
         diagram_path = diagram_dir / f"{route.id}.png"
         image_result = await sn.generate_image(
             prompt=image_prompt,
@@ -398,7 +399,7 @@ Requirements:
         # 合并结果
         if image_result.get("status") == "ok":
             image_url = (
-                f"http://127.0.0.1:8000/generated/route_diagrams/{route.id}.png"
+                f"/generated/route_diagrams/{route.id}.png"
                 if diagram_path.exists()
                 else image_result.get("url", "")
             )

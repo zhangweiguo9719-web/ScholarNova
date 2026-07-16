@@ -1,0 +1,60 @@
+name: Windows Desktop Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    name: Build Windows installer and portable app
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            frontend/package-lock.json
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-lock.txt
+
+      - name: Install dependencies
+        shell: pwsh
+        run: |
+          npm ci
+          npm --prefix frontend ci
+
+      - name: Build Windows desktop artifacts
+        shell: pwsh
+        run: npm run dist:win
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ScholarNova-Windows-${{ github.ref_name }}
+          path: desktop/dist/*.exe
+          if-no-files-found: error
+
+      - name: Publish tagged GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $files = Get-ChildItem desktop/dist/*.exe | ForEach-Object { $_.FullName }
+          gh release create "${{ github.ref_name }}" $files --repo "${{ github.repository }}" --title "ScholarNova ${{ github.ref_name }}" --generate-notes

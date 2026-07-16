@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="ScholarNova icon">
+  <defs>
+    <radialGradient id="nova" cx="68%" cy="28%" r="74%">
+      <stop offset="0%" stop-color="#ffd98a"/>
+      <stop offset="38%" stop-color="#c88325"/>
+      <stop offset="72%" stop-color="#183a66"/>
+      <stop offset="100%" stop-color="#08111f"/>
+    </radialGradient>
+    <linearGradient id="page" x1="52" y1="48" x2="196" y2="214">
+      <stop offset="0%" stop-color="#f7fbff"/>
+      <stop offset="100%" stop-color="#bfd7f4"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="256" height="256" rx="58" fill="#08111f"/>
+  <circle cx="178" cy="72" r="84" fill="url(#nova)" opacity="0.92"/>
+  <path d="M45 78c34-39 86-48 151-27" fill="none" stroke="#f0b34d" stroke-width="5" stroke-linecap="round" opacity=".85"/>
+  <path d="M50 178c43 28 93 28 158 0" fill="none" stroke="#56d6d6" stroke-width="4" stroke-linecap="round" opacity=".55"/>
+  <path d="M72 62h48c17 0 31 14 31 31v107c0 7-8 11-14 7l-17-12-17 12c-6 4-14 0-14-7V92c0-16-9-30-17-30z" fill="#0f2340" opacity=".7"/>
+  <path d="M66 58h43c21 0 38 17 38 38v103l-35-22-35 22V69c0-6-5-11-11-11z" fill="url(#page)" stroke="#eaf5ff" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M112 84h54M112 111h68M112 138h52" stroke="#1d3f68" stroke-width="9" stroke-linecap="round" opacity=".92"/>
+  <g filter="url(#glow)">
+    <circle cx="188" cy="74" r="7" fill="#fff3bf"/>
+    <circle cx="208" cy="112" r="5" fill="#ffe0a3"/>
+    <circle cx="161" cy="45" r="4" fill="#a7f3ff"/>
+  </g>
+</svg>

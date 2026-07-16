@@ -2,6 +2,7 @@
 模型配置相关 API 端点
 """
 
+import asyncio
 import time
 
 from fastapi import APIRouter, HTTPException, Request
@@ -123,7 +124,10 @@ async def test_model_connection(
         )
 
         # 发送测试请求
-        result = await gateway.test_connection()
+        # A connection check must return promptly even when a provider, proxy,
+        # or key is invalid. Full analysis requests keep their own bounded retry
+        # policy; the settings-page probe has a strict user-facing deadline.
+        result = await asyncio.wait_for(gateway.test_connection(), timeout=15.0)
         latency_ms = (time.time() - start_time) * 1000
 
         if result["success"]:

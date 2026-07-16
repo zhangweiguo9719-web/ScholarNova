@@ -52,6 +52,11 @@ pnpm-debug.log*
 # Build outputs
 frontend/dist/
 frontend/build/
+desktop/dist/
+desktop/build/
+desktop/release/
+desktop/.venv-build/
+desktop/tmp-runtime*/
 
 # =============================================================================
 # IDE
@@ -105,6 +110,7 @@ backend/stdout.txt
 # Authorized benchmark datasets and generated run artifacts
 outputs/benchmarks/data/
 outputs/benchmarks/predictions/*
+outputs/test-full-analysis.json
 !outputs/benchmarks/predictions/asta-hybrid-validation18-baseline-2026-07-02.json
 !outputs/benchmarks/predictions/asta-hybrid-validation18-final-2026-07-02.json
 !outputs/benchmarks/predictions/asta-s2-validation18-v2-2026-07-02.json

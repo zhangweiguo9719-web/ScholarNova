@@ -82,7 +82,7 @@ export default function Search() {
           return
         }
         attempts++
-        if (attempts < 60) pollTimerRef.current = setTimeout(poll, 2000)
+        if (attempts < 150) pollTimerRef.current = setTimeout(poll, 2000)
         else { setError('搜索超时'); setIsLoading(false) }
       } catch (err: any) {
         setError(err.response?.data?.detail || '获取搜索状态失败')

@@ -4,6 +4,7 @@
 
 <p align="center">
   <a href="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://github.com/zhangweiguo9719-web/ScholarNova/releases/latest"><img alt="Windows release" src="https://img.shields.io/github/v/release/zhangweiguo9719-web/ScholarNova?label=Windows%20download"></a>
   <img alt="Python 3.11+" src="https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white">
   <img alt="React 18" src="https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=08111f">
   <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-0.115%2B-009688?logo=fastapi&logoColor=white">
@@ -18,6 +19,27 @@
 ScholarNova is a self-hosted academic discovery workspace for complex research questions. It turns a natural-language request into a query plan, retrieves papers from multiple scholarly indexes, ranks and explains the results, exposes evidence and quality signals, and organizes findings into a personal knowledge base.
 
 The public edition is **BYOK (Bring Your Own Key)**: this repository contains no private API keys or licensed benchmark data. You choose the model provider, scholarly data sources, and deployment environment.
+
+## Windows desktop edition
+
+ScholarNova now includes a Windows desktop packaging path. Project maintainers can publish an installer or portable `.exe` through GitHub Releases, so non-developer users can launch the product without manually starting the frontend and backend.
+
+**For most Windows users:** open [GitHub Releases](https://github.com/zhangweiguo9719-web/ScholarNova/releases/latest), download `ScholarNova-Setup-1.0.0-x64.exe`, install it, and enter your own API keys in Settings. `ScholarNova-Portable-1.0.0-x64.exe` is also available when installation is not desired.
+
+- Desktop shell: Electron.
+- Backend: packaged FastAPI service started automatically by the desktop app.
+- Local data: stored under the user's AppData directory.
+- Credentials: users configure their own API keys in the settings page; private keys are never bundled.
+
+Build command for maintainers:
+
+```powershell
+npm ci
+npm --prefix frontend ci
+npm run dist:win
+```
+
+See [Windows desktop release guide](docs/desktop-release.zh-CN.md) for details.
 
 ## Product preview
 

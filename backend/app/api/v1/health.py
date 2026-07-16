@@ -52,6 +52,23 @@ async def _probe_data_source(client, name: str, url: str) -> tuple[str, str]:
         return name, "unavailable"
 
 
+@router.get("/health/live")
+async def liveness_check(db: AsyncSession = Depends(get_db)) -> dict:
+    """Lightweight local liveness check for desktop/startup probes."""
+    try:
+        await db.execute(text("SELECT 1"))
+        database = "connected"
+    except Exception:
+        database = "disconnected"
+
+    return {
+        "status": "ok" if database == "connected" else "degraded",
+        "version": "1.0.0",
+        "timestamp": datetime.utcnow().isoformat(),
+        "services": {"database": database},
+    }
+
+
 @router.get("/health", response_model=HealthResponse)
 async def health_check(
     db: AsyncSession = Depends(get_db),

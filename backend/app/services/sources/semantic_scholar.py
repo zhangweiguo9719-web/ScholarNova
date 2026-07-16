@@ -18,7 +18,7 @@ import tempfile
 import time
 from datetime import date
 from pathlib import Path
-from typing import List, Optional, Sequence
+from typing import Dict, List, Optional, Sequence, Union
 
 from app.schemas.paper import Paper
 from app.services.sources.base import BaseSource, make_paper_uuid
@@ -33,8 +33,8 @@ _S2_RATE_STATE_FILE = _S2_RATE_DIR / "semantic-scholar-rate.json"
 _S2_CACHE_DIR = _S2_RATE_DIR / "semantic-scholar-cache"
 _S2_CACHE_TTL_SECONDS = 24 * 60 * 60
 _S2_NEGATIVE_CACHE_TTL_SECONDS = 10 * 60
-_S2_CACHE: dict[str, tuple[float, list[dict]]] = {}
-_S2_CACHE_LOCKS: dict[str, asyncio.Lock] = {}
+_S2_CACHE: Dict[str, tuple] = {}
+_S2_CACHE_LOCKS: Dict[str, asyncio.Lock] = {}
 
 # 请求的论文字段
 _SEARCH_FIELDS = (
@@ -132,7 +132,7 @@ class SemanticScholarSource(BaseSource):
         return lock
 
     @staticmethod
-    def _read_cache(key: str) -> Optional[list[Paper]]:
+    def _read_cache(key: str) -> Optional[List[Paper]]:
         cached = _S2_CACHE.get(key)
         if cached:
             expires_at, payload = cached
@@ -539,7 +539,7 @@ class SemanticScholarSource(BaseSource):
         self,
         author_id: str,
         limit: int = 1000,
-    ) -> list[dict]:
+    ) -> List[Dict]:
         """Fetch author papers with graph metadata needed by structured queries."""
         bounded_limit = min(max(1, limit), 1000)
         try:
@@ -567,14 +567,14 @@ class SemanticScholarSource(BaseSource):
     async def search_bulk_records(
         self,
         *,
-        query: str | None = None,
-        venue: str | None = None,
-        publication_range: str | None = None,
-        min_citations: int | None = None,
+        query: Optional[str] = None,
+        venue: Optional[str] = None,
+        publication_range: Optional[str] = None,
+        min_citations: Optional[int] = None,
         limit: int = 1000,
-    ) -> list[dict]:
+    ) -> List[Dict]:
         """Use S2 bulk filters to obtain a bounded candidate set."""
-        params: dict[str, object] = {
+        params: Dict[str, object] = {
             "fields": _SEARCH_FIELDS,
         }
         if query:
@@ -607,10 +607,10 @@ class SemanticScholarSource(BaseSource):
         paper_ids: Sequence[str],
         *,
         include_references: bool = False,
-    ) -> list[dict]:
+    ) -> List[Dict]:
         """Fetch raw records for up to 500 candidate papers per request."""
         unique_ids = list(dict.fromkeys(str(value) for value in paper_ids if value))
-        records: list[dict] = []
+        records: List[Dict] = []
         fields = _SEARCH_FIELDS
         batch_size = 500
         if include_references:
@@ -662,7 +662,7 @@ class SemanticScholarSource(BaseSource):
             for paper in resolved
             if paper.corpus_id and paper.title
         }
-        enriched: list[Paper] = []
+        enriched: List[Paper] = []
         for paper in papers:
             match = by_doi.get(paper.doi.casefold()) if paper.doi else None
             if not match and paper.title:
