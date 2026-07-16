@@ -19,6 +19,7 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 - Lightweight desktop liveness check and pinned Pydantic build dependency compatibility.
 - Search creation now returns its `202 pending` response immediately while retaining the asynchronous worker task.
 - Model connection checks have a 15-second deadline, and duplicate nested LLM retries were removed.
+- Desktop builds explicitly disable electron-builder auto-publish so the release workflow performs one authenticated publish step.
 
 ### Security
 

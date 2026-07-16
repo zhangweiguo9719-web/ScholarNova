@@ -10,7 +10,7 @@
     "build:frontend": "npm --prefix frontend run build",
     "build:backend": "python -m PyInstaller scripts/packaging/ScholarNovaBackend.spec --noconfirm --clean",
     "build:backend:venv": "powershell -ExecutionPolicy Bypass -File scripts/packaging/build-backend.ps1",
-    "build:desktop": "npm run build:frontend && npm run build:backend:venv && electron-builder --win nsis portable",
+    "build:desktop": "npm run build:frontend && npm run build:backend:venv && electron-builder --win nsis portable --publish never",
     "dist:win": "npm run build:desktop"
   },
   "build": {
