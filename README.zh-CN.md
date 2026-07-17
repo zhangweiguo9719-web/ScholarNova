@@ -216,7 +216,7 @@ npm run dev
 目前已完成全部 66 条执行。其中 27 条带有可直接计算二值 F1 的论文 ID，F1=`0.283713`；另外 39 条只有文字相关性准则，需要官方或模型裁判，因此单独报告，不强行塞进二值 F1。
 
 - [比赛指标报告](outputs/competition-benchmark-report-2026-07-02.md)
-- [本次优化报告](outputs/optimization-report-2026-07-02.md)
+- [v1.1.0 优化与测试报告](docs/reports/v1.1.0-optimization-test-report.zh-CN.md)
 - [三分钟中文演示稿](docs/demo/three-minute-product-video-script.md)
 
 ## 测试

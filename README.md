@@ -248,7 +248,7 @@ binary paper-ID gold labels and score F1=`0.283713`; the remaining 39 require a
 textual relevance judge and are reported separately instead of being forced
 into the binary metric.
 
-See [the benchmark report](outputs/competition-benchmark-report-2026-07-02.md), [the optimization report](outputs/optimization-report-2026-07-02.md), and the committed [prediction artifact](outputs/benchmarks/predictions/asta-s2-validation18-v3-2026-07-02.json).
+See [the benchmark report](outputs/competition-benchmark-report-2026-07-02.md), [the v1.1.0 optimization and test report](docs/reports/v1.1.0-optimization-test-report.zh-CN.md), and the committed [prediction artifact](outputs/benchmarks/predictions/asta-s2-validation18-v3-2026-07-02.json).
 
 ## Verification
 
