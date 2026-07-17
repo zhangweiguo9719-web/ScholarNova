@@ -31,10 +31,10 @@ class TestHealthCheck:
         assert data["status"] in ("healthy", "degraded", "unhealthy")
 
     async def test_health_version(self, client: AsyncClient):
-        """版本号应为 1.0.0"""
+        """版本号应为 1.1.0"""
         response = await client.get("/api/v1/health")
         data = response.json()
-        assert data["version"] == "1.0.0"
+        assert data["version"] == "1.1.0"
 
     async def test_health_services_dict(self, client: AsyncClient):
         """services 字段应为字典类型"""

@@ -9,6 +9,7 @@ LLM 驱动的复杂查询解析，将自然语言查询分解为:
 - 检索策略选择
 """
 
+import asyncio
 import json
 import logging
 from typing import Dict, List, Optional
@@ -83,7 +84,12 @@ class QueryPlanner:
         if self.llm_gateway is None or rule_plan.intent == "exact_lookup":
             return rule_plan
         try:
-            llm_plan = await self._plan_with_llm(query, sources, user_constraints)
+            # 查询规划不能无限占住整个检索。超时后立即使用已经生成好的
+            # 确定性计划，兼顾比赛成本、端到端延迟与服务可用性。
+            llm_plan = await asyncio.wait_for(
+                self._plan_with_llm(query, sources, user_constraints),
+                timeout=12.0,
+            )
             # 保留规则解析出的显式约束，避免 LLM 遗漏年份、venue 等硬条件。
             existing = {
                 (item.key, item.operator, str(item.value))

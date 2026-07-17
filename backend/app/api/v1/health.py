@@ -63,7 +63,7 @@ async def liveness_check(db: AsyncSession = Depends(get_db)) -> dict:
 
     return {
         "status": "ok" if database == "connected" else "degraded",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "timestamp": datetime.utcnow().isoformat(),
         "services": {"database": database},
     }
@@ -151,7 +151,7 @@ async def health_check(
 
     return HealthResponse(
         status=status,
-        version="1.0.0",
+        version="1.1.0",
         timestamp=datetime.utcnow(),
         services=services,
     )

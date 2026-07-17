@@ -115,6 +115,21 @@ export interface SearchProgress {
   search_rounds?: number
   api_calls?: number
   latency_ms?: number
+  source_calls?: SourceCall[]
+}
+
+export interface SourceCall {
+  source: string
+  label?: string
+  api_name?: string
+  endpoint?: string
+  query?: string | null
+  status?: 'pending' | 'completed' | 'failed' | string
+  success?: boolean | null
+  paper_count: number
+  elapsed_ms: number
+  error?: string | null
+  round?: number
 }
 
 export interface Paper {
@@ -141,9 +156,21 @@ export interface Paper {
     wos_indexed: boolean | null
     jcr_quartile: string | null
     cas_quartile: string | null
+    sjr_quartile?: string | null
+    sjr_score?: number | null
     partition_year: number | null
     partition_status: 'verified' | 'unverified' | string
     partition_source: string | null
+    matched_venue?: string | null
+    match_confidence?: number | null
+    openalex_source_id?: string | null
+    openalex_h_index?: number | null
+    openalex_i10_index?: number | null
+    openalex_2yr_mean_citedness?: number | null
+    openalex_works_count?: number | null
+    openalex_cited_by_count?: number | null
+    openalex_is_in_doaj?: boolean | null
+    open_metrics_source?: string | null
   } | null
 }
 
@@ -172,13 +199,7 @@ export interface SearchRunDetail {
   query_plan: QueryPlan | null
   progress: SearchProgress | null
   results: Paper[]
-  source_status?: Array<{
-    source: string
-    success: boolean
-    paper_count: number
-    elapsed_ms: number
-    error?: string | null
-  }>
+  source_status?: SourceCall[]
   runtime_metrics?: {
     api_calls?: number
     search_rounds?: number

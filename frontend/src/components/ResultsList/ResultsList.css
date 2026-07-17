@@ -68,10 +68,14 @@
 }
 
 .paper-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
   margin-bottom: 0.4rem;
 }
 
 .paper-card-title {
+  flex: 1;
   display: -webkit-box;
   overflow: hidden;
   color: var(--ui-text);
@@ -81,6 +85,43 @@
   letter-spacing: -0.01em;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+}
+
+.paper-title-translate {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.3rem 0.5rem;
+  color: var(--ui-brand);
+  font-size: 0.68rem;
+  font-weight: 650;
+  border: 1px solid color-mix(in srgb, var(--ui-brand) 28%, var(--ui-border));
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--ui-brand) 7%, var(--ui-surface));
+  transition: transform 160ms ease, background 160ms ease;
+}
+
+.paper-title-translate:hover {
+  background: color-mix(in srgb, var(--ui-brand) 13%, var(--ui-surface));
+  transform: translateY(-1px);
+}
+
+.paper-title-translation {
+  margin: -0.05rem 0 0.55rem;
+  padding-left: 0.65rem;
+  color: var(--ui-brand);
+  font-size: 0.84rem;
+  line-height: 1.55;
+  border-left: 2px solid color-mix(in srgb, var(--ui-brand) 55%, transparent);
+  animation: translation-reveal 180ms ease-out;
+}
+
+@keyframes translation-reveal {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .paper-card-meta {
@@ -145,6 +186,21 @@
   border-style: dashed;
   background: transparent;
 }
+
+.paper-quality-strip .paper-quartile-q1 {
+  color: #059669;
+  border-color: color-mix(in srgb, #10b981 55%, var(--ui-border));
+  background: color-mix(in srgb, #10b981 12%, var(--ui-surface));
+}
+
+.paper-quality-strip .paper-quartile-q2 {
+  color: #0284c7;
+  border-color: color-mix(in srgb, #0ea5e9 50%, var(--ui-border));
+  background: color-mix(in srgb, #0ea5e9 11%, var(--ui-surface));
+}
+
+.paper-quality-strip .paper-quartile-q3 { color: #d97706; }
+.paper-quality-strip .paper-quartile-q4 { color: #dc2626; }
 
 .paper-card-footer {
   display: flex;

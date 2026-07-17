@@ -22,6 +22,88 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 _running_search_tasks: set[asyncio.Task[None]] = set()
 
+_SOURCE_DESCRIPTORS: dict[str, dict[str, str]] = {
+    "semantic_scholar": {
+        "label": "Semantic Scholar",
+        "api_name": "Semantic Scholar Graph API",
+        "endpoint": "api.semanticscholar.org/graph/v1/paper/search",
+    },
+    "openalex": {
+        "label": "OpenAlex",
+        "api_name": "OpenAlex Works API",
+        "endpoint": "api.openalex.org/works",
+    },
+    "crossref": {
+        "label": "Crossref",
+        "api_name": "Crossref REST API",
+        "endpoint": "api.crossref.org/works",
+    },
+    "arxiv": {
+        "label": "arXiv",
+        "api_name": "arXiv Atom API",
+        "endpoint": "export.arxiv.org/api/query",
+    },
+    "semantic_scholar_batch": {
+        "label": "Semantic Scholar",
+        "api_name": "Semantic Scholar Batch API",
+        "endpoint": "api.semanticscholar.org/graph/v1/paper/batch",
+    },
+    "semantic_scholar_exact": {
+        "label": "Semantic Scholar",
+        "api_name": "Semantic Scholar Paper API",
+        "endpoint": "api.semanticscholar.org/graph/v1/paper/{id}",
+    },
+}
+
+
+def _source_key(source: Any) -> str:
+    value = source.value if hasattr(source, "value") else str(source)
+    return value.strip().lower().replace(" ", "_").replace("-", "_")
+
+
+def _source_call(source: Any, **values: Any) -> dict[str, Any]:
+    key = _source_key(source)
+    descriptor = _SOURCE_DESCRIPTORS.get(
+        key,
+        {"label": str(source), "api_name": str(source), "endpoint": ""},
+    )
+    return {"source": key, **descriptor, **values}
+
+
+def _status_call(status: Any) -> dict[str, Any]:
+    return _source_call(
+        status.source,
+        query=status.query,
+        status="completed" if status.success else "failed",
+        success=status.success,
+        paper_count=status.paper_count,
+        elapsed_ms=round(status.elapsed_ms, 2),
+        error=status.error,
+    )
+
+
+def _merge_source_calls(
+    planned: list[dict[str, Any]], statuses: list[Any]
+) -> list[dict[str, Any]]:
+    remaining = [dict(item) for item in planned]
+    completed: list[dict[str, Any]] = []
+    for status in statuses:
+        completed.append(_status_call(status))
+        key = _source_key(status.source)
+        query = status.query
+        index = next(
+            (
+                i
+                for i, item in enumerate(remaining)
+                if item.get("source") == key
+                and (query is None or item.get("query") == query)
+            ),
+            None,
+        )
+        if index is not None:
+            remaining.pop(index)
+    return completed + remaining
+
 
 def _start_search_task(run_id: str, request: SearchRequest) -> None:
     """Start and retain a search task until it completes."""
@@ -148,8 +230,26 @@ async def _execute_search_task(run_id: str, request: SearchRequest) -> None:
                 user_constraints=all_constraints or None,
             )
             search_run.query_plan = query_plan.model_dump()
+            planned_calls = [
+                _source_call(
+                    sub_query.source,
+                    query=sub_query.query,
+                    status="pending",
+                    success=None,
+                    paper_count=0,
+                    elapsed_ms=0,
+                    error=None,
+                )
+                for sub_query in query_plan.sub_queries
+            ]
+            live_statuses: list[SourceStatus] = []
+            search_run.source_status = {
+                "calls": planned_calls,
+                "search_rounds": 0,
+                "api_calls": 0,
+            }
             search_run.update_progress({
-                "total_sources": len(request.sources),
+                "total_sources": len(planned_calls),
                 "completed_sources": 0,
                 "total_papers": 0,
                 "deduplicated_papers": 0,
@@ -157,6 +257,7 @@ async def _execute_search_task(run_id: str, request: SearchRequest) -> None:
                 "search_rounds": 0,
                 "api_calls": 0,
                 "latency_ms": (time.time() - start_time) * 1000,
+                "source_calls": planned_calls,
             })
             await db.commit()
 
@@ -181,13 +282,38 @@ async def _execute_search_task(run_id: str, request: SearchRequest) -> None:
                     sources_map[source_type] = ArxivSource()
 
             print(f"[SEARCH] sources_map keys: {list(sources_map.keys())}")
-            print(f"[SEARCH] sub_queries: {[(sq.source, type(sq.source).__name__, sq.query[:50]) for sq in query_plan.sub_queries]}")
+            logger.debug(
+                "Planned sub-queries",
+                extra={"sub_queries": [sq.model_dump() for sq in query_plan.sub_queries]},
+            )
 
-            # 3. 检索
-            retriever = Retriever(sources=sources_map)
+            async def report_source_progress(status: SourceStatus) -> None:
+                live_statuses.append(status)
+                source_calls = _merge_source_calls(planned_calls, live_statuses)
+                search_run.source_status = {
+                    "calls": source_calls,
+                    "search_rounds": 1,
+                    "api_calls": len(live_statuses),
+                }
+                search_run.update_progress({
+                    **(search_run.progress or {}),
+                    "total_sources": len(planned_calls),
+                    "completed_sources": len(live_statuses),
+                    "total_papers": sum(item.paper_count for item in live_statuses),
+                    "current_phase": "searching",
+                    "search_rounds": 1,
+                    "api_calls": len(live_statuses),
+                    "latency_ms": (time.time() - start_time) * 1000,
+                    "source_calls": source_calls,
+                })
+                await db.commit()
+
+            # 3. 检索。每个 API 完成时立即写入进度。
+            retriever = Retriever(sources=sources_map, timeout=45)
             retrieve_result = await retriever.retrieve(
                 sub_queries=query_plan.sub_queries,
                 max_results=request.max_results,
+                progress_callback=report_source_progress,
             )
             papers = list(retrieve_result.papers)
             all_statuses = list(retrieve_result.source_statuses)
@@ -209,20 +335,38 @@ async def _execute_search_task(run_id: str, request: SearchRequest) -> None:
                     request.sources,
                 )
                 if refinement_queries:
+                    planned_calls.extend(
+                        _source_call(
+                            sub_query.source,
+                            query=sub_query.query,
+                            status="pending",
+                            success=None,
+                            paper_count=0,
+                            elapsed_ms=0,
+                            error=None,
+                            round=2,
+                        )
+                        for sub_query in refinement_queries
+                    )
                     search_run.update_progress({
-                        "total_sources": len(request.sources),
-                        "completed_sources": len(request.sources),
+                        **(search_run.progress or {}),
+                        "total_sources": len(planned_calls),
+                        "completed_sources": len(live_statuses),
                         "total_papers": len(papers),
                         "deduplicated_papers": len(papers),
                         "current_phase": "refining",
                         "search_rounds": 1,
                         "api_calls": len(all_statuses),
                         "latency_ms": (time.time() - start_time) * 1000,
+                        "source_calls": _merge_source_calls(
+                            planned_calls, live_statuses
+                        ),
                     })
                     await db.commit()
                     refined_result = await retriever.retrieve(
                         sub_queries=refinement_queries,
                         max_results=min(request.max_results, 25),
+                        progress_callback=report_source_progress,
                     )
                     papers.extend(refined_result.papers)
                     all_statuses.extend(refined_result.source_statuses)
@@ -231,17 +375,25 @@ async def _execute_search_task(run_id: str, request: SearchRequest) -> None:
             api_calls = len(all_statuses)
             print(f"[SEARCH] retrieved {len(papers)} papers")
             for s in all_statuses:
-                print(f"[SEARCH]   {s.source}: success={s.success}, papers={s.paper_count}, error={s.error}")
+                logger.debug(
+                    "Source result: %s success=%s papers=%s error=%s",
+                    s.source,
+                    s.success,
+                    s.paper_count,
+                    s.error,
+                )
 
             search_run.update_progress({
-                "total_sources": len(request.sources),
-                "completed_sources": len(request.sources),
+                **(search_run.progress or {}),
+                "total_sources": len(planned_calls),
+                "completed_sources": len(live_statuses),
                 "total_papers": len(papers),
                 "deduplicated_papers": len(papers),
                 "current_phase": "deduplicating",
                 "search_rounds": search_rounds,
                 "api_calls": api_calls,
                 "latency_ms": (time.time() - start_time) * 1000,
+                "source_calls": _merge_source_calls(planned_calls, all_statuses),
             })
             await db.commit()
 
@@ -317,14 +469,16 @@ async def _execute_search_task(run_id: str, request: SearchRequest) -> None:
             )
 
             search_run.update_progress({
-                "total_sources": len(request.sources),
-                "completed_sources": len(request.sources),
+                **(search_run.progress or {}),
+                "total_sources": len(planned_calls),
+                "completed_sources": len(live_statuses),
                 "total_papers": len(papers),
                 "deduplicated_papers": len(eligible_papers),
                 "current_phase": "ranking",
                 "search_rounds": search_rounds,
                 "api_calls": api_calls,
                 "latency_ms": (time.time() - start_time) * 1000,
+                "source_calls": _merge_source_calls(planned_calls, all_statuses),
             })
             await db.commit()
 
@@ -345,6 +499,12 @@ async def _execute_search_task(run_id: str, request: SearchRequest) -> None:
                 limit=result_limit,
                 constraints=query_plan.constraints,
             )
+            # 仅应用用户导入的真实分区数据；开放指标稍后按可见卡片异步补齐。
+            from app.services.journal_quality import apply_local_ranking
+
+            for paper in ranked_papers:
+                if paper.quality:
+                    paper.quality = apply_local_ranking(paper.quality, paper.venue)
             if (
                 semantic_source
                 and settings.SEMANTIC_SCHOLAR_API_KEY
@@ -388,16 +548,7 @@ async def _execute_search_task(run_id: str, request: SearchRequest) -> None:
             search_run.latency_ms = latency_ms
             search_run.model_name = settings.OPENAI_DEFAULT_MODEL
             search_run.source_status = {
-                "calls": [
-                    {
-                        "source": status.source,
-                        "success": status.success,
-                        "paper_count": status.paper_count,
-                        "elapsed_ms": round(status.elapsed_ms, 2),
-                        "error": status.error,
-                    }
-                    for status in all_statuses
-                ],
+                "calls": [_status_call(status) for status in all_statuses],
                 "search_rounds": search_rounds,
                 "api_calls": api_calls,
             }
@@ -413,8 +564,9 @@ async def _execute_search_task(run_id: str, request: SearchRequest) -> None:
             result_summary = _build_result_summary(ranked_papers, query_plan)
             search_run.mark_as_completed()
             search_run.update_progress({
-                "total_sources": len(request.sources),
-                "completed_sources": len(request.sources),
+                **(search_run.progress or {}),
+                "total_sources": len(planned_calls),
+                "completed_sources": len(planned_calls),
                 "total_papers": len(papers),
                 "deduplicated_papers": len(eligible_papers),
                 "current_phase": "caching",
@@ -422,6 +574,7 @@ async def _execute_search_task(run_id: str, request: SearchRequest) -> None:
                 "api_calls": api_calls,
                 "latency_ms": latency_ms,
                 "result_summary": result_summary,
+                "source_calls": [_status_call(status) for status in all_statuses],
             })
 
             # 将结果存储到缓存

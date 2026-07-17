@@ -83,6 +83,20 @@ export const papersApi = {
 
   getEvidence: (runId: string, paperId: string) =>
     api.get<EvidenceResponse>(`/papers/${runId}/${paperId}/evidence`),
+
+  translate: (text: string, targetLang: string = 'zh') =>
+    api.post<{ translated: string; cached: boolean }>('/papers/translate', {
+      text,
+      target_lang: targetLang,
+    }),
+
+  journalQuality: (venue: string, quality?: unknown) =>
+    api.post('/papers/journal-quality', { venue, quality }),
+
+  rankingStatus: () => api.get('/papers/journal-rankings/status'),
+
+  importRankings: (filename: string, content: string) =>
+    api.post('/papers/journal-rankings/import', { filename, content }),
 }
 
 // =============================================================================
@@ -125,6 +139,18 @@ export const modelApi = {
 export const healthApi = {
   check: () =>
     api.get<HealthResponse>('/health'),
+}
+
+export const networkApi = {
+  getConfig: () => api.get('/network/config'),
+  saveConfig: (data: {
+    library_url?: string
+    campus_proxy_url?: string
+  }) => api.post('/network/config', data),
+  detect: () => api.post('/network/detect'),
+  libraryLink: (query: string) =>
+    api.get('/network/library-link', { params: { q: query } }),
+  testProxy: () => api.get('/network/proxy-test'),
 }
 
 // =============================================================================

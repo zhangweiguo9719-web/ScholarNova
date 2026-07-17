@@ -2,8 +2,10 @@
 分析相关 API 端点
 """
 
-import json
+import asyncio
+import base64
 import logging
+import re
 from datetime import datetime
 from typing import Optional
 
@@ -81,11 +83,14 @@ async def _find_paper_info(paper_id: str, db: AsyncSession) -> Optional[dict]:
             "year": paper.year,
             "venue": paper.venue,
             "abstract": paper.abstract or "N/A",
+            "doi": paper.doi,
+            "url": paper.url,
+            "pdf_url": paper.pdf_url,
+            "source": paper.source,
         }
 
     # 2. 从缓存中查找（遍历所有搜索结果）
     from app.core.cache import CacheManager
-    import re
     cache = CacheManager()
     # 搜索所有可能的缓存键
     cached_papers = await cache._get_client()
@@ -104,10 +109,118 @@ async def _find_paper_info(paper_id: str, db: AsyncSession) -> Optional[dict]:
                                     "year": p.get("year"),
                                     "venue": p.get("venue"),
                                     "abstract": p.get("abstract") or "N/A",
+                                    "doi": p.get("doi"),
+                                    "url": p.get("url"),
+                                    "pdf_url": p.get("pdf_url"),
+                                    "source": p.get("source"),
                                 }
                 except Exception:
                     pass
     return None
+
+
+def _arxiv_id(paper_info: dict) -> Optional[str]:
+    for value in (paper_info.get("pdf_url"), paper_info.get("url")):
+        match = re.search(r"arxiv\.org/(?:abs|pdf)/([^/?#]+)", value or "", re.I)
+        if match:
+            return match.group(1).removesuffix(".pdf")
+    return None
+
+
+def _document_text(parsed) -> str:
+    """Build a section-aware context that covers the paper within a safe budget."""
+    budget = 48_000
+    parts: list[str] = []
+    priority = (
+        "abstract", "introduction", "method", "approach", "experiment",
+        "result", "discussion", "limitation", "conclusion",
+    )
+    sections = list(parsed.sections or [])
+    sections.sort(key=lambda item: next(
+        (index for index, key in enumerate(priority) if key in item.heading.casefold()),
+        len(priority),
+    ))
+    for section in sections:
+        value = f"\n### {section.heading}\n{section.text.strip()}"
+        remaining = budget - sum(len(item) for item in parts)
+        if remaining <= 0:
+            break
+        parts.append(value[:remaining])
+    if not parts:
+        parts.append((parsed.full_text or "")[:budget])
+
+    if parsed.figures:
+        captions = "\n".join(
+            f"- {item.get('caption', '')}" for item in parsed.figures[:20]
+        )
+        parts.append(f"\n### Figure captions\n{captions}")
+    if parsed.tables:
+        tables: list[str] = []
+        for item in parsed.tables[:8]:
+            rows = item.get("rows", [])[:12]
+            tables.append(
+                f"Table page {item.get('page')}: {item.get('caption', '')}\n"
+                + "\n".join(" | ".join(row) for row in rows)
+            )
+        parts.append("\n### Extracted tables\n" + "\n\n".join(tables))
+    return "\n".join(parts)
+
+
+def _visual_pages(pdf_path, max_pages: int = 3) -> list[str]:
+    """Render figure-bearing PDF pages for vision-capable models."""
+    try:
+        import pymupdf
+
+        doc = pymupdf.open(str(pdf_path))
+        candidates: list[int] = []
+        for index, page in enumerate(doc):
+            text = page.get_text().casefold()
+            if page.get_images(full=True) and re.search(r"\b(fig(?:ure)?\.?|table)\s*\d+", text):
+                candidates.append(index)
+            if len(candidates) >= max_pages:
+                break
+        images: list[str] = []
+        for index in candidates:
+            pixmap = doc[index].get_pixmap(matrix=pymupdf.Matrix(0.9, 0.9), alpha=False)
+            encoded = base64.b64encode(pixmap.tobytes("jpeg")).decode("ascii")
+            images.append(f"data:image/jpeg;base64,{encoded}")
+        doc.close()
+        return images
+    except Exception:
+        logger.warning("PDF visual-page rendering failed", exc_info=True)
+        return []
+
+
+async def _load_document_context(paper_info: dict) -> tuple[str, list[str], str]:
+    """Fetch and parse a legal OA PDF; never bypass institutional access."""
+    from app.config import settings
+    from app.services.pdf.fetcher import PDFFetcher
+    from app.services.pdf.parser import PDFParser
+
+    fetcher = PDFFetcher(
+        unpaywall_email=settings.OPENALEX_EMAIL or settings.CROSSREF_EMAIL
+    )
+    try:
+        fetched = await asyncio.wait_for(
+            fetcher.fetch(
+                doi=paper_info.get("doi"),
+                arxiv_id=_arxiv_id(paper_info),
+                pdf_url=paper_info.get("pdf_url"),
+                venue=paper_info.get("venue"),
+                title=paper_info.get("title"),
+            ),
+            timeout=45,
+        )
+        if not fetched.success or not fetched.pdf_path:
+            return "", [], "abstract"
+        parsed = await asyncio.wait_for(PDFParser().parse(fetched.pdf_path), timeout=30)
+        if not parsed or len((parsed.full_text or "").strip()) < 500:
+            return "", [], "abstract"
+        visuals = await asyncio.to_thread(_visual_pages, fetched.pdf_path)
+        return _document_text(parsed), visuals, f"fulltext:{fetched.source}"
+    except Exception:
+        logger.warning("OA full-text preparation failed; using abstract", exc_info=True)
+        return "", [], "abstract"
 
 
 @router.post("/{paper_id}/analyze", response_model=AnalysisResult)
@@ -128,6 +241,7 @@ async def analyze_paper(
     if not paper_info:
         raise HTTPException(status_code=404, detail="Paper not found")
 
+    document_text, visual_pages, coverage = await _load_document_context(paper_info)
     paper_text = f"""
 Title: {paper_info['title']}
 Authors: {paper_info['authors']}
@@ -137,7 +251,7 @@ Abstract: {paper_info['abstract']}
 """
 
     abstract = (paper_info.get("abstract") or "").strip()
-    if not abstract or abstract == "N/A":
+    if (not abstract or abstract == "N/A") and not document_text:
         return AnalysisResult(
             paper_id=paper_id,
             analysis_type=request.analysis_type,
@@ -162,26 +276,78 @@ Abstract: {paper_info['abstract']}
         model_name=task_config["model"],
     )
 
-    prompt = f"""你是学术论文分析专家。请根据以下论文信息，按用户要求进行分析。
+    source_note = (
+        "已获取并解析开放获取 PDF 正文、章节、表格和图注"
+        if document_text
+        else "未取得合法开放全文，本次仅基于元数据和摘要"
+    )
+    visual_note = (
+        f"另附 {len(visual_pages)} 个包含图表的 PDF 页面图像，请结合图像内容分析"
+        if visual_pages
+        else "未提供可供视觉模型读取的页面图像；只能依据图注和表格文本"
+    )
+    prompt = f"""你是学术论文分析专家。请根据以下可核验材料，按用户要求进行分析。
 
 ## 论文信息
 {paper_text}
+
+## 材料覆盖范围
+- {source_note}
+- {visual_note}
+- 获取模式：{coverage}
+
+## 论文正文与图表文本
+{document_text or '未取得全文；请严格限制在摘要信息内。'}
 
 ## 用户要求
 {request.query}
 
 请直接输出结构化的中文分析结果（纯文本，不用JSON格式）。
-所有结论必须能由上方论文信息或摘要支持；没有全文依据时必须明确写“摘要未提供此信息”，禁止补写或猜测实验数据、模型结构和结论。"""
+开头必须用“材料覆盖：全文/摘要”明确本次依据，并说明是否读取了图表页面。
+所有结论必须能由上方材料支持；材料未提供时必须明确写“材料未提供此信息”，禁止补写或猜测实验数据、模型结构和结论。
+分析应覆盖研究问题、方法、数据与实验设置、主要结果、图表证据、优点、局限及与用户问题的关系。"""
 
     try:
-        response = await llm_gateway.chat(
-            messages=[
-                {"role": "system", "content": "你是学术论文分析专家。请用中文输出详细的分析结果。不要输出JSON，直接输出结构化的中文分析文本。"},
-                {"role": "user", "content": prompt},
-            ],
-            temperature=0.3,
-            max_tokens=2048,
-        )
+        user_content: object = prompt
+        if visual_pages:
+            user_content = [
+                {"type": "text", "text": prompt},
+                *(
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": image_url, "detail": "low"},
+                    }
+                    for image_url in visual_pages
+                ),
+            ]
+        messages = [
+            {
+                "role": "system",
+                "content": (
+                    "你是严谨的学术论文分析专家。请用中文输出结构化分析，"
+                    "区分正文、表格、图像和摘要证据，不得猜测。"
+                ),
+            },
+            {"role": "user", "content": user_content},
+        ]
+        try:
+            response = await llm_gateway.chat(
+                messages=messages,
+                temperature=0.3,
+                max_tokens=3072,
+            )
+        except Exception:
+            if not visual_pages:
+                raise
+            logger.info(
+                "Configured analysis model rejected visual input; retrying with parsed text",
+                extra={"paper_id": paper_id},
+            )
+            response = await llm_gateway.chat(
+                messages=[messages[0], {"role": "user", "content": prompt}],
+                temperature=0.3,
+                max_tokens=3072,
+            )
 
         return AnalysisResult(
             paper_id=paper_id,
@@ -194,8 +360,11 @@ Abstract: {paper_info['abstract']}
             relevance_to_query=None,
             created_at=datetime.utcnow(),
         )
-    except RuntimeError as e:
-        logger.exception("Paper analysis LLM request exhausted retries", extra={"paper_id": paper_id})
+    except RuntimeError:
+        logger.exception(
+            "Paper analysis LLM request exhausted retries",
+            extra={"paper_id": paper_id},
+        )
         return AnalysisResult(
             paper_id=paper_id,
             analysis_type=request.analysis_type,

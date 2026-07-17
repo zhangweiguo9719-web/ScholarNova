@@ -57,8 +57,8 @@ desktop/dist/
 仓库内的 `Windows Desktop Release` 工作流支持手动构建和版本标签发布。推送 `v*` 标签后，GitHub Actions 会在 Windows 环境重新构建两个 `.exe`，创建对应 Release 并上传文件：
 
 ```powershell
-git tag v1.0.0
-git push origin v1.0.0
+git tag v1.1.0
+git push origin v1.1.0
 ```
 
 公开 Release 使用干净的 GitHub 构建环境，不会读取开发者电脑中的 `.env` 或 API Key。

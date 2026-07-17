@@ -1,7 +1,10 @@
-import { ExternalLink, Quote, Calendar, BookOpen } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { ExternalLink, Quote, Calendar, BookOpen, Languages, Loader2 } from 'lucide-react'
 import clsx from 'clsx'
 import type { Paper } from '@/api/types'
+import { papersApi } from '@/api/client'
 import { useLocaleStore } from '@/stores/localeStore'
+import toast from 'react-hot-toast'
 import './ResultsList.css'
 
 const sourceLabels: Record<string, string> = {
@@ -30,11 +33,51 @@ interface PaperCardProps {
   paper: Paper
   isSelected?: boolean
   onClick?: (paper: Paper) => void
+  autoEnrich?: boolean
 }
 
-export default function PaperCard({ paper, isSelected = false, onClick }: PaperCardProps) {
+export default function PaperCard({ paper, isSelected = false, onClick, autoEnrich = false }: PaperCardProps) {
   const { locale } = useLocaleStore()
   const isZh = locale === 'zh'
+  const [translatedTitle, setTranslatedTitle] = useState('')
+  const [translationLoading, setTranslationLoading] = useState(false)
+  const [quality, setQuality] = useState(paper.quality)
+
+  useEffect(() => {
+    setTranslatedTitle('')
+    setQuality(paper.quality)
+  }, [paper.id, paper.quality])
+
+  useEffect(() => {
+    if (!autoEnrich || !paper.venue) return
+    let cancelled = false
+    papersApi.journalQuality(paper.venue, paper.quality)
+      .then(({ data }) => { if (!cancelled) setQuality(data) })
+      .catch(() => undefined)
+    return () => { cancelled = true }
+  }, [autoEnrich, paper.id, paper.quality, paper.venue])
+
+  const handleTranslateTitle = async (event: React.MouseEvent) => {
+    event.stopPropagation()
+    if (translatedTitle) {
+      setTranslatedTitle('')
+      return
+    }
+    setTranslationLoading(true)
+    try {
+      const { data } = await papersApi.translate(paper.title, 'zh')
+      setTranslatedTitle(data.translated)
+    } catch (error: any) {
+      toast.error(error.response?.data?.detail || (isZh ? '标题翻译失败，请检查翻译模型配置' : 'Title translation failed'))
+    } finally {
+      setTranslationLoading(false)
+    }
+  }
+
+  const quartileTone = (value?: string | null) => {
+    const match = value?.match(/[1-4]/)?.[0]
+    return match ? `paper-quartile-q${match}` : ''
+  }
 
   return (
     <div
@@ -56,7 +99,20 @@ export default function PaperCard({ paper, isSelected = false, onClick }: PaperC
             </a>
           ) : paper.title}
         </h3>
+        <button
+          type="button"
+          className="paper-title-translate"
+          onClick={handleTranslateTitle}
+          disabled={translationLoading}
+          title={isZh ? '翻译标题为中文' : 'Translate title to Chinese'}
+        >
+          {translationLoading
+            ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            : <Languages className="w-3.5 h-3.5" />}
+          <span>{translatedTitle ? (isZh ? '原文' : 'Original') : (isZh ? '译中' : '中文')}</span>
+        </button>
       </div>
+      {translatedTitle && <p className="paper-title-translation">{translatedTitle}</p>}
 
       {/* Authors */}
       {paper.authors.length > 0 && (
@@ -89,32 +145,43 @@ export default function PaperCard({ paper, isSelected = false, onClick }: PaperC
         <p className="paper-card-abstract">{paper.abstract}</p>
       )}
 
-      {paper.quality && (
+      {quality && (
         <div className="paper-quality-strip" title={isZh
-          ? '引用百分位按本次候选结果集计算；JCR/中科院分区仅展示已授权核验数据'
+          ? 'JCR/中科院/SJR 分区仅展示用户合法导入的数据；OpenAlex 指标不是官方分区'
           : 'Citation percentile is calculated within this result set; quartiles require verified licensed data'}>
           <span className="paper-quality-score">
-            {isZh ? '质量' : 'Quality'} {Math.round(paper.quality.quality_score * 100)}
+            {isZh ? '质量' : 'Quality'} {Math.round(quality.quality_score * 100)}
           </span>
           <span>
-            {impactLabels[paper.quality.impact_label]?.[isZh ? 'zh' : 'en']
-              ?? paper.quality.impact_label}
+            {impactLabels[quality.impact_label]?.[isZh ? 'zh' : 'en']
+              ?? quality.impact_label}
           </span>
           <span>
-            {isZh ? '引用百分位' : 'Citation percentile'} {Math.round(paper.quality.citation_percentile * 100)}%
+            {isZh ? '引用百分位' : 'Citation percentile'} {Math.round(quality.citation_percentile * 100)}%
           </span>
           <span>
-            {isZh ? '年均引用' : 'Citations/year'} {paper.quality.citation_velocity.toFixed(1)}
+            {isZh ? '年均引用' : 'Citations/year'} {quality.citation_velocity.toFixed(1)}
           </span>
-          {paper.quality.jcr_quartile && <span>JCR {paper.quality.jcr_quartile}</span>}
-          {paper.quality.cas_quartile && (
-            <span>{isZh ? '中科院' : 'CAS'} {paper.quality.cas_quartile}</span>
+          {quality.jcr_quartile && <span className={quartileTone(quality.jcr_quartile)}>JCR {quality.jcr_quartile}</span>}
+          {quality.cas_quartile && (
+            <span className={quartileTone(quality.cas_quartile)}>{isZh ? '中科院' : 'CAS'} {quality.cas_quartile}</span>
           )}
-          {!paper.quality.jcr_quartile && !paper.quality.cas_quartile && (
+          {quality.sjr_quartile && (
+            <span className={quartileTone(quality.sjr_quartile)}>SJR {quality.sjr_quartile}</span>
+          )}
+          {quality.openalex_h_index != null && <span>OpenAlex H {quality.openalex_h_index}</span>}
+          {quality.openalex_2yr_mean_citedness != null && (
+            <span>2yr {quality.openalex_2yr_mean_citedness.toFixed(1)}</span>
+          )}
+          {quality.openalex_is_in_doaj && <span>DOAJ</span>}
+          {!quality.jcr_quartile && !quality.cas_quartile && !quality.sjr_quartile && (
             <span className="paper-quality-unverified">
-              {isZh ? '分区待授权核验' : 'Quartile unverified'}
+              {quality.open_metrics_source
+                ? (isZh ? '开放指标（非官方分区）' : 'Open metrics (not quartiles)')
+                : (isZh ? '分区待授权数据' : 'Quartile data required')}
             </span>
           )}
+          {quality.partition_year && <span>{quality.partition_year}</span>}
         </div>
       )}
 

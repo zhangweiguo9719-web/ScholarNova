@@ -24,7 +24,7 @@ The public edition is **BYOK (Bring Your Own Key)**: this repository contains no
 
 ScholarNova now includes a Windows desktop packaging path. Project maintainers can publish an installer or portable `.exe` through GitHub Releases, so non-developer users can launch the product without manually starting the frontend and backend.
 
-**For most Windows users:** open [GitHub Releases](https://github.com/zhangweiguo9719-web/ScholarNova/releases/latest), download `ScholarNova-Setup-1.0.0-x64.exe`, install it, and enter your own API keys in Settings. `ScholarNova-Portable-1.0.0-x64.exe` is also available when installation is not desired.
+**For most Windows users:** open [GitHub Releases](https://github.com/zhangweiguo9719-web/ScholarNova/releases/latest), download `ScholarNova-Setup-1.1.0-x64.exe`, install it, and enter your own API keys in Settings. `ScholarNova-Portable-1.1.0-x64.exe` is also available when installation is not desired. Both editions create or update a ScholarNova desktop shortcut.
 
 - Desktop shell: Electron.
 - Backend: packaged FastAPI service started automatically by the desktop app.
@@ -57,10 +57,25 @@ See [Windows desktop release guide](docs/desktop-release.zh-CN.md) for details.
 - Searches Semantic Scholar, OpenAlex, Crossref, and arXiv.
 - Deduplicates and ranks papers using title, abstract, year, venue, citations, and query constraints.
 - Displays abstracts, authors, metadata, relevance, citation percentile, citation velocity, and traceable quality signals.
-- Produces AI summaries, contributions, limitations, methods, and evidence-oriented analysis.
+- Shows live elapsed time, exact source API/query/call status, and supports an intentional re-run of the same query.
+- Retrieves legal open-access PDFs on demand and analyzes structured full text, tables, figure captions, and figure-bearing page images when the configured model supports vision.
+- Produces AI summaries, contributions, limitations, methods, and evidence-oriented analysis; analysis is temporarily retained per paper within the current search run.
+- Enriches visible results with clearly labelled OpenAlex journal metrics and accepts user-authorized JCR, historical CAS, or SJR CSV/JSON imports without guessing commercial quartiles.
+- Opens an institutional library handoff with the query copied; institutional authentication is still required and is never bypassed.
 - Saves discoveries into a knowledge base and generates research routes and framework diagrams.
 - Supports English/Chinese UI, light/dark themes, rate limiting, retries, caching, and circuit breaking.
 - Records API calls, end-to-end latency, and real LLM token usage when a model is invoked.
+
+### Journal data and institutional access
+
+Open **Settings → Journal quartiles** to import a CSV or JSON file that you are licensed to use. A minimal CSV is:
+
+```csv
+Journal,JCR Quartile,中科院分区,SJR Best Quartile,Year,Source
+Nature Communications,Q1,1区,Q1,2025,my authorized dataset
+```
+
+Unknown values stay unknown. OpenAlex H-index, two-year mean citedness, and DOAJ status are labelled as open indicators and are not presented as JCR/CAS quartiles. The library button copies the active query and opens the configured portal; campus network, institutional VPN, or single sign-on is still required for subscribed resources.
 
 ## Architecture
 

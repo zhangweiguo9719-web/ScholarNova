@@ -10,6 +10,26 @@ let backendProcess = null
 let staticServer = null
 
 const isPackaged = app.isPackaged
+app.setAppUserModelId('cn.scholarnova.desktop')
+
+function ensureDesktopShortcut() {
+  if (process.platform !== 'win32' || !isPackaged) return
+  const target = process.env.PORTABLE_EXECUTABLE_FILE || process.execPath
+  const shortcutPath = path.join(app.getPath('desktop'), 'ScholarNova.lnk')
+  try {
+    shell.writeShortcutLink(shortcutPath, 'create', {
+      target,
+      cwd: path.dirname(target),
+      icon: target,
+      iconIndex: 0,
+      description: 'ScholarNova AI 学术论文检索与研究工作台',
+      appUserModelId: 'cn.scholarnova.desktop',
+    })
+  } catch (error) {
+    // Shortcut creation is a convenience; it must never block app startup.
+    console.warn('Unable to create ScholarNova desktop shortcut:', error.message)
+  }
+}
 
 function getFreePort(preferredPort) {
   return new Promise((resolve) => {
@@ -221,6 +241,7 @@ if (!gotLock) {
   })
 
   app.whenReady().then(() => {
+    ensureDesktopShortcut()
     bootstrap().catch((error) => {
       dialog.showErrorBox('ScholarNova 启动失败', error.message)
       app.quit()

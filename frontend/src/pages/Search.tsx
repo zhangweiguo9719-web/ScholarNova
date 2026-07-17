@@ -1,8 +1,8 @@
-import { useEffect, useCallback, useRef } from 'react'
+import { useEffect, useCallback, useRef, useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import { Loader2, Search as SearchIcon, AlertCircle, BookOpen } from 'lucide-react'
-import clsx from 'clsx'
-import { searchApi, papersApi } from '@/api/client'
+import { Loader2, Search as SearchIcon, AlertCircle, BookOpen, Clock3, Database, ExternalLink } from 'lucide-react'
+import { searchApi, papersApi, networkApi } from '@/api/client'
+import type { AnalysisResult } from '@/api/types'
 import { useSearchStore } from '@/stores/searchStore'
 import { useLocaleStore } from '@/stores/localeStore'
 import SearchBar from '@/components/SearchBar/SearchBar'
@@ -29,10 +29,26 @@ export default function Search() {
 
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastStartedQueryRef = useRef<string | null>(null)
+  const searchStartedAtRef = useRef<number | null>(null)
+  const analysisCacheRef = useRef<Map<string, AnalysisResult>>(new Map())
+  const selectedPaperIdRef = useRef<string | null>(selectedPaper?.id || null)
+  const [elapsedMs, setElapsedMs] = useState(0)
 
   useEffect(() => {
     return () => { if (pollTimerRef.current) clearTimeout(pollTimerRef.current) }
   }, [])
+
+  useEffect(() => {
+    if (!isLoading || searchStartedAtRef.current == null) return
+    const timer = window.setInterval(() => {
+      setElapsedMs(Date.now() - (searchStartedAtRef.current || Date.now()))
+    }, 250)
+    return () => window.clearInterval(timer)
+  }, [isLoading])
+
+  useEffect(() => {
+    selectedPaperIdRef.current = selectedPaper?.id || null
+  }, [selectedPaper?.id])
 
   // 搜索 query 变化时执行搜索
   useEffect(() => {
@@ -56,6 +72,9 @@ export default function Search() {
     setSelectedPaper(null)
     setAnalysis(null)
     setEvidenceSpans([])
+    analysisCacheRef.current.clear()
+    searchStartedAtRef.current = Date.now()
+    setElapsedMs(0)
 
     try {
       const response = await searchApi.create({ query: searchQuery })
@@ -82,7 +101,7 @@ export default function Search() {
           return
         }
         attempts++
-        if (attempts < 150) pollTimerRef.current = setTimeout(poll, 2000)
+        if (attempts < 350) pollTimerRef.current = setTimeout(poll, 850)
         else { setError('搜索超时'); setIsLoading(false) }
       } catch (err: any) {
         setError(err.response?.data?.detail || '获取搜索状态失败')
@@ -93,11 +112,15 @@ export default function Search() {
   }
 
   const handleSearch = (newQuery: string) => {
+    if (newQuery.trim() === queryParam.trim()) {
+      performSearch(newQuery.trim())
+      return
+    }
     navigate(`/search?q=${encodeURIComponent(newQuery)}`, { replace: true })
   }
 
   const handlePaperClick = useCallback(async (paper: any) => {
-    setAnalysis(null)
+    setAnalysis(analysisCacheRef.current.get(paper.id) || null)
     setEvidenceSpans([])
     try {
       const response = await papersApi.get(paper.id)
@@ -112,17 +135,34 @@ export default function Search() {
 
   const handleAnalyze = useCallback(async (customQuery?: string) => {
     if (!selectedPaper) return
+    const paperId = selectedPaper.id
     setAnalysisLoading(true)
     try {
-      const response = await papersApi.analyze(selectedPaper.id, {
+      const response = await papersApi.analyze(paperId, {
         query: customQuery || query || t('search.placeholder'),
         analysis_type: 'full',
       })
-      setAnalysis(response.data)
+      analysisCacheRef.current.set(paperId, response.data)
+      if (selectedPaperIdRef.current === paperId) setAnalysis(response.data)
     } catch {
       toast.error(t('common.error') + '. ' + t('common.retry'))
     } finally { setAnalysisLoading(false) }
   }, [selectedPaper, query])
+
+  const handleLibrarySearch = async () => {
+    const activeQuery = (queryParam || query).trim()
+    if (!activeQuery) return
+    try {
+      const { data } = await networkApi.libraryLink(activeQuery)
+      await navigator.clipboard.writeText(data.query)
+      window.open(data.url, '_blank', 'noopener,noreferrer')
+      toast.success(locale === 'zh'
+        ? '检索词已复制，请在图书馆页面登录后粘贴检索'
+        : 'Query copied. Sign in to the library portal and paste it to search.')
+    } catch {
+      toast.error(locale === 'zh' ? '无法打开图书馆入口' : 'Unable to open library portal')
+    }
+  }
 
   const handleCloseDetail = () => { setSelectedPaper(null); setAnalysis(null); setEvidenceSpans([]) }
 
@@ -130,12 +170,22 @@ export default function Search() {
   const progressPercent = progress
     ? Math.round((progress.completed_sources / Math.max(progress.total_sources, 1)) * 100)
     : 0
+  const displayedElapsed = Math.max(elapsedMs, progress?.latency_ms || 0)
+  const sourceCalls = progress?.source_calls || searchRun?.source_status || []
 
   return (
     <div className="h-[calc(100vh-3.5rem)] flex flex-col">
       <div className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-3">
-        <div className="max-w-4xl mx-auto">
-          <SearchBar defaultValue={queryParam || query} size="sm" loading={isLoading} onSubmit={handleSearch} />
+        <div className="max-w-4xl mx-auto flex items-center gap-2">
+          <div className="flex-1">
+            <SearchBar defaultValue={queryParam || query} size="sm" loading={isLoading} onSubmit={handleSearch} />
+          </div>
+          <button type="button" onClick={handleLibrarySearch}
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 h-10 rounded-xl border border-gray-200 dark:border-gray-700 text-xs text-gray-600 dark:text-gray-300 hover:border-primary-400 hover:text-primary-600 transition-colors"
+            title={locale === 'zh' ? '复制检索词并打开学校图书馆' : 'Copy query and open the library portal'}>
+            <ExternalLink className="w-3.5 h-3.5" />
+            {locale === 'zh' ? '图书馆馆藏' : 'Library'}
+          </button>
         </div>
       </div>
 
@@ -164,29 +214,56 @@ export default function Search() {
             )}
 
             {isLoading && searchRun && (
-              <div className="p-3 mb-4 bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <Loader2 className="w-4 h-4 animate-spin text-primary-600 dark:text-primary-400" />
-                  <span className="text-sm font-medium text-primary-700 dark:text-primary-300">
-                    {progress?.current_phase === 'searching' ? '正在检索...' :
-                     progress?.current_phase === 'deduplicating' ? '去重处理...' :
-                     progress?.current_phase === 'ranking' ? '排序中...' :
-                     '规划中...'}
+              <div className="p-4 mb-4 bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800 rounded-xl">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin text-primary-600 dark:text-primary-400" />
+                    <span className="text-sm font-medium text-primary-700 dark:text-primary-300">
+                      {progress?.current_phase === 'searching' ? '正在并行检索学术 API...' :
+                       progress?.current_phase === 'refining' ? '低召回，正在进行第二轮有界扩展...' :
+                       progress?.current_phase === 'deduplicating' ? '正在跨来源去重...' :
+                       progress?.current_phase === 'ranking' ? '正在计算相关度与质量排序...' :
+                       progress?.current_phase === 'caching' ? '正在整理并缓存结果...' :
+                       '正在理解查询并规划检索式...'}
+                    </span>
+                  </div>
+                  <span className="inline-flex items-center gap-1 text-xs tabular-nums text-primary-600 dark:text-primary-300">
+                    <Clock3 className="w-3.5 h-3.5" />
+                    {locale === 'zh' ? '已用时' : 'Elapsed'} {(displayedElapsed / 1000).toFixed(1)}s
                   </span>
                 </div>
-                {/* 数据源状态 */}
-                {progress && progress.total_sources > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mt-1">
-                    {Array.from({ length: progress.total_sources }).map((_, i) => (
-                      <span key={i} className={clsx(
-                        'inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs',
-                        i < progress.completed_sources
-                          ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                          : 'bg-gray-100 dark:bg-gray-800 text-gray-400'
-                      )}>
-                        {i < progress.completed_sources ? '✅' : '⏳'}
-                        {i < progress.completed_sources ? `${progress.deduplicated_papers} 篇` : `源${i + 1}`}
-                      </span>
+                <p className="text-[11px] text-gray-500 dark:text-gray-400 mb-2">
+                  {locale === 'zh'
+                    ? '查询规划通常不超过 12 秒；各来源并行检索，慢源最长等待 45 秒。已完成的来源会立即显示。'
+                    : 'Planning usually takes under 12s. Sources run in parallel with a 45s per-source ceiling.'}
+                </p>
+                {sourceCalls.length > 0 && (
+                  <div className="grid gap-1.5 sm:grid-cols-2">
+                    {sourceCalls.map((call, index) => (
+                      <div key={`${call.source}-${call.query}-${index}`}
+                        className="flex items-start gap-2 rounded-lg border border-primary-100/80 dark:border-primary-800/70 bg-white/70 dark:bg-gray-950/25 px-2.5 py-2">
+                        {call.status === 'pending'
+                          ? <Loader2 className="w-3.5 h-3.5 mt-0.5 animate-spin text-amber-500" />
+                          : <Database className={`w-3.5 h-3.5 mt-0.5 ${call.success ? 'text-emerald-500' : 'text-red-500'}`} />}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-xs font-semibold truncate text-gray-700 dark:text-gray-200">
+                              {call.label || call.source}
+                            </span>
+                            <span className="text-[10px] text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                              {call.status === 'pending'
+                                ? (locale === 'zh' ? '等待/检索中' : 'Pending')
+                                : call.success
+                                  ? `${call.paper_count} ${locale === 'zh' ? '篇' : 'papers'} · ${(call.elapsed_ms / 1000).toFixed(1)}s`
+                                  : (locale === 'zh' ? '失败降级' : 'Failed')}
+                            </span>
+                          </div>
+                          <div className="text-[10px] text-gray-400 truncate" title={call.endpoint}>
+                            {call.api_name || call.endpoint || call.source}
+                          </div>
+                          {call.query && <div className="text-[10px] text-gray-400 truncate" title={call.query}>{call.query}</div>}
+                        </div>
+                      </div>
                     ))}
                   </div>
                 )}

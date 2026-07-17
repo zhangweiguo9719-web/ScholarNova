@@ -2,17 +2,116 @@
 论文相关 API 端点
 """
 
-import uuid
+import csv
+import json
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.models.paper import PaperEntity
-from app.schemas.paper import Paper, PaperDetail
+from app.schemas.paper import Paper, PaperDetail, PaperQuality
 
 router = APIRouter()
+_translation_cache: dict[tuple[str, str], str] = {}
+
+
+class TranslateRequest(BaseModel):
+    text: str
+    target_lang: str = "zh"
+
+
+class TranslateResponse(BaseModel):
+    translated: str
+    cached: bool = False
+
+
+class JournalQualityRequest(BaseModel):
+    venue: str
+    quality: Optional[PaperQuality] = None
+
+
+class RankingImportRequest(BaseModel):
+    filename: str
+    content: str
+
+
+@router.post("/translate", response_model=TranslateResponse)
+async def translate_text(req: TranslateRequest) -> TranslateResponse:
+    """Translate academic text through the model configured for translation."""
+    text = req.text.strip()
+    if not text:
+        raise HTTPException(status_code=422, detail="翻译内容不能为空")
+    if len(text) > 12_000:
+        raise HTTPException(status_code=422, detail="单次翻译不能超过 12000 个字符")
+
+    target_lang = req.target_lang.casefold()
+    target = "Chinese (Simplified)" if target_lang.startswith("zh") else "English"
+    cache_key = (text, target)
+    if cache_key in _translation_cache:
+        return TranslateResponse(translated=_translation_cache[cache_key], cached=True)
+
+    from app.services.llm.gateway import LLMGateway
+
+    gateway = LLMGateway(task="translation")
+    try:
+        result = await gateway.chat(
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        f"Translate the academic text to {target}. Preserve technical terms, "
+                        "abbreviations, formulas, and factual meaning. Output only the translation."
+                    ),
+                },
+                {"role": "user", "content": text},
+            ],
+            temperature=0.2,
+            max_tokens=2048,
+        )
+        translated = result.strip()
+        if not translated:
+            raise ValueError("empty translation")
+        if len(_translation_cache) >= 256:
+            _translation_cache.pop(next(iter(_translation_cache)))
+        _translation_cache[cache_key] = translated
+        return TranslateResponse(translated=translated)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"翻译失败，请检查翻译模型配置: {type(exc).__name__}",
+        ) from exc
+
+
+@router.post("/journal-quality", response_model=PaperQuality)
+async def get_journal_quality(req: JournalQualityRequest) -> PaperQuality:
+    """Return licensed imported partitions plus clearly labelled open metrics."""
+    venue = req.venue.strip()
+    if not venue:
+        raise HTTPException(status_code=422, detail="期刊名称不能为空")
+    from app.services.journal_quality import lookup_journal_quality
+
+    return await lookup_journal_quality(venue, req.quality)
+
+
+@router.get("/journal-rankings/status")
+async def get_journal_ranking_status() -> dict:
+    from app.services.journal_quality import ranking_status
+
+    return ranking_status()
+
+
+@router.post("/journal-rankings/import")
+async def import_journal_rankings(req: RankingImportRequest) -> dict:
+    from app.services.journal_quality import import_ranking_content
+
+    try:
+        return import_ranking_content(req.content, req.filename)
+    except (ValueError, UnicodeError, csv.Error, json.JSONDecodeError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.get("/{paper_id}", response_model=PaperDetail)
@@ -130,48 +229,3 @@ async def list_papers(
         )
         for paper in papers
     ]
-
-
-# ---- 翻译 ----
-
-from pydantic import BaseModel as PydanticBaseModel
-
-class TranslateRequest(PydanticBaseModel):
-    text: str
-    target_lang: str = "zh"
-
-class TranslateResponse(PydanticBaseModel):
-    translated: str
-
-@router.post("/translate", response_model=TranslateResponse)
-async def translate_text(req: TranslateRequest):
-    """调用 LLM 翻译文本"""
-    from app.services.llm.gateway import LLMGateway
-    from app.config import settings
-
-    # 如果文本全是中文，翻译成英文
-    has_cjk = any('一' <= c <= '鿿' for c in req.text)
-    if has_cjk:
-        target = "English"
-    else:
-        target = "Chinese (Simplified)"
-
-    gateway = LLMGateway()
-    gateway.configure(
-        api_key=settings.OPENAI_API_KEY,
-        base_url=settings.OPENAI_API_BASE,
-        model_name=settings.OPENAI_DEFAULT_MODEL,
-    )
-
-    try:
-        result = await gateway.chat(
-            messages=[
-                {"role": "system", "content": f"You are a professional academic translator. Translate the following text to {target}. Keep the academic tone. Output ONLY the translation, no explanation."},
-                {"role": "user", "content": req.text},
-            ],
-            temperature=0.3,
-            max_tokens=2048,
-        )
-        return TranslateResponse(translated=result.strip())
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Translation failed: {str(e)}")

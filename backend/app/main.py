@@ -121,7 +121,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """
     # 启动时执行
     setup_logging()
-    logger.info("Starting ScholarNova API", version="1.0.0", env=settings.APP_ENV)
+    logger.info("Starting ScholarNova API", version="1.1.0", env=settings.APP_ENV)
 
     # 初始化数据库
     await init_db()
@@ -157,7 +157,7 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title=settings.APP_NAME,
         description="ScholarNova - 智能学术论文搜索与推荐 API",
-        version="1.0.0",
+        version="1.1.0",
         docs_url="/docs" if settings.DEBUG else None,
         redoc_url="/redoc" if settings.DEBUG else None,
         openapi_url="/openapi.json" if settings.DEBUG else None,

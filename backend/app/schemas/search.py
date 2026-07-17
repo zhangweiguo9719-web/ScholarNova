@@ -57,6 +57,10 @@ class SearchProgress(BaseModel):
     search_rounds: int = Field(0, description="实际检索轮次")
     api_calls: int = Field(0, description="学术检索 API 调用次数")
     latency_ms: float = Field(0, description="当前端到端耗时（毫秒）")
+    source_calls: List[Dict[str, Any]] = Field(
+        default_factory=list,
+        description="计划及已完成的数据源 API 调用，包含来源、查询、状态和耗时",
+    )
 
 
 class SearchResponse(BaseModel):

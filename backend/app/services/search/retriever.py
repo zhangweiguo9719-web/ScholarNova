@@ -12,7 +12,7 @@ import asyncio
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Awaitable, Callable, Dict, List, Optional
 
 from app.schemas.paper import Paper
 from app.schemas.query import DataSource, SubQuery
@@ -34,6 +34,7 @@ class SourceStatus:
     paper_count: int = 0
     elapsed_ms: float = 0.0
     error: Optional[str] = None
+    query: Optional[str] = None
 
 
 @dataclass
@@ -83,6 +84,9 @@ class Retriever:
         self,
         sub_queries: List[SubQuery],
         max_results: int = 50,
+        progress_callback: Optional[
+            Callable[[SourceStatus], Awaitable[None]]
+        ] = None,
     ) -> RetrieveResult:
         """
         执行检索
@@ -98,15 +102,16 @@ class Retriever:
         """
         logger.info(f"开始检索: {len(sub_queries)} 个子查询")
 
-        # 创建检索任务
-        tasks = []
-        task_sources = []
+        # 创建检索任务。结果按完成顺序消费，让界面能够立即看到每个 API
+        # 的真实状态，而不必等待最慢的数据源。
+        tasks: list[asyncio.Task] = []
         for sq in sub_queries:
             source = self.sources.get(sq.source)
             logger.info(f"[retriever] 查找数据源: {sq.source} -> {'找到' if source else '未找到'}")
             if source:
-                tasks.append(self._retrieve_from_source(source, sq.query, max_results))
-                task_sources.append(sq.source)
+                tasks.append(asyncio.create_task(
+                    self._retrieve_from_source(source, sq.query, max_results)
+                ))
             else:
                 logger.warning(f"未找到数据源适配器: {sq.source}, 可用: {list(self.sources.keys())}")
 
@@ -114,49 +119,22 @@ class Retriever:
             logger.warning("没有可用的检索任务")
             return RetrieveResult()
 
-        # 并行执行
-        raw_results = await asyncio.gather(*tasks, return_exceptions=True)
-
-        # 汇总结果
         all_papers: List[Paper] = []
         statuses: List[SourceStatus] = []
-
-        for source_enum, result in zip(task_sources, raw_results):
-            if isinstance(result, Exception):
-                logger.error(f"[{source_enum.value}] 检索异常: {result}")
-                statuses.append(SourceStatus(
-                    source=source_enum.value,
-                    success=False,
-                    error=str(result),
-                ))
-            elif isinstance(result, SourceStatus):
-                statuses.append(result)
-                if result.success:
-                    # result 在这种分支下不包含 papers，papers 单独收集
-                    pass
-
-        # 重新组织：_retrieve_from_source 返回 (papers, status)
-        all_papers = []
-        statuses = []
-        for source_enum, result in zip(task_sources, raw_results):
-            if isinstance(result, Exception):
-                logger.error(f"[{source_enum.value}] 检索异常: {result}")
-                statuses.append(SourceStatus(
-                    source=source_enum.value,
-                    success=False,
-                    error=str(result),
-                ))
-            elif isinstance(result, tuple) and len(result) == 2:
-                papers, status = result
-                all_papers.extend(papers)
-                statuses.append(status)
-            else:
-                logger.error(f"[{source_enum.value}] 未知结果类型: {type(result)}")
-                statuses.append(SourceStatus(
-                    source=source_enum.value,
-                    success=False,
-                    error="未知结果类型",
-                ))
+        for task in asyncio.as_completed(tasks):
+            try:
+                papers, status = await task
+            except Exception as exc:  # Defensive: source adapters are isolated below.
+                logger.exception("检索任务出现未捕获异常")
+                status = SourceStatus(source="unknown", success=False, error=str(exc))
+                papers = []
+            all_papers.extend(papers)
+            statuses.append(status)
+            if progress_callback is not None:
+                try:
+                    await progress_callback(status)
+                except Exception:
+                    logger.exception("写入检索进度失败；继续返回已获取的论文")
 
         ok_count = sum(1 for s in statuses if s.success)
         fail_count = sum(1 for s in statuses if not s.success)
@@ -194,6 +172,7 @@ class Retriever:
                 success=False,
                 elapsed_ms=0.0,
                 error=f"数据源断路保护中，{remaining:.0f}s 后重试",
+                query=query,
             )
 
         try:
@@ -218,6 +197,7 @@ class Retriever:
                     paper_count=len(papers),
                     elapsed_ms=elapsed,
                     error=source_error,
+                    query=query,
                 )
 
             logger.info(f"[{source_name}] 检索成功: {len(papers)} 篇, {elapsed:.0f}ms")
@@ -228,6 +208,7 @@ class Retriever:
                 success=True,
                 paper_count=len(papers),
                 elapsed_ms=elapsed,
+                query=query,
             )
 
         except asyncio.TimeoutError:
@@ -238,6 +219,7 @@ class Retriever:
                 success=False,
                 elapsed_ms=elapsed,
                 error=f"超时 ({self._timeout}s)",
+                query=query,
             )
 
         except Exception as e:
@@ -248,6 +230,7 @@ class Retriever:
                 success=False,
                 elapsed_ms=elapsed,
                 error=str(e),
+                query=query,
             )
 
     async def health_check_all(self) -> Dict[str, dict]:

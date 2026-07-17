@@ -26,8 +26,12 @@ function New-BuildVenv {
 }
 
 if (Test-Path $Python) {
-    $VersionCheck = & $Python -c "import sys; raise SystemExit(0 if sys.version_info >= (3, 11) else 1)"
-    if ($LASTEXITCODE -ne 0) {
+    $PreviousErrorAction = $ErrorActionPreference
+    $ErrorActionPreference = "SilentlyContinue"
+    & $Python -c "import sys, pip; import pip._internal.operations.build; raise SystemExit(0 if sys.version_info >= (3, 11) else 1)" 2>$null
+    $BuildVenvExitCode = $LASTEXITCODE
+    $ErrorActionPreference = $PreviousErrorAction
+    if ($BuildVenvExitCode -ne 0) {
         Remove-Item -LiteralPath $Venv -Recurse -Force
         New-BuildVenv
     }

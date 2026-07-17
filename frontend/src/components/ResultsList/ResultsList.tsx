@@ -74,12 +74,13 @@ export default function ResultsList({ papers, selectedPaperId, onPaperClick }: R
         </div>
       </div>
       <div className="results-list-body custom-scrollbar">
-        {sortedPapers.map((paper) => (
+        {sortedPapers.map((paper, index) => (
           <PaperCard
             key={paper.id}
             paper={paper}
             isSelected={paper.id === selectedPaperId}
             onClick={onPaperClick}
+            autoEnrich={index < 8}
           />
         ))}
       </div>

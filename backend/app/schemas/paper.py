@@ -41,11 +41,25 @@ class PaperQuality(BaseModel):
     wos_indexed: Optional[bool] = Field(None, description="Web of Science 收录状态")
     jcr_quartile: Optional[str] = Field(None, description="经授权数据核验的 JCR 分区")
     cas_quartile: Optional[str] = Field(None, description="经授权数据核验的中科院分区")
+    sjr_quartile: Optional[str] = Field(None, description="SCImago SJR 分区（与 JCR 分区不同）")
+    sjr_score: Optional[float] = Field(None, description="SCImago SJR 指标")
     partition_year: Optional[int] = Field(None, description="分区数据年份")
     partition_status: str = Field(
         "unverified", description="分区核验状态：verified/unverified"
     )
     partition_source: Optional[str] = Field(None, description="分区数据来源")
+    matched_venue: Optional[str] = Field(None, description="期刊指标匹配到的规范刊名")
+    match_confidence: Optional[float] = Field(None, ge=0, le=1, description="期刊名匹配置信度")
+    openalex_source_id: Optional[str] = Field(None, description="OpenAlex Source ID")
+    openalex_h_index: Optional[int] = Field(None, ge=0, description="OpenAlex 开放 H-index")
+    openalex_i10_index: Optional[int] = Field(None, ge=0, description="OpenAlex 开放 i10-index")
+    openalex_2yr_mean_citedness: Optional[float] = Field(
+        None, ge=0, description="OpenAlex 近两年篇均被引"
+    )
+    openalex_works_count: Optional[int] = Field(None, ge=0, description="OpenAlex 收录论文数")
+    openalex_cited_by_count: Optional[int] = Field(None, ge=0, description="OpenAlex 来源总被引")
+    openalex_is_in_doaj: Optional[bool] = Field(None, description="是否被 DOAJ 收录")
+    open_metrics_source: Optional[str] = Field(None, description="开放期刊指标来源")
 
 
 class Paper(BaseModel):
