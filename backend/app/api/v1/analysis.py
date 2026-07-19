@@ -4,12 +4,13 @@
 
 import asyncio
 import base64
+import hashlib
 import logging
 import re
 from datetime import datetime
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -20,6 +21,7 @@ from app.core.rate_limiter import check_rate_limit
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+MAX_PDF_UPLOAD_SIZE = 50 * 1024 * 1024
 
 
 def _build_fallback_analysis(paper_info: dict, query: str) -> str:
@@ -172,13 +174,17 @@ def _visual_pages(pdf_path, max_pages: int = 3) -> list[str]:
         import pymupdf
 
         doc = pymupdf.open(str(pdf_path))
-        candidates: list[int] = []
+        caption_pages: list[int] = []
+        image_pages: list[int] = []
         for index, page in enumerate(doc):
             text = page.get_text().casefold()
-            if page.get_images(full=True) and re.search(r"\b(fig(?:ure)?\.?|table)\s*\d+", text):
-                candidates.append(index)
-            if len(candidates) >= max_pages:
-                break
+            if re.search(r"(?:\b(?:fig(?:ure)?\.?|table)|[图表])\s*[0-9一二三四五六七八九十]+", text):
+                caption_pages.append(index)
+            elif page.get_images(full=True):
+                image_pages.append(index)
+        # Caption-bearing pages also cover vector diagrams, which do not appear
+        # in PyMuPDF's raster-image list. Raster pages are only a fallback.
+        candidates = (caption_pages + image_pages)[:max_pages]
         images: list[str] = []
         for index in candidates:
             pixmap = doc[index].get_pixmap(matrix=pymupdf.Matrix(0.9, 0.9), alpha=False)
@@ -191,36 +197,115 @@ def _visual_pages(pdf_path, max_pages: int = 3) -> list[str]:
         return []
 
 
-async def _load_document_context(paper_info: dict) -> tuple[str, list[str], str]:
+def _uploaded_pdf_path(paper_id: str):
+    """Return a stable, non-user-controlled path for an imported paper PDF."""
+    from app.config import runtime_path
+
+    directory = runtime_path("fulltext")
+    directory.mkdir(parents=True, exist_ok=True)
+    filename = hashlib.sha256(paper_id.encode("utf-8")).hexdigest() + ".pdf"
+    return directory / filename
+
+
+async def _load_document_context(
+    paper_id: str, paper_info: dict
+) -> tuple[str, list[str], str, Optional[str]]:
     """Fetch and parse a legal OA PDF; never bypass institutional access."""
     from app.config import settings
     from app.services.pdf.fetcher import PDFFetcher
     from app.services.pdf.parser import PDFParser
 
-    fetcher = PDFFetcher(
-        unpaywall_email=settings.OPENALEX_EMAIL or settings.CROSSREF_EMAIL
-    )
+    imported_path = _uploaded_pdf_path(paper_id)
+    pdf_path = imported_path if imported_path.exists() else None
+    source = "uploaded" if pdf_path else ""
+    fetch_error: Optional[str] = None
     try:
-        fetched = await asyncio.wait_for(
-            fetcher.fetch(
-                doi=paper_info.get("doi"),
-                arxiv_id=_arxiv_id(paper_info),
-                pdf_url=paper_info.get("pdf_url"),
-                venue=paper_info.get("venue"),
-                title=paper_info.get("title"),
-            ),
-            timeout=45,
-        )
-        if not fetched.success or not fetched.pdf_path:
-            return "", [], "abstract"
-        parsed = await asyncio.wait_for(PDFParser().parse(fetched.pdf_path), timeout=30)
+        if not pdf_path:
+            fetcher = PDFFetcher(
+                unpaywall_email=settings.OPENALEX_EMAIL or settings.CROSSREF_EMAIL,
+                semantic_scholar_api_key=settings.SEMANTIC_SCHOLAR_API_KEY,
+                openalex_email=settings.OPENALEX_EMAIL,
+                openalex_api_key=settings.OPENALEX_API_KEY,
+            )
+            fetched = await asyncio.wait_for(
+                fetcher.fetch(
+                    doi=paper_info.get("doi"),
+                    arxiv_id=_arxiv_id(paper_info),
+                    pdf_url=paper_info.get("pdf_url"),
+                    venue=paper_info.get("venue"),
+                    title=paper_info.get("title"),
+                ),
+                timeout=75,
+            )
+            if not fetched.success or not fetched.pdf_path:
+                return "", [], "abstract", fetched.error
+            pdf_path = fetched.pdf_path
+            source = fetched.source
+
+        parsed = await asyncio.wait_for(PDFParser().parse(pdf_path), timeout=30)
         if not parsed or len((parsed.full_text or "").strip()) < 500:
-            return "", [], "abstract"
-        visuals = await asyncio.to_thread(_visual_pages, fetched.pdf_path)
-        return _document_text(parsed), visuals, f"fulltext:{fetched.source}"
-    except Exception:
+            return "", [], "abstract", "PDF 可打开，但未提取到足够的正文文字"
+        visuals = await asyncio.to_thread(_visual_pages, pdf_path)
+        return _document_text(parsed), visuals, f"fulltext:{source}", None
+    except Exception as exc:
         logger.warning("OA full-text preparation failed; using abstract", exc_info=True)
-        return "", [], "abstract"
+        fetch_error = f"全文解析失败：{exc}"
+        return "", [], "abstract", fetch_error
+
+
+@router.get("/{paper_id}/fulltext/status")
+async def get_fulltext_status(
+    paper_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Report whether a user-imported PDF is ready for full-text analysis."""
+    if not await _find_paper_info(paper_id, db):
+        raise HTTPException(status_code=404, detail="Paper not found")
+    pdf_path = _uploaded_pdf_path(paper_id)
+    return {
+        "available": pdf_path.exists(),
+        "source": "uploaded" if pdf_path.exists() else None,
+        "file_size": pdf_path.stat().st_size if pdf_path.exists() else 0,
+    }
+
+
+@router.post("/{paper_id}/fulltext")
+async def upload_fulltext(
+    paper_id: str,
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Persist a user-provided PDF so the analysis Agent can read its full text."""
+    if not await _find_paper_info(paper_id, db):
+        raise HTTPException(status_code=404, detail="Paper not found")
+    content = await file.read(MAX_PDF_UPLOAD_SIZE + 1)
+    await file.close()
+    if len(content) > MAX_PDF_UPLOAD_SIZE:
+        raise HTTPException(status_code=413, detail="PDF 不能超过 50 MB")
+    if not content.startswith(b"%PDF-"):
+        raise HTTPException(status_code=400, detail="文件不是有效的 PDF")
+
+    try:
+        import pymupdf
+
+        document = pymupdf.open(stream=content, filetype="pdf")
+        page_count = document.page_count
+        document.close()
+        if page_count < 1:
+            raise ValueError("PDF 没有页面")
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"PDF 无法解析：{exc}") from exc
+
+    pdf_path = _uploaded_pdf_path(paper_id)
+    temporary_path = pdf_path.with_suffix(".tmp")
+    temporary_path.write_bytes(content)
+    temporary_path.replace(pdf_path)
+    return {
+        "available": True,
+        "source": "uploaded",
+        "file_size": len(content),
+        "page_count": page_count,
+    }
 
 
 @router.post("/{paper_id}/analyze", response_model=AnalysisResult)
@@ -241,7 +326,9 @@ async def analyze_paper(
     if not paper_info:
         raise HTTPException(status_code=404, detail="Paper not found")
 
-    document_text, visual_pages, coverage = await _load_document_context(paper_info)
+    document_text, visual_pages, coverage, document_error = await _load_document_context(
+        paper_id, paper_info
+    )
     paper_text = f"""
 Title: {paper_info['title']}
 Authors: {paper_info['authors']}
@@ -261,6 +348,11 @@ Abstract: {paper_info['abstract']}
             strengths=[],
             weaknesses=[],
             relevance_to_query=None,
+            document_coverage="abstract",
+            document_source=None,
+            document_error=document_error,
+            visual_pages_read=0,
+            model_completed=False,
             created_at=datetime.utcnow(),
         )
 
@@ -268,13 +360,23 @@ Abstract: {paper_info['abstract']}
     from app.services.llm.gateway import LLMGateway
     from app.config import get_model_for_task
 
-    task_config = get_model_for_task("analysis")
-    llm_gateway = LLMGateway(provider=task_config["provider"])
-    llm_gateway.configure(
-        api_key=task_config["api_key"],
-        base_url=task_config["base_url"],
-        model_name=task_config["model"],
+    analysis_config = get_model_for_task("analysis")
+    analysis_gateway = LLMGateway(provider=analysis_config["provider"])
+    analysis_gateway.configure(
+        api_key=analysis_config["api_key"],
+        base_url=analysis_config["base_url"],
+        model_name=analysis_config["model"],
     )
+
+    visual_gateway = analysis_gateway
+    if visual_pages:
+        vision_config = get_model_for_task("vision")
+        visual_gateway = LLMGateway(provider=vision_config["provider"])
+        visual_gateway.configure(
+            api_key=vision_config["api_key"],
+            base_url=vision_config["base_url"],
+            model_name=vision_config["model"],
+        )
 
     source_note = (
         "已获取并解析开放获取 PDF 正文、章节、表格和图注"
@@ -308,6 +410,7 @@ Abstract: {paper_info['abstract']}
 分析应覆盖研究问题、方法、数据与实验设置、主要结果、图表证据、优点、局限及与用户问题的关系。"""
 
     try:
+        used_visual_pages = len(visual_pages)
         user_content: object = prompt
         if visual_pages:
             user_content = [
@@ -331,7 +434,8 @@ Abstract: {paper_info['abstract']}
             {"role": "user", "content": user_content},
         ]
         try:
-            response = await llm_gateway.chat(
+            response_gateway = visual_gateway
+            response = await visual_gateway.chat(
                 messages=messages,
                 temperature=0.3,
                 max_tokens=3072,
@@ -343,12 +447,19 @@ Abstract: {paper_info['abstract']}
                 "Configured analysis model rejected visual input; retrying with parsed text",
                 extra={"paper_id": paper_id},
             )
-            response = await llm_gateway.chat(
-                messages=[messages[0], {"role": "user", "content": prompt}],
+            used_visual_pages = 0
+            response_gateway = analysis_gateway
+            text_only_prompt = prompt.replace(
+                visual_note,
+                "当前配置的模型未接受页面图像；本次仅依据正文、图注和表格文本分析",
+            )
+            response = await analysis_gateway.chat(
+                messages=[messages[0], {"role": "user", "content": text_only_prompt}],
                 temperature=0.3,
                 max_tokens=3072,
             )
 
+        usage = response_gateway.last_usage
         return AnalysisResult(
             paper_id=paper_id,
             analysis_type=request.analysis_type,
@@ -358,6 +469,14 @@ Abstract: {paper_info['abstract']}
             strengths=[],
             weaknesses=[],
             relevance_to_query=None,
+            document_coverage="fulltext" if document_text else "abstract",
+            document_source=coverage,
+            document_error=document_error,
+            visual_pages_read=used_visual_pages,
+            model_completed=True,
+            prompt_tokens=usage["prompt_tokens"],
+            completion_tokens=usage["completion_tokens"],
+            total_tokens=usage["total_tokens"],
             created_at=datetime.utcnow(),
         )
     except RuntimeError:
@@ -374,6 +493,11 @@ Abstract: {paper_info['abstract']}
             strengths=[],
             weaknesses=[],
             relevance_to_query=None,
+            document_coverage="fulltext" if document_text else "abstract",
+            document_source=coverage,
+            document_error=document_error or "全文材料已准备，但模型服务未完成本次分析",
+            visual_pages_read=0,
+            model_completed=False,
             created_at=datetime.utcnow(),
         )
     except Exception as e:

@@ -231,7 +231,22 @@ export interface AnalysisResult {
   strengths: string[]
   weaknesses: string[]
   relevance_to_query: string | null
+  document_coverage: 'abstract' | 'fulltext' | string
+  document_source: string | null
+  document_error: string | null
+  visual_pages_read: number
+  model_completed: boolean
+  prompt_tokens: number
+  completion_tokens: number
+  total_tokens: number
   created_at: string
+}
+
+export interface FulltextStatus {
+  available: boolean
+  source: string | null
+  file_size: number
+  page_count?: number
 }
 
 export interface CompareResult {

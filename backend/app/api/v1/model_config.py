@@ -42,11 +42,13 @@ async def save_model_config(
         # 有任务级配置，更新对应的任务
         for task_name, task_config in config.tasks.items():
             if task_name in MODEL_PROFILES:
+                task_provider = task_config.provider or provider
+                same_provider = task_provider == provider
                 MODEL_PROFILES[task_name] = {
-                    "provider": task_config.provider or provider,
-                    "model": task_config.model_name or model_name,
-                    "api_key": task_config.api_key or api_key,
-                    "base_url": task_config.base_url or base_url,
+                    "provider": task_provider,
+                    "model": task_config.model_name or (model_name if same_provider else None),
+                    "api_key": task_config.api_key or (api_key if same_provider else None),
+                    "base_url": task_config.base_url or (base_url if same_provider else None),
                 }
 
     # 所有未单独配置的任务用主配置

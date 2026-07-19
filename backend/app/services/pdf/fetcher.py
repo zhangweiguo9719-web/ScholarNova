@@ -12,10 +12,12 @@ PDF 全文获取器
 
 import hashlib
 import logging
+import re
 import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
+from urllib.parse import quote
 
 import httpx
 
@@ -27,6 +29,10 @@ DOWNLOAD_TIMEOUT = 30  # 秒
 
 # Unpaywall API 基础 URL
 UNPAYWALL_API = "https://api.unpaywall.org/v2"
+OPENALEX_API = "https://api.openalex.org/works"
+SEMANTIC_SCHOLAR_API = "https://api.semanticscholar.org/graph/v1/paper"
+CROSSREF_API = "https://api.crossref.org/works"
+USER_AGENT = "ScholarNova/1.1.1 (+https://github.com/zhangweiguo9719-web/ScholarNova)"
 
 # arXiv PDF 基础 URL
 ARXIV_PDF_BASE = "https://arxiv.org/pdf"
@@ -70,6 +76,9 @@ class PDFFetcher:
         self,
         cache_dir: Optional[Path] = None,
         unpaywall_email: Optional[str] = None,
+        semantic_scholar_api_key: Optional[str] = None,
+        openalex_email: Optional[str] = None,
+        openalex_api_key: Optional[str] = None,
     ):
         """
         初始化获取器。
@@ -81,6 +90,10 @@ class PDFFetcher:
         self.cache_dir = cache_dir or Path(tempfile.gettempdir()) / "scholar_pdf_cache"
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.unpaywall_email = unpaywall_email
+        self.semantic_scholar_api_key = semantic_scholar_api_key
+        self.openalex_email = openalex_email
+        self.openalex_api_key = openalex_api_key
+        self._failed_urls: set[str] = set()
 
     # ------------------------------------------------------------------
     # 公共接口
@@ -119,42 +132,64 @@ class PDFFetcher:
                 file_size=cached.stat().st_size,
             )
 
-        # 1. 直接 PDF 链接
+        errors: list[str] = []
+
+        # 1. 数据源提供的直接 PDF 链接
         if pdf_url:
             result = await self._download_pdf(pdf_url, "direct", cache_key)
             if result.success:
                 return result
+            errors.append(f"direct: {result.error}")
 
-        # 2. Unpaywall API
-        if doi:
-            result = await self._fetch_from_unpaywall(doi, cache_key)
-            if result.success:
-                return result
-
-        # 3. arXiv 直连
+        # 2. arXiv 直连（已知 arXiv ID 时最可靠）
         if arxiv_id:
             result = await self._fetch_from_arxiv(arxiv_id, cache_key)
             if result.success:
                 return result
+            errors.append(f"arxiv: {result.error}")
+
+        # 3. DOI 聚合服务：OpenAlex、Unpaywall、Semantic Scholar、Crossref
+        if doi:
+            result = await self._fetch_from_openalex(doi, cache_key)
+            if result.success:
+                return result
+            errors.append(f"openalex: {result.error}")
+
+            result = await self._fetch_from_unpaywall(doi, cache_key)
+            if result.success:
+                return result
+            errors.append(f"unpaywall: {result.error}")
+
+            result = await self._fetch_from_semantic_scholar(doi, cache_key)
+            if result.success:
+                return result
+            errors.append(f"semantic_scholar: {result.error}")
+
+            result = await self._fetch_from_crossref(doi, cache_key)
+            if result.success:
+                return result
+            errors.append(f"crossref: {result.error}")
 
         # 4. 会议官网直连
         if venue and doi:
             result = await self._fetch_from_conference(venue, doi, cache_key)
             if result.success:
                 return result
+            errors.append(f"conference: {result.error}")
 
         # 5. PubMed Central
         if doi:
             result = await self._fetch_from_pmc(doi, cache_key)
             if result.success:
                 return result
+            errors.append(f"pmc: {result.error}")
 
         logger.warning(
             f"Failed to fetch PDF from any source: doi={doi}, arxiv_id={arxiv_id}"
         )
         return FetchResult(
             success=False,
-            error="No OA version found from any source",
+            error="未能从合法开放来源取得 PDF。" + "；".join(errors)[:1200],
         )
 
     async def fetch_batch(
@@ -207,52 +242,58 @@ class PDFFetcher:
         Returns:
             FetchResult
         """
+        if url in self._failed_urls:
+            return FetchResult(
+                success=False,
+                source=source,
+                url=url,
+                error="同一 PDF 地址已失败，已跳过重复下载",
+            )
         try:
             async with httpx.AsyncClient(
-                follow_redirects=True, timeout=DOWNLOAD_TIMEOUT
+                follow_redirects=True,
+                timeout=DOWNLOAD_TIMEOUT,
+                headers={"User-Agent": USER_AGENT, "Accept": "application/pdf,*/*;q=0.8"},
             ) as client:
-                # 先检查 Content-Type
-                head_resp = await client.head(url)
-                content_type = head_resp.headers.get("content-type", "")
-
-                # 如果 HEAD 请求返回了明确的非 PDF 类型，跳过
-                if content_type and "pdf" not in content_type.lower():
-                    # 但允许 application/octet-stream（某些服务器通用类型）
-                    if "octet-stream" not in content_type.lower():
-                        logger.debug(
-                            f"Skipping {url}: Content-Type={content_type}"
-                        )
+                # 某些论文站点拒绝 HEAD 但允许 GET，因此直接流式下载并限制大小。
+                async with client.stream("GET", url) as resp:
+                    resp.raise_for_status()
+                    declared_size = int(resp.headers.get("content-length") or 0)
+                    if declared_size > MAX_FILE_SIZE:
+                        self._failed_urls.add(url)
                         return FetchResult(
                             success=False,
                             source=source,
                             url=url,
-                            error=f"Not a PDF: Content-Type={content_type}",
+                            error=f"File too large: {declared_size} bytes",
                         )
+                    chunks: list[bytes] = []
+                    received = 0
+                    async for chunk in resp.aiter_bytes():
+                        received += len(chunk)
+                        if received > MAX_FILE_SIZE:
+                            self._failed_urls.add(url)
+                            return FetchResult(
+                                success=False,
+                                source=source,
+                                url=url,
+                                error=f"File too large: over {MAX_FILE_SIZE} bytes",
+                            )
+                        chunks.append(chunk)
+                    content = b"".join(chunks)
 
-                # 下载
-                resp = await client.get(url)
-                resp.raise_for_status()
-
-                # 检查内容是否为 PDF
-                if not self._is_pdf_content(resp.content):
+                if not self._is_pdf_content(content):
+                    self._failed_urls.add(url)
+                    content_type = resp.headers.get("content-type", "unknown")
                     return FetchResult(
                         success=False,
                         source=source,
                         url=url,
-                        error="Downloaded content is not a valid PDF",
-                    )
-
-                # 检查文件大小
-                if len(resp.content) > MAX_FILE_SIZE:
-                    return FetchResult(
-                        success=False,
-                        source=source,
-                        url=url,
-                        error=f"File too large: {len(resp.content)} bytes",
+                        error=f"返回内容不是 PDF（Content-Type={content_type}）",
                     )
 
                 # 保存到缓存
-                pdf_path = self._save_to_cache(cache_key, resp.content)
+                pdf_path = self._save_to_cache(cache_key, content)
                 logger.info(
                     f"Downloaded PDF from {source}: {url} -> {pdf_path}"
                 )
@@ -261,15 +302,17 @@ class PDFFetcher:
                     pdf_path=pdf_path,
                     source=source,
                     url=url,
-                    file_size=len(resp.content),
+                    file_size=len(content),
                 )
 
         except httpx.TimeoutException:
+            self._failed_urls.add(url)
             logger.warning(f"Timeout downloading PDF from {url}")
             return FetchResult(
                 success=False, source=source, url=url, error="Download timeout"
             )
         except Exception as e:
+            self._failed_urls.add(url)
             logger.warning(f"Error downloading PDF from {url}: {e}")
             return FetchResult(
                 success=False, source=source, url=url, error=str(e)
@@ -292,13 +335,17 @@ class PDFFetcher:
         Returns:
             FetchResult
         """
-        url = f"{UNPAYWALL_API}/{doi}"
-        params = {}
-        if self.unpaywall_email:
-            params["email"] = self.unpaywall_email
+        if not self._valid_email(self.unpaywall_email):
+            return FetchResult(
+                success=False,
+                source="unpaywall",
+                error="未配置有效联系邮箱，已跳过 Unpaywall",
+            )
+        url = f"{UNPAYWALL_API}/{quote(doi, safe='')}"
+        params = {"email": self.unpaywall_email}
 
         try:
-            async with httpx.AsyncClient(timeout=15) as client:
+            async with httpx.AsyncClient(timeout=15, follow_redirects=True) as client:
                 resp = await client.get(url, params=params)
                 if resp.status_code == 404:
                     return FetchResult(
@@ -338,6 +385,102 @@ class PDFFetcher:
             return FetchResult(
                 success=False, source="unpaywall", error=str(e)
             )
+
+    async def _fetch_from_openalex(self, doi: str, cache_key: str) -> FetchResult:
+        """Resolve legal OA locations reported by OpenAlex."""
+        url = f"{OPENALEX_API}/https://doi.org/{quote(doi, safe='')}"
+        params: dict[str, str] = {}
+        if self._valid_email(self.openalex_email):
+            params["mailto"] = str(self.openalex_email)
+        if self.openalex_api_key:
+            params["api_key"] = self.openalex_api_key
+        try:
+            async with httpx.AsyncClient(
+                timeout=15, headers={"User-Agent": USER_AGENT}
+            ) as client:
+                resp = await client.get(url, params=params)
+                if resp.status_code == 404:
+                    return FetchResult(False, source="openalex", error="DOI not found")
+                resp.raise_for_status()
+                data = resp.json()
+            candidates: list[str] = []
+            for location in (
+                data.get("best_oa_location"),
+                data.get("primary_location"),
+                *(data.get("locations") or []),
+            ):
+                if isinstance(location, dict) and location.get("pdf_url"):
+                    candidates.append(location["pdf_url"])
+            oa_url = (data.get("open_access") or {}).get("oa_url")
+            if oa_url and str(oa_url).lower().endswith(".pdf"):
+                candidates.append(oa_url)
+            return await self._download_candidates(candidates, "openalex", cache_key)
+        except Exception as exc:
+            logger.warning("OpenAlex PDF lookup failed for %s: %s", doi, exc)
+            return FetchResult(False, source="openalex", error=str(exc))
+
+    async def _fetch_from_semantic_scholar(
+        self, doi: str, cache_key: str
+    ) -> FetchResult:
+        """Resolve an open-access PDF reported by Semantic Scholar."""
+        url = f"{SEMANTIC_SCHOLAR_API}/DOI:{quote(doi, safe='')}"
+        headers = {"User-Agent": USER_AGENT}
+        if self.semantic_scholar_api_key:
+            headers["x-api-key"] = self.semantic_scholar_api_key
+        try:
+            async with httpx.AsyncClient(timeout=15, headers=headers) as client:
+                resp = await client.get(url, params={"fields": "openAccessPdf"})
+                if resp.status_code == 404:
+                    return FetchResult(False, source="semantic_scholar", error="DOI not found")
+                resp.raise_for_status()
+                pdf_url = (resp.json().get("openAccessPdf") or {}).get("url")
+            return await self._download_candidates(
+                [pdf_url] if pdf_url else [], "semantic_scholar", cache_key
+            )
+        except Exception as exc:
+            logger.warning("Semantic Scholar PDF lookup failed for %s: %s", doi, exc)
+            return FetchResult(False, source="semantic_scholar", error=str(exc))
+
+    async def _fetch_from_crossref(self, doi: str, cache_key: str) -> FetchResult:
+        """Resolve publisher-declared PDF links from Crossref metadata."""
+        url = f"{CROSSREF_API}/{quote(doi, safe='')}"
+        try:
+            async with httpx.AsyncClient(
+                timeout=15, headers={"User-Agent": USER_AGENT}
+            ) as client:
+                resp = await client.get(url)
+                if resp.status_code == 404:
+                    return FetchResult(False, source="crossref", error="DOI not found")
+                resp.raise_for_status()
+                links = (resp.json().get("message") or {}).get("link") or []
+            candidates = [
+                item.get("URL") or item.get("url")
+                for item in links
+                if "pdf" in str(item.get("content-type") or "").lower()
+            ]
+            return await self._download_candidates(candidates, "crossref", cache_key)
+        except Exception as exc:
+            logger.warning("Crossref PDF lookup failed for %s: %s", doi, exc)
+            return FetchResult(False, source="crossref", error=str(exc))
+
+    async def _download_candidates(
+        self, urls: list[Optional[str]], source: str, cache_key: str
+    ) -> FetchResult:
+        errors: list[str] = []
+        seen: set[str] = set()
+        for url in urls:
+            if not url or url in seen:
+                continue
+            seen.add(url)
+            result = await self._download_pdf(url, source, cache_key)
+            if result.success:
+                return result
+            errors.append(result.error)
+        return FetchResult(
+            False,
+            source=source,
+            error="；".join(errors)[:400] if errors else "未报告可下载的开放 PDF",
+        )
 
     # ------------------------------------------------------------------
     # 来源3：arXiv
@@ -447,7 +590,7 @@ class PDFFetcher:
         """
         # 通过 NCBI ID converter API 查找 PMC ID
         try:
-            async with httpx.AsyncClient(timeout=15) as client:
+            async with httpx.AsyncClient(timeout=15, follow_redirects=True) as client:
                 # 使用 ID 转换 API
                 resp = await client.get(
                     "https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/",
@@ -497,6 +640,10 @@ class PDFFetcher:
         """检查内容是否为有效的 PDF 文件。"""
         # PDF 文件以 %PDF 开头
         return content[:5] == b"%PDF-"
+
+    @staticmethod
+    def _valid_email(value: Optional[str]) -> bool:
+        return bool(value and re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", value.strip()))
 
     @staticmethod
     def _make_cache_key(identifier: str) -> str:

@@ -234,19 +234,38 @@ def load_saved_model_config():
                 if model_name:
                     settings.OPENAI_DEFAULT_MODEL = model_name
             else:
-                # 新格式：每个任务独立配置
-                for task_name, task_config in config.get("tasks", {}).items():
-                    if task_name in MODEL_PROFILES:
-                        MODEL_PROFILES[task_name].update(task_config)
+                # 新格式：任务级空字段继承主配置。不同提供商的任务
+                # 不继承主提供商的 API Key，避免把 MiMo Key 传给 SenseNova 等服务。
+                default_provider = config.get("provider", "openai")
+                default_model = config.get("model_name")
+                default_api_key = config.get("api_key")
+                default_base_url = config.get("base_url")
+                task_configs = config.get("tasks") or {}
+                for task_name, existing in MODEL_PROFILES.items():
+                    task_config = task_configs.get(task_name) or {}
+                    task_provider = task_config.get("provider") or default_provider
+                    same_provider = task_provider == default_provider
+                    MODEL_PROFILES[task_name] = {
+                        "provider": task_provider,
+                        "model": (
+                            task_config.get("model")
+                            or task_config.get("model_name")
+                            or (default_model if same_provider else existing.get("model"))
+                        ),
+                        "api_key": task_config.get("api_key") or (
+                            default_api_key if same_provider else None
+                        ),
+                        "base_url": task_config.get("base_url") or (
+                            default_base_url if same_provider else existing.get("base_url")
+                        ),
+                    }
 
-                # 用 analysis 的配置作为全局默认
-                primary = MODEL_PROFILES.get("analysis", {})
-                if primary.get("api_key"):
-                    settings.OPENAI_API_KEY = primary["api_key"]
-                if primary.get("base_url"):
-                    settings.OPENAI_API_BASE = primary["base_url"]
-                if primary.get("model"):
-                    settings.OPENAI_DEFAULT_MODEL = primary["model"]
+                if default_api_key:
+                    settings.OPENAI_API_KEY = default_api_key
+                if default_base_url:
+                    settings.OPENAI_API_BASE = default_base_url
+                if default_model:
+                    settings.OPENAI_DEFAULT_MODEL = default_model
 
             return config
     except Exception:

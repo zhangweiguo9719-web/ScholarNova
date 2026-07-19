@@ -2,8 +2,67 @@
 模型配置端点测试
 """
 
+import json
+
 import pytest
 from httpx import AsyncClient
+
+
+def test_task_profiles_inherit_default_credentials_after_restart(monkeypatch):
+    """任务留空时应在重启后继承同提供商的主配置。"""
+    from app.config import MODEL_PROFILES, load_saved_model_config, runtime_path, settings
+
+    config = {
+        "provider": "mimo",
+        "model_name": "mimo-v2.5-pro",
+        "api_key": "test-main-key",
+        "base_url": "https://token-plan-cn.xiaomimimo.com/v1",
+        "temperature": 0.7,
+        "max_tokens": 4096,
+        "tasks": {
+            "analysis": {
+                "provider": "mimo",
+                "model_name": "mimo-v2.5-pro",
+                "api_key": None,
+                "base_url": None,
+            },
+            "diagram": {
+                "provider": "sensenova",
+                "model_name": "sensenova-u1-fast",
+                "api_key": None,
+                "base_url": "https://token.sensenova.cn/v1",
+            },
+        },
+    }
+    runtime_path("model_config.json").write_text(
+        json.dumps(config), encoding="utf-8"
+    )
+    monkeypatch.setitem(MODEL_PROFILES, "analysis", {})
+    monkeypatch.setitem(
+        MODEL_PROFILES,
+        "diagram",
+        {
+            "provider": "sensenova",
+            "model": "sensenova-u1-fast",
+            "api_key": "ENV",
+            "base_url": "https://token.sensenova.cn/v1",
+        },
+    )
+    monkeypatch.setattr(settings, "OPENAI_API_KEY", None)
+    monkeypatch.setattr(settings, "OPENAI_API_BASE", "https://api.openai.com/v1")
+    monkeypatch.setattr(settings, "OPENAI_DEFAULT_MODEL", "gpt-4o")
+
+    load_saved_model_config()
+
+    assert MODEL_PROFILES["analysis"] == {
+        "provider": "mimo",
+        "model": "mimo-v2.5-pro",
+        "api_key": "test-main-key",
+        "base_url": "https://token-plan-cn.xiaomimimo.com/v1",
+    }
+    assert MODEL_PROFILES["diagram"]["provider"] == "sensenova"
+    assert MODEL_PROFILES["diagram"]["api_key"] is None
+    assert settings.OPENAI_API_KEY == "test-main-key"
 
 
 class TestSaveModelConfig:

@@ -24,6 +24,7 @@ import type {
   RouteCreateRequest,
   AIAnalyzeResponse,
   RecommendResponse,
+  FulltextStatus,
 } from './types'
 
 const api = axios.create({
@@ -77,6 +78,17 @@ export const papersApi = {
 
   analyze: (paperId: string, request: AnalysisRequest) =>
     api.post<AnalysisResult>(`/papers/${paperId}/analyze`, request),
+
+  fulltextStatus: (paperId: string) =>
+    api.get<FulltextStatus>(`/papers/${paperId}/fulltext/status`),
+
+  uploadFulltext: (paperId: string, file: File) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return api.post<FulltextStatus>(`/papers/${paperId}/fulltext`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
 
   compare: (request: CompareRequest) =>
     api.post<CompareResult>('/papers/compare', request),

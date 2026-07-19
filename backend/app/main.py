@@ -97,11 +97,17 @@ class RequestValidationMiddleware:
                 except (ValueError, TypeError):
                     pass
 
-        if content_length > settings.MAX_REQUEST_SIZE:
+        request_path = scope.get("path", "")
+        max_request_size = (
+            51 * 1024 * 1024
+            if request_path.endswith("/fulltext")
+            else settings.MAX_REQUEST_SIZE
+        )
+        if content_length > max_request_size:
             response = JSONResponse(
                 status_code=413,
                 content={
-                    "detail": f"请求体过大，最大允许 {settings.MAX_REQUEST_SIZE} bytes",
+                    "detail": f"请求体过大，最大允许 {max_request_size} bytes",
                     "code": "REQUEST_TOO_LARGE",
                 },
             )
@@ -121,7 +127,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """
     # 启动时执行
     setup_logging()
-    logger.info("Starting ScholarNova API", version="1.1.0", env=settings.APP_ENV)
+    logger.info("Starting ScholarNova API", version="1.1.1", env=settings.APP_ENV)
 
     # 初始化数据库
     await init_db()
@@ -157,7 +163,7 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title=settings.APP_NAME,
         description="ScholarNova - 智能学术论文搜索与推荐 API",
-        version="1.1.0",
+        version="1.1.1",
         docs_url="/docs" if settings.DEBUG else None,
         redoc_url="/redoc" if settings.DEBUG else None,
         openapi_url="/openapi.json" if settings.DEBUG else None,

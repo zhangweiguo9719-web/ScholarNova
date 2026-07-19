@@ -24,7 +24,7 @@ The public edition is **BYOK (Bring Your Own Key)**: this repository contains no
 
 ScholarNova now includes a Windows desktop packaging path. Project maintainers can publish an installer or portable `.exe` through GitHub Releases, so non-developer users can launch the product without manually starting the frontend and backend.
 
-**For most Windows users:** open [GitHub Releases](https://github.com/zhangweiguo9719-web/ScholarNova/releases/latest), download `ScholarNova-Setup-1.1.0-x64.exe`, install it, and enter your own API keys in Settings. `ScholarNova-Portable-1.1.0-x64.exe` is also available when installation is not desired. Both editions create or update a ScholarNova desktop shortcut.
+**For most Windows users:** open [GitHub Releases](https://github.com/zhangweiguo9719-web/ScholarNova/releases/latest), download `ScholarNova-Setup-1.1.1-x64.exe`, install it, and enter your own API keys in Settings. `ScholarNova-Portable-1.1.1-x64.exe` is also available when installation is not desired. Both editions create or update a ScholarNova desktop shortcut.
 
 - Desktop shell: Electron.
 - Backend: packaged FastAPI service started automatically by the desktop app.
@@ -58,7 +58,11 @@ See [Windows desktop release guide](docs/desktop-release.zh-CN.md) for details.
 - Deduplicates and ranks papers using title, abstract, year, venue, citations, and query constraints.
 - Displays abstracts, authors, metadata, relevance, citation percentile, citation velocity, and traceable quality signals.
 - Shows live elapsed time, exact source API/query/call status, and supports an intentional re-run of the same query.
-- Retrieves legal open-access PDFs on demand and analyzes structured full text, tables, figure captions, and figure-bearing page images when the configured model supports vision.
+- Resolves legal open-access PDFs through direct links, arXiv, OpenAlex, Unpaywall, Semantic Scholar, Crossref, and PMC. When a publisher blocks automated access, users can import an authorized local PDF for persistent full-text, table, caption, and visual-page analysis.
+- Clearly distinguishes full-text analysis from abstract-only fallback and shows the exact retrieval status instead of implying that unavailable source material was read.
+- Figure pages are sent through the task-specific vision profile. Configure a multimodal model under **Settings → Task models → Vision**; if it rejects image input, ScholarNova transparently falls back to parsed full text, tables, and captions and reports that no page images were read.
+- Completed paper analyses show provider-reported total Token usage, with prompt and completion counts also available in the API response.
+- Provides a keyboard-accessible, drag-resizable paper detail panel and remembers its width.
 - Produces AI summaries, contributions, limitations, methods, and evidence-oriented analysis; analysis is temporarily retained per paper within the current search run.
 - Enriches visible results with clearly labelled OpenAlex journal metrics and accepts user-authorized JCR, historical CAS, or SJR CSV/JSON imports without guessing commercial quartiles.
 - Opens an institutional library handoff with the query copied; institutional authentication is still required and is never bypassed.
@@ -248,7 +252,7 @@ binary paper-ID gold labels and score F1=`0.283713`; the remaining 39 require a
 textual relevance judge and are reported separately instead of being forced
 into the binary metric.
 
-See [the benchmark report](outputs/competition-benchmark-report-2026-07-02.md), [the v1.1.0 optimization and test report](docs/reports/v1.1.0-optimization-test-report.zh-CN.md), and the committed [prediction artifact](outputs/benchmarks/predictions/asta-s2-validation18-v3-2026-07-02.json).
+See [the benchmark report](outputs/competition-benchmark-report-2026-07-02.md), [the v1.1.0 optimization report](docs/reports/v1.1.0-optimization-test-report.zh-CN.md), [the v1.1.1 full-text, vision, and desktop test report](docs/reports/v1.1.1-fulltext-vision-desktop-report.zh-CN.md), and the committed [prediction artifact](outputs/benchmarks/predictions/asta-s2-validation18-v3-2026-07-02.json).
 
 ## Verification
 

@@ -1,14 +1,14 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   X, ExternalLink, Copy, Check, Loader2, Sparkles, BookOpen,
   Calendar, Hash, Users, Lightbulb, AlertTriangle, FlaskConical,
-  Languages, BookMarked,
+  Languages, BookMarked, FileUp, FileCheck2,
 } from 'lucide-react'
 import clsx from 'clsx'
 import toast from 'react-hot-toast'
 import { useLocaleStore } from '@/stores/localeStore'
-import { knowledgeApi } from '@/api/client'
-import type { PaperDetail as PaperDetailType, AnalysisResult } from '@/api/types'
+import { knowledgeApi, papersApi } from '@/api/client'
+import type { PaperDetail as PaperDetailType, AnalysisResult, FulltextStatus } from '@/api/types'
 import KnowledgeForm from '@/components/KnowledgeForm/KnowledgeForm'
 import './PaperDetail.css'
 
@@ -21,6 +21,7 @@ interface PaperDetailProps {
   runId?: string | null
   onClose: () => void
   onAnalyze: (query?: string) => void
+  onFulltextUploaded: () => void
 }
 
 type AnalysisKey = 'full' | 'research_points' | 'limitations' | 'methodology'
@@ -34,7 +35,7 @@ const analysisConfig: Record<AnalysisKey, { icon: any; zhLabel: string; enLabel:
 
 export default function PaperDetailPanel({
   paper, analysis, analysisLoading,
-  onClose, onAnalyze,
+  onClose, onAnalyze, onFulltextUploaded,
 }: PaperDetailProps) {
   const { locale } = useLocaleStore()
   const [copiedField, setCopiedField] = useState<string | null>(null)
@@ -44,8 +45,20 @@ export default function PaperDetailPanel({
   const [activeAnalysis, setActiveAnalysis] = useState<AnalysisKey | null>(null)
   const [knowledgeFormOpen, setKnowledgeFormOpen] = useState(false)
   const [knowledgeCategories, setKnowledgeCategories] = useState<{ name: string; count: number }[]>([])
+  const [fulltextStatus, setFulltextStatus] = useState<FulltextStatus | null>(null)
+  const [uploadingFulltext, setUploadingFulltext] = useState(false)
+  const fulltextInputRef = useRef<HTMLInputElement>(null)
 
   const isChinese = locale === 'zh'
+
+  useEffect(() => {
+    let active = true
+    setFulltextStatus(null)
+    papersApi.fulltextStatus(paper.id)
+      .then(({ data }) => { if (active) setFulltextStatus(data) })
+      .catch(() => { if (active) setFulltextStatus({ available: false, source: null, file_size: 0 }) })
+    return () => { active = false }
+  }, [paper.id])
 
   const handleTranslate = async () => {
     if (translatedAbstract) { setTranslatedAbstract(null); return }
@@ -66,6 +79,31 @@ export default function PaperDetailPanel({
     setActiveAnalysis(key)
     setActiveTab('analysis')
     onAnalyze(analysisConfig[key].query)
+  }
+
+  const handleFulltextFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      toast.error(isChinese ? '请选择 PDF 文件' : 'Please select a PDF file')
+      return
+    }
+    setUploadingFulltext(true)
+    try {
+      const { data } = await papersApi.uploadFulltext(paper.id, file)
+      setFulltextStatus(data)
+      setActiveAnalysis('full')
+      setActiveTab('analysis')
+      toast.success(isChinese
+        ? `全文已导入（${data.page_count || 0} 页），正在重新分析`
+        : `Full text imported (${data.page_count || 0} pages). Re-analyzing.`)
+      onFulltextUploaded()
+    } catch (error: any) {
+      toast.error(error.response?.data?.detail || (isChinese ? 'PDF 导入失败' : 'PDF import failed'))
+    } finally {
+      setUploadingFulltext(false)
+    }
   }
 
   const handleSaveToKnowledge = async () => {
@@ -126,7 +164,85 @@ export default function PaperDetailPanel({
       <div className="paper-detail-links">
         {paper.url && <a href={paper.url} target="_blank" rel="noopener noreferrer" className="paper-link"><ExternalLink className="w-3.5 h-3.5" />{isChinese ? '查看原文' : 'View Paper'}</a>}
         {paper.pdf_url && <a href={paper.pdf_url} target="_blank" rel="noopener noreferrer" className="paper-link paper-link-oa"><ExternalLink className="w-3.5 h-3.5" />PDF</a>}
+        <input
+          ref={fulltextInputRef}
+          type="file"
+          accept="application/pdf,.pdf"
+          className="hidden"
+          onChange={handleFulltextFile}
+        />
+        <button
+          type="button"
+          className="paper-link paper-link-upload"
+          disabled={uploadingFulltext}
+          onClick={() => fulltextInputRef.current?.click()}
+          title={isChinese ? '导入你有权使用的 PDF，供 Agent 读取全文和图表' : 'Import an authorized PDF for full-text and figure analysis'}
+        >
+          {uploadingFulltext
+            ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            : fulltextStatus?.available
+              ? <FileCheck2 className="w-3.5 h-3.5" />
+              : <FileUp className="w-3.5 h-3.5" />}
+          {fulltextStatus?.available
+            ? (isChinese ? '替换全文' : 'Replace PDF')
+            : (isChinese ? '导入全文 PDF' : 'Import PDF')}
+        </button>
       </div>
+
+      {(fulltextStatus?.available || analysis) && (
+        <div className={clsx(
+          'fulltext-status',
+          (analysis?.document_coverage === 'fulltext' && analysis.model_completed !== false)
+            || (fulltextStatus?.available && !analysis)
+            ? 'fulltext-status-ready'
+            : 'fulltext-status-warning',
+        )}>
+          {analysis?.document_coverage === 'fulltext' && analysis.model_completed !== false ? (
+            <>
+              <FileCheck2 className="w-4 h-4 flex-shrink-0" />
+              <span>
+                {isChinese ? '已读取全文' : 'Full text read'}
+                {analysis.visual_pages_read > 0
+                  ? (isChinese ? `，并读取 ${analysis.visual_pages_read} 个图表页面` : ` with ${analysis.visual_pages_read} visual pages`)
+                  : (isChinese ? '；本篇未提取到可用图表页' : '; no visual page was extracted')}
+                {analysis.total_tokens > 0
+                  ? (isChinese ? `；模型 Token ${analysis.total_tokens}` : `; model tokens ${analysis.total_tokens}`)
+                  : ''}
+              </span>
+            </>
+          ) : fulltextStatus?.available && analysis?.model_completed === false ? (
+            <div className="min-w-0">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <span>{isChinese
+                  ? '全文与图表已解析，但模型服务未完成本次分析；当前显示基础回退结果，请重试。'
+                  : 'The PDF was parsed, but the model did not complete this analysis. Retry to use the prepared full text.'}</span>
+              </div>
+              {analysis.document_error && <p className="mt-1 opacity-80">{analysis.document_error}</p>}
+            </div>
+          ) : fulltextStatus?.available && !analysis ? (
+            <>
+              <FileCheck2 className="w-4 h-4 flex-shrink-0" />
+              <span>{isChinese ? '全文已就绪，AI 分析将读取正文与图表。' : 'Full text is ready for the next analysis.'}</span>
+            </>
+          ) : (
+            <div className="min-w-0">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <span>{isChinese
+                  ? '自动获取全文未成功，本次仅依据摘要。请下载你有权使用的 PDF 后点击“导入全文 PDF”。'
+                  : 'Automatic full-text retrieval failed. This analysis used the abstract only; import an authorized PDF for full analysis.'}</span>
+              </div>
+              {analysis?.document_error && (
+                <details className="fulltext-error-detail">
+                  <summary>{isChinese ? '查看获取详情' : 'Retrieval details'}</summary>
+                  <p>{analysis.document_error}</p>
+                </details>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Analysis buttons */}
       <div className="p-3 border-b border-gray-200 dark:border-gray-700">

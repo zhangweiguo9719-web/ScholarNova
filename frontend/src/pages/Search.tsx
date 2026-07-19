@@ -1,4 +1,5 @@
 import { useEffect, useCallback, useRef, useState } from 'react'
+import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { Loader2, Search as SearchIcon, AlertCircle, BookOpen, Clock3, Database, ExternalLink } from 'lucide-react'
 import { searchApi, papersApi, networkApi } from '@/api/client'
@@ -12,6 +13,7 @@ import ResultsList from '@/components/ResultsList/ResultsList'
 import PaperDetailPanel from '@/components/PaperDetail/PaperDetail'
 import { PaperCardSkeleton } from '@/components/Skeleton'
 import toast from 'react-hot-toast'
+import './Search.css'
 
 export default function Search() {
   const [searchParams] = useSearchParams()
@@ -32,7 +34,13 @@ export default function Search() {
   const searchStartedAtRef = useRef<number | null>(null)
   const analysisCacheRef = useRef<Map<string, AnalysisResult>>(new Map())
   const selectedPaperIdRef = useRef<string | null>(selectedPaper?.id || null)
+  const resizeStartRef = useRef<{ x: number; width: number } | null>(null)
   const [elapsedMs, setElapsedMs] = useState(0)
+  const [panelWidth, setPanelWidth] = useState(() => {
+    const saved = Number(window.localStorage.getItem('scholarnova-detail-width'))
+    return Number.isFinite(saved) && saved >= 360 ? saved : 440
+  })
+  const [isResizing, setIsResizing] = useState(false)
 
   useEffect(() => {
     return () => { if (pollTimerRef.current) clearTimeout(pollTimerRef.current) }
@@ -49,6 +57,38 @@ export default function Search() {
   useEffect(() => {
     selectedPaperIdRef.current = selectedPaper?.id || null
   }, [selectedPaper?.id])
+
+  useEffect(() => {
+    if (!isResizing) return
+    const previousCursor = document.body.style.cursor
+    const previousSelection = document.body.style.userSelect
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+
+    const handlePointerMove = (event: PointerEvent) => {
+      const start = resizeStartRef.current
+      if (!start) return
+      const maximum = Math.max(360, Math.min(900, window.innerWidth * 0.72))
+      const nextWidth = Math.min(maximum, Math.max(360, start.width + start.x - event.clientX))
+      setPanelWidth(Math.round(nextWidth))
+    }
+    const stopResize = () => {
+      setIsResizing(false)
+      resizeStartRef.current = null
+    }
+    window.addEventListener('pointermove', handlePointerMove)
+    window.addEventListener('pointerup', stopResize, { once: true })
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove)
+      window.removeEventListener('pointerup', stopResize)
+      document.body.style.cursor = previousCursor
+      document.body.style.userSelect = previousSelection
+    }
+  }, [isResizing])
+
+  useEffect(() => {
+    window.localStorage.setItem('scholarnova-detail-width', String(panelWidth))
+  }, [panelWidth])
 
   // 搜索 query 变化时执行搜索
   useEffect(() => {
@@ -148,6 +188,28 @@ export default function Search() {
       toast.error(t('common.error') + '. ' + t('common.retry'))
     } finally { setAnalysisLoading(false) }
   }, [selectedPaper, query])
+
+  const handleFulltextUploaded = useCallback(() => {
+    if (!selectedPaper) return
+    analysisCacheRef.current.delete(selectedPaper.id)
+    setAnalysis(null)
+    void handleAnalyze()
+  }, [selectedPaper, handleAnalyze])
+
+  const beginPanelResize = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (window.innerWidth < 768) return
+    event.preventDefault()
+    resizeStartRef.current = { x: event.clientX, width: panelWidth }
+    setIsResizing(true)
+  }
+
+  const handleResizeKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
+    event.preventDefault()
+    const maximum = Math.max(360, Math.min(900, window.innerWidth * 0.72))
+    const delta = event.key === 'ArrowLeft' ? 24 : -24
+    setPanelWidth((current) => Math.min(maximum, Math.max(360, current + delta)))
+  }
 
   const handleLibrarySearch = async () => {
     const activeQuery = (queryParam || query).trim()
@@ -339,11 +401,27 @@ export default function Search() {
         </div>
 
         {selectedPaper && (
-          <div className="w-full md:w-[400px] lg:w-[440px] flex-shrink-0 overflow-hidden">
+          <div
+            className={`search-detail-shell ${isResizing ? 'is-resizing' : ''}`}
+            style={{ '--detail-panel-width': `${panelWidth}px` } as CSSProperties}
+          >
+            <div
+              className="search-detail-resizer"
+              role="separator"
+              aria-label={locale === 'zh' ? '拖动调整论文详情宽度' : 'Resize paper details'}
+              aria-orientation="vertical"
+              aria-valuemin={360}
+              aria-valuemax={900}
+              aria-valuenow={panelWidth}
+              tabIndex={0}
+              onPointerDown={beginPanelResize}
+              onKeyDown={handleResizeKeyDown}
+            />
             <PaperDetailPanel
               paper={selectedPaper} analysis={analysis} analysisLoading={analysisLoading}
               evidenceSpans={evidenceSpans} evidenceLoading={evidenceLoading}
               runId={searchRun?.run_id ?? null} onClose={handleCloseDetail} onAnalyze={handleAnalyze}
+              onFulltextUploaded={handleFulltextUploaded}
             />
           </div>
         )}

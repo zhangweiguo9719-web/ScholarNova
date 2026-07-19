@@ -7,6 +7,8 @@ import uuid
 import pytest
 from httpx import AsyncClient
 
+from app.models.paper import PaperEntity
+
 
 class TestGetPaper:
     """GET /api/v1/papers/{paper_id} 测试套件"""
@@ -97,6 +99,39 @@ class TestAnalyzePaper:
         )
         assert response.status_code == 422
 
+
+class TestFulltextUpload:
+    """Imported PDFs are available to the full-text analysis pipeline."""
+
+    async def test_upload_and_status(self, client: AsyncClient, db_session):
+        import pymupdf
+
+        paper = PaperEntity(
+            id=str(uuid.uuid4()),
+            title="Upload API paper",
+            abstract="Test abstract",
+            authors=[{"name": "Researcher"}],
+            source="test",
+        )
+        db_session.add(paper)
+        await db_session.flush()
+
+        document = pymupdf.open()
+        document.new_page().insert_text((72, 72), "A valid test paper")
+        pdf_bytes = document.tobytes()
+        document.close()
+
+        response = await client.post(
+            f"/api/v1/papers/{paper.id}/fulltext",
+            files={"file": ("paper.pdf", pdf_bytes, "application/pdf")},
+        )
+        assert response.status_code == 200
+        assert response.json()["available"] is True
+        assert response.json()["page_count"] == 1
+
+        status = await client.get(f"/api/v1/papers/{paper.id}/fulltext/status")
+        assert status.status_code == 200
+        assert status.json()["available"] is True
 
 class TestListPapers:
     """GET /api/v1/papers endpoint contract."""

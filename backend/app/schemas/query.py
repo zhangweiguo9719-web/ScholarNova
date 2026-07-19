@@ -83,6 +83,14 @@ class AnalysisResult(BaseModel):
     strengths: List[str] = Field(default_factory=list, description="优点")
     weaknesses: List[str] = Field(default_factory=list, description="缺点")
     relevance_to_query: Optional[str] = Field(None, description="与查询的相关性")
+    document_coverage: str = Field("abstract", description="分析材料覆盖范围")
+    document_source: Optional[str] = Field(None, description="全文材料来源")
+    document_error: Optional[str] = Field(None, description="全文获取失败原因")
+    visual_pages_read: int = Field(0, description="提供给视觉模型的 PDF 页面数")
+    model_completed: bool = Field(True, description="模型是否完成本次分析")
+    prompt_tokens: int = Field(0, description="本次分析的输入 Token")
+    completion_tokens: int = Field(0, description="本次分析的输出 Token")
+    total_tokens: int = Field(0, description="本次分析的总 Token")
     created_at: datetime = Field(default_factory=datetime.utcnow, description="创建时间")
 
 
