@@ -16,30 +16,34 @@
   <strong>English</strong> · <a href="README.zh-CN.md">简体中文</a>
 </p>
 
-ScholarNova is a self-hosted academic discovery workspace for complex research questions. It turns a natural-language request into a query plan, retrieves papers from multiple scholarly indexes, ranks and explains the results, exposes evidence and quality signals, and organizes findings into a personal knowledge base.
+ScholarNova is a Windows desktop application and self-hostable academic discovery workspace for complex research questions. It turns a natural-language request into a query plan, retrieves papers from multiple scholarly indexes, ranks and explains the results, exposes evidence and quality signals, and organizes findings into a personal knowledge base.
 
 The public edition is **BYOK (Bring Your Own Key)**: this repository contains no private API keys or licensed benchmark data. You choose the model provider, scholarly data sources, and deployment environment.
 
-## Windows desktop edition
+## Download ScholarNova for Windows (recommended)
 
-ScholarNova now includes a Windows desktop packaging path. Project maintainers can publish an installer or portable `.exe` through GitHub Releases, so non-developer users can launch the product without manually starting the frontend and backend.
+**You do not need to install Python, Node.js, Docker, or a separate database.** The Windows edition contains the desktop interface and local backend service in one application.
 
-**For most Windows users:** open [GitHub Releases](https://github.com/zhangweiguo9719-web/ScholarNova/releases/latest), download `ScholarNova-Setup-1.1.1-x64.exe`, install it, and enter your own API keys in Settings. `ScholarNova-Portable-1.1.1-x64.exe` is also available when installation is not desired. Both editions create or update a ScholarNova desktop shortcut.
+### Current release: v1.1.1
 
-- Desktop shell: Electron.
-- Backend: packaged FastAPI service started automatically by the desktop app.
+- [Download the Windows installer (`ScholarNova-Setup-1.1.1-x64.exe`)](https://github.com/zhangweiguo9719-web/ScholarNova/releases/download/v1.1.1/ScholarNova-Setup-1.1.1-x64.exe)
+- [Download the portable edition (`ScholarNova-Portable-1.1.1-x64.exe`)](https://github.com/zhangweiguo9719-web/ScholarNova/releases/download/v1.1.1/ScholarNova-Portable-1.1.1-x64.exe)
+- [View all releases and release notes](https://github.com/zhangweiguo9719-web/ScholarNova/releases/latest)
+
+### Start in three steps
+
+1. Download and run the installer, or launch the portable `.exe` directly.
+2. Open **Settings** and enter your own model and scholarly-data API keys.
+3. Open **Search** to retrieve papers, run full-text AI analysis, save a knowledge base, and generate a research route.
+
+Both editions create or update a ScholarNova desktop shortcut. The application automatically starts its bundled local service; there is no separate frontend or backend command to run.
+
+- Desktop shell: Electron with an automatically started packaged FastAPI service.
 - Local data: stored under the user's AppData directory.
 - Credentials: users configure their own API keys in the settings page; private keys are never bundled.
+- Updates: download the newest installer or portable build from GitHub Releases.
 
-Build command for maintainers:
-
-```powershell
-npm ci
-npm --prefix frontend ci
-npm run dist:win
-```
-
-See [Windows desktop release guide](docs/desktop-release.zh-CN.md) for details.
+Developers who want to build the application themselves can use the [Windows desktop release guide](docs/desktop-release.zh-CN.md). Source deployment instructions are provided later in this README.
 
 ## Product preview
 
@@ -100,7 +104,7 @@ flowchart LR
     Q --- LLM["User-selected LLM"]
 ```
 
-## Quick start with Docker Compose
+## Source deployment with Docker Compose (advanced)
 
 Requirements: Git, Docker Engine 24+, Docker Compose v2, and at least 4 GB of free memory.
 
@@ -164,7 +168,7 @@ docker compose logs -f backend
 docker compose down
 ```
 
-## Local development without Docker
+## Source development without Docker (advanced)
 
 Local mode uses SQLite and an in-memory cache, so PostgreSQL and Redis are optional.
 
