@@ -18,7 +18,7 @@
 | Anthropic | [Console API Keys](https://console.anthropic.com/settings/keys) / [文档](https://docs.anthropic.com/) | Provider=`anthropic`，使用 `ANTHROPIC_API_KEY` |
 | 小米 MiMo | [开放平台](https://platform.xiaomimimo.com/) / [官方获取说明](https://mimo.mi.com/docs/en-US/quick-start/faq/api-integration) | Provider=`mimo`；按量付费 Key 与 Token Plan Key 不可混用 |
 | DeepSeek | [API Keys](https://platform.deepseek.com/api_keys) / [官方文档](https://api-docs.deepseek.com/) | Provider=`deepseek`，Base URL=`https://api.deepseek.com/v1` |
-| 智谱 GLM | [开放平台](https://open.bigmodel.cn/) / [快速开始](https://docs.bigmodel.cn/cn/guide/start/quick-start) | Provider=`zhipu`，Base URL=`https://open.bigmodel.cn/api/paas/v4` |
+| 智谱 GLM | [开放平台](https://open.bigmodel.cn/) / [快速开始](https://docs.bigmodel.cn/cn/guide/start/quick-start) | Provider=`zhipu`，Base URL=`https://open.bigmodel.cn/api/paas/v4`；可选 `glm-5.2`、`glm-4.7-flash` 或 `glm-4.5-flash` |
 | 阿里云百炼 Qwen | [百炼控制台](https://bailian.console.aliyun.com/) / [获取 Key](https://help.aliyun.com/zh/model-studio/get-api-key) | Provider=`qwen`，Base URL=`https://dashscope.aliyuncs.com/compatible-mode/v1` |
 | Moonshot Kimi | [API Keys](https://platform.moonshot.cn/console/api-keys) / [平台文档](https://platform.moonshot.cn/docs/) | Provider=`moonshot`，中国区 Base URL=`https://api.moonshot.cn/v1` |
 | SenseNova | [日日新 Token Plan](https://www.sensenova.cn/token-plan) / [SenseCore 文档](https://console.sensecore.cn/micro/help/en/docs/model-as-a-service/nova/) | Provider=`sensenova`；项目主要将 U1 用于研究框架图 |
@@ -37,6 +37,17 @@ DEFAULT_LLM_PROVIDER=deepseek
 ```
 
 `DEFAULT_LLM_PROVIDER` 应改成实际 Provider，例如 `mimo`、`deepseek`、`zhipu`、`qwen`、`moonshot` 或 `custom`。
+
+智谱示例（密钥只放本机，不要提交）：
+
+```dotenv
+OPENAI_API_KEY=your-bigmodel-key
+OPENAI_API_BASE=https://open.bigmodel.cn/api/paas/v4
+OPENAI_DEFAULT_MODEL=glm-5.2
+DEFAULT_LLM_PROVIDER=zhipu
+```
+
+GLM 推理模型可能先生成隐藏推理内容。ScholarNova 的“测试连接”会关闭该次探针的思考模式并只调用一次；正式论文分析仍保留完整输出预算。HTTP 429 或错误码 `1305` 表示模型当前负载过高，可稍后重试或临时选择 Flash 模型，并不等同于 Key 无效。
 
 Anthropic 使用：
 
@@ -94,7 +105,7 @@ ScholarNova is BYOK. Configure at least one LLM provider and, for more stable sc
 - Anthropic: [Console keys](https://console.anthropic.com/settings/keys)
 - Xiaomi MiMo: [official API key guide](https://mimo.mi.com/docs/en-US/quick-start/faq/api-integration)
 - DeepSeek: [platform keys](https://platform.deepseek.com/api_keys)
-- Zhipu: [quickstart](https://docs.bigmodel.cn/cn/guide/start/quick-start)
+- Zhipu: [quickstart](https://docs.bigmodel.cn/cn/guide/start/quick-start), Base URL `https://open.bigmodel.cn/api/paas/v4`; current options include `glm-5.2`, `glm-4.7-flash`, and `glm-4.5-flash`
 - Alibaba Model Studio: [get an API key](https://help.aliyun.com/zh/model-studio/get-api-key)
 - Moonshot Kimi: [API keys](https://platform.moonshot.cn/console/api-keys)
 - SenseNova: [SenseNova service guide](https://console.sensecore.cn/micro/help/en/docs/model-as-a-service/nova/)

@@ -127,6 +127,27 @@ class TestLLMGateway:
         assert failed_client.chat.completions.create.await_count == 1
         assert healthy_client.chat.completions.create.await_count == 1
 
+    async def test_openai_probe_retry_override_is_not_sent_to_provider(self):
+        """Internal retry controls must not leak into compatible API payloads."""
+        gateway = LLMGateway(provider="zhipu")
+        gateway._chat_openai_once = AsyncMock(return_value="OK")
+
+        with patch("app.services.llm.gateway.settings") as mock_settings:
+            mock_settings.LLM_MAX_RETRIES = 2
+            mock_settings.LLM_TIMEOUT = 60
+            mock_settings.OPENAI_API_BASE = "https://open.bigmodel.cn/api/paas/v4"
+            mock_settings.OPENAI_DEFAULT_MODEL = "glm-5.2"
+            result = await gateway.chat(
+                messages=[{"role": "user", "content": "hello"}],
+                _max_retries=0,
+                extra_body={"thinking": {"type": "disabled"}},
+            )
+
+        assert result == "OK"
+        forwarded = gateway._chat_openai_once.await_args.kwargs
+        assert "_max_retries" not in forwarded
+        assert forwarded["extra_body"] == {"thinking": {"type": "disabled"}}
+
     async def test_chat_ollama_success(self):
         """Ollama 调用成功应返回响应文本"""
         mock_response = MagicMock()
@@ -176,6 +197,19 @@ class TestLLMGateway:
         assert result["success"] is False
         assert "error" in result
         assert "Connection failed" in result["error"]
+
+    async def test_zhipu_connection_probe_disables_thinking_and_retries(self):
+        """GLM probes should reserve tokens for a visible answer and fail fast."""
+        gateway = LLMGateway(provider="zhipu")
+        gateway.chat = AsyncMock(return_value="hello")
+
+        result = await gateway.test_connection()
+
+        assert result["success"] is True
+        assert gateway.chat.await_args.kwargs["extra_body"] == {
+            "thinking": {"type": "disabled"}
+        }
+        assert gateway.chat.await_args.kwargs["_max_retries"] == 0
 
     async def test_chat_anthropic_success(self):
         """Anthropic 调用成功应返回响应文本"""

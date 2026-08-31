@@ -157,37 +157,6 @@ class LLMGateway:
         else:
             raise ValueError(f"Unsupported provider: {self.provider}")
 
-    async def generate_image(self, prompt: str, size: str = "2048x2048", n: int = 1, **kwargs) -> dict:
-        """
-        生成图片（SenseNova U1 Fast）
-
-        Returns:
-            {"status": "ok", "url": "..."} 或 {"status": "error", "error": "..."}
-        """
-        api_key = self._api_key or settings.SENSENOVA_API_KEY
-        base_url = self._base_url or settings.SENSENOVA_API_BASE
-
-        import httpx
-        try:
-            async with httpx.AsyncClient(timeout=120) as client:
-                r = await client.post(
-                    f"{base_url}/images/generations",
-                    headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-                    json={
-                        "model": self._model_name or "sensenova-u1-fast",
-                        "prompt": prompt,
-                        "size": size,
-                        "n": n,
-                    },
-                )
-                data = r.json()
-                if r.status_code == 200 and data.get("data"):
-                    return {"status": "ok", "url": data["data"][0].get("url", "")}
-                else:
-                    return {"status": "error", "error": data.get("error", {}).get("message", str(data)[:200])}
-        except Exception as e:
-            return {"status": "error", "error": str(e)[:200]}
-
     async def test_connection(self) -> dict:
         """
         测试 LLM 连接
@@ -196,11 +165,28 @@ class LLMGateway:
             包含 success(bool)、model(str)、可选 error(str) 的字典
         """
         try:
+            request_options: dict[str, Any] = {}
+            if self.provider == "zhipu":
+                # GLM reasoning models can spend a tiny probe's whole token
+                # budget on hidden reasoning and return an empty final answer.
+                request_options["extra_body"] = {"thinking": {"type": "disabled"}}
+            if self.provider in {
+                "openai",
+                "mimo",
+                "deepseek",
+                "zhipu",
+                "qwen",
+                "moonshot",
+                "sensenova",
+                "custom",
+            }:
+                request_options["_max_retries"] = 0
             response = await self.chat(
                 messages=[{"role": "user", "content": "Say hello in one word."}],
                 # Reasoning models may spend the first tokens on hidden reasoning.
                 # Keep this small, but leave enough room for visible content.
                 max_tokens=64,
+                **request_options,
             )
             return {
                 "success": True,
@@ -231,7 +217,15 @@ class LLMGateway:
         model_name = model or self._model_name or settings.OPENAI_DEFAULT_MODEL
         base_url = (self._base_url or settings.OPENAI_API_BASE or "").rstrip("/") or None
         endpoint_host = urlparse(base_url).netloc if base_url else "default"
-        max_retries = max(0, int(getattr(settings, "LLM_MAX_RETRIES", 3)))
+        retry_override = kwargs.pop("_max_retries", None)
+        max_retries = max(
+            0,
+            int(
+                getattr(settings, "LLM_MAX_RETRIES", 3)
+                if retry_override is None
+                else retry_override
+            ),
+        )
         request_timeout = max(30.0, float(getattr(settings, "LLM_TIMEOUT", 60)))
         last_error: Optional[Exception] = None
 
@@ -471,8 +465,6 @@ class LLMGateway:
             包含 status, output/url, message 的字典
         """
         import httpx
-        import time
-
         api_key = self._api_key or settings.SENSENOVA_API_KEY
         base_url = (self._base_url or settings.SENSENOVA_API_BASE).rstrip("/")
         model = self._model_name or settings.SENSENOVA_DEFAULT_MODEL

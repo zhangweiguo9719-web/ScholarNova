@@ -55,12 +55,14 @@ export interface TaskModelConfig {
   model_name?: string
   api_key?: string
   base_url?: string
+  api_key_configured?: boolean
 }
 
 export interface ModelConfig {
   provider: LLMProvider
   model_name: string
   api_key?: string
+  api_key_configured?: boolean
   base_url?: string
   temperature?: number
   max_tokens?: number

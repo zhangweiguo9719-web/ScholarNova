@@ -3,8 +3,8 @@
 """
 
 import json
+from unittest.mock import AsyncMock, patch
 
-import pytest
 from httpx import AsyncClient
 
 
@@ -83,6 +83,87 @@ class TestSaveModelConfig:
         assert response.status_code == 200
         data = response.json()
         assert data["success"] is True
+
+    async def test_get_config_hides_saved_credentials(self, client: AsyncClient):
+        """浏览器只能知道 Key 已配置，不能读取 Key 本身。"""
+        from app.config import runtime_path
+
+        runtime_path("model_config.json").write_text(
+            json.dumps(
+                {
+                    "provider": "zhipu",
+                    "model_name": "glm-5.2",
+                    "api_key": "local-secret",
+                    "base_url": "https://open.bigmodel.cn/api/paas/v4",
+                    "tasks": {
+                        "diagram": {
+                            "provider": "sensenova",
+                            "model_name": "sensenova-u1-fast",
+                            "api_key": "diagram-secret",
+                        }
+                    },
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        response = await client.get("/api/v1/model/config")
+        data = response.json()
+
+        assert response.status_code == 200
+        assert data["provider"] == "zhipu"
+        assert data["api_key"] is None
+        assert data["api_key_configured"] is True
+        assert data["tasks"]["diagram"]["api_key"] is None
+        assert data["tasks"]["diagram"]["api_key_configured"] is True
+
+    async def test_save_config_preserves_hidden_credentials(self, client: AsyncClient):
+        """页面留空保存时应保留同一提供商已有的本机 Key。"""
+        from app.config import runtime_path
+
+        config_path = runtime_path("model_config.json")
+        config_path.write_text(
+            json.dumps(
+                {
+                    "provider": "zhipu",
+                    "model_name": "glm-5.2",
+                    "api_key": "local-secret",
+                    "base_url": "https://open.bigmodel.cn/api/paas/v4",
+                    "tasks": {
+                        "diagram": {
+                            "provider": "sensenova",
+                            "model_name": "sensenova-u1-fast",
+                            "api_key": "diagram-secret",
+                            "base_url": "https://token.sensenova.cn/v1",
+                        }
+                    },
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        response = await client.post(
+            "/api/v1/model/config",
+            json={
+                "provider": "zhipu",
+                "model_name": "glm-5.2",
+                "api_key": "",
+                "base_url": "https://open.bigmodel.cn/api/paas/v4",
+                "tasks": {
+                    "diagram": {
+                        "provider": "sensenova",
+                        "model_name": "sensenova-u1-fast",
+                        "api_key": "",
+                        "base_url": "https://token.sensenova.cn/v1",
+                    }
+                },
+            },
+        )
+        saved = json.loads(config_path.read_text(encoding="utf-8"))
+
+        assert response.status_code == 200
+        assert saved["api_key"] == "local-secret"
+        assert saved["tasks"]["diagram"]["api_key"] == "diagram-secret"
 
     async def test_save_config_anthropic(self, client: AsyncClient):
         """保存 Anthropic 配置应返回成功"""
@@ -212,3 +293,20 @@ class TestModelConnection:
             json={"model_name": "gpt-4o"},
         )
         assert response.status_code == 422
+
+    async def test_test_connection_timeout_has_actionable_error(
+        self, client: AsyncClient
+    ):
+        """探针超时不应再返回空错误。"""
+        with patch(
+            "app.services.llm.gateway.LLMGateway.test_connection",
+            new=AsyncMock(side_effect=TimeoutError),
+        ):
+            response = await client.post(
+                "/api/v1/model/test",
+                json={"provider": "zhipu", "model_name": "glm-5.2"},
+            )
+
+        assert response.status_code == 200
+        assert response.json()["success"] is False
+        assert "15 秒" in response.json()["error"]

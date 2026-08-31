@@ -145,6 +145,8 @@ export const translateApi = {
 // =============================================================================
 
 export const modelApi = {
+  getConfig: () => api.get<ModelConfig>('/model/config'),
+
   saveConfig: (config: ModelConfig) =>
     api.post('/model/config', config),
 

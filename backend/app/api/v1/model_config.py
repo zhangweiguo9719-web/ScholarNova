@@ -19,6 +19,54 @@ from app.schemas.search import (
 router = APIRouter()
 
 
+def _read_saved_config() -> dict:
+    """Read the local runtime config without exposing it to callers."""
+    import json
+
+    from app.config import runtime_path
+
+    config_path = runtime_path("model_config.json")
+    try:
+        if config_path.exists():
+            with config_path.open("r", encoding="utf-8") as file:
+                data = json.load(file)
+                return data if isinstance(data, dict) else {}
+    except (OSError, ValueError):
+        return {}
+    return {}
+
+
+@router.get("/config")
+async def get_model_config() -> dict:
+    """Return the active local model config with every credential removed."""
+    from app.config import settings
+
+    saved = _read_saved_config()
+    provider = saved.get("provider") or settings.DEFAULT_LLM_PROVIDER
+    safe_tasks: dict[str, dict] = {}
+    saved_tasks = saved.get("tasks")
+    if not isinstance(saved_tasks, dict):
+        saved_tasks = {}
+    for task_name, task_config in saved_tasks.items():
+        if not isinstance(task_config, dict):
+            continue
+        safe_task = dict(task_config)
+        safe_task["api_key_configured"] = bool(safe_task.get("api_key"))
+        safe_task["api_key"] = None
+        safe_tasks[task_name] = safe_task
+
+    return {
+        "provider": provider,
+        "model_name": saved.get("model_name") or settings.OPENAI_DEFAULT_MODEL,
+        "api_key": None,
+        "api_key_configured": bool(saved.get("api_key") or settings.OPENAI_API_KEY),
+        "base_url": saved.get("base_url") or settings.OPENAI_API_BASE,
+        "temperature": saved.get("temperature", 0.7),
+        "max_tokens": saved.get("max_tokens", 4096),
+        "tasks": safe_tasks,
+    }
+
+
 @router.post("/config", response_model=SuccessResponse)
 async def save_model_config(
     config: ModelConfig,
@@ -29,14 +77,21 @@ async def save_model_config(
     保存用户的 LLM 模型配置到内存缓存和本地文件
     """
     import json
-    config_data = config.model_dump()
-
     # 更新全局多模型配置
-    from app.config import MODEL_PROFILES, settings
-    api_key = config.api_key
+    from app.config import MODEL_PROFILES, runtime_path, settings
+    existing_config = _read_saved_config()
+    existing_provider = existing_config.get("provider")
+    existing_tasks = existing_config.get("tasks")
+    if not isinstance(existing_tasks, dict):
+        existing_tasks = {}
     base_url = config.base_url
     model_name = config.model_name
     provider = config.provider
+    api_key = config.api_key or (
+        existing_config.get("api_key") if existing_provider == provider else None
+    )
+    config_data = config.model_dump()
+    config_data["api_key"] = api_key
 
     if config.tasks:
         # 有任务级配置，更新对应的任务
@@ -44,12 +99,20 @@ async def save_model_config(
             if task_name in MODEL_PROFILES:
                 task_provider = task_config.provider or provider
                 same_provider = task_provider == provider
+                previous_task = existing_tasks.get(task_name) or {}
+                previous_provider = previous_task.get("provider") or existing_provider
+                task_api_key = task_config.api_key or (
+                    previous_task.get("api_key")
+                    if previous_provider == task_provider
+                    else (api_key if same_provider else None)
+                )
                 MODEL_PROFILES[task_name] = {
                     "provider": task_provider,
                     "model": task_config.model_name or (model_name if same_provider else None),
-                    "api_key": task_config.api_key or (api_key if same_provider else None),
+                    "api_key": task_api_key,
                     "base_url": task_config.base_url or (base_url if same_provider else None),
                 }
+                config_data["tasks"][task_name]["api_key"] = task_api_key
 
     # 所有未单独配置的任务用主配置
     for task_name in MODEL_PROFILES:
@@ -71,7 +134,6 @@ async def save_model_config(
         settings.OPENAI_DEFAULT_MODEL = model_name
 
     # 保存到本地文件
-    from app.config import runtime_path
     config_path = runtime_path("model_config.json")
     try:
         with config_path.open("w", encoding="utf-8") as f:
@@ -150,6 +212,14 @@ async def test_model_connection(
                 error=result.get("error", "Unknown error"),
             )
 
+    except TimeoutError:
+        latency_ms = (time.time() - start_time) * 1000
+        return ModelTestResponse(
+            success=False,
+            latency_ms=latency_ms,
+            model_info=None,
+            error="连接测试超过 15 秒，请稍后重试或选择负载较低的模型。",
+        )
     except Exception as e:
         latency_ms = (time.time() - start_time) * 1000
         return ModelTestResponse(

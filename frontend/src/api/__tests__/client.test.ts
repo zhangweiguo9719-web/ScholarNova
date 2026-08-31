@@ -103,6 +103,15 @@ describe('API Client', () => {
   })
 
   describe('modelApi', () => {
+    it('should call GET /model/config', async () => {
+      const mockedAxios = vi.mocked(axios.create())
+      mockedAxios.get.mockResolvedValue({ data: { provider: 'zhipu' } })
+
+      await modelApi.getConfig()
+
+      expect(mockedAxios.get).toHaveBeenCalledWith('/model/config')
+    })
+
     it('should call POST /model/config', async () => {
       const mockedAxios = vi.mocked(axios.create())
       mockedAxios.post.mockResolvedValue({ data: { success: true } })

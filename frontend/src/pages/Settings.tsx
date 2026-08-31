@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import toast from 'react-hot-toast'
 import { modelApi } from '@/api/client'
 import { useModelStore } from '@/stores/modelStore'
@@ -14,10 +15,23 @@ export default function Settings() {
     isTesting,
     isSaving,
     setConfig,
+    setFullConfig,
     setTestResult,
     setIsTesting,
     setIsSaving,
   } = useModelStore()
+
+  useEffect(() => {
+    let active = true
+    void modelApi.getConfig()
+      .then((response) => {
+        if (active) setFullConfig(response.data)
+      })
+      .catch(() => undefined)
+    return () => {
+      active = false
+    }
+  }, [setFullConfig])
 
   const handleTest = async () => {
     setIsTesting(true)

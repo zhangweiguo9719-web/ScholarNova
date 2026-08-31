@@ -131,6 +131,7 @@ export interface Translations {
     modelConfig: string
     apiKey: string
     apiKeyPlaceholder: string
+    apiKeySaved: string
     apiBase: string
     apiBasePlaceholder: string
     modelName: string
@@ -351,6 +352,7 @@ export const translations: Record<Locale, Translations> = {
       modelConfig: '模型配置',
       apiKey: 'API Key',
       apiKeyPlaceholder: '输入你的 API Key',
+      apiKeySaved: '已安全保存在本机后端；留空表示保持不变',
       apiBase: 'API 地址',
       apiBasePlaceholder: 'https://api.openai.com/v1',
       modelName: '模型名称',
@@ -566,6 +568,7 @@ export const translations: Record<Locale, Translations> = {
       modelConfig: 'Model Configuration',
       apiKey: 'API Key',
       apiKeyPlaceholder: 'Enter your API Key',
+      apiKeySaved: 'Saved securely by the local backend; leave blank to keep it',
       apiBase: 'API Base URL',
       apiBasePlaceholder: 'https://api.openai.com/v1',
       modelName: 'Model Name',

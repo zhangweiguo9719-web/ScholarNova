@@ -15,6 +15,16 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 - Zotero access is pinned to `127.0.0.1:23119`; users cannot supply an arbitrary integration URL.
 - The integration never writes to Zotero, never accesses `zotero.sqlite` directly, and does not upload a user's library.
 
+### Changed
+
+- Refreshed the Zhipu GLM selector with current official model IDs, including GLM-5.2 and lower-cost Flash options.
+- Zhipu connection probes now disable hidden reasoning and skip retries, preventing an empty tiny probe or an overloaded model from looking like a broken API key.
+- Model-test timeouts now return an actionable message instead of an empty error.
+
+### Security
+
+- Model credentials are no longer persisted in browser storage or returned by the configuration API; blank saves preserve matching secrets already stored by the local backend.
+
 ### Verified
 
 - 8 focused Zotero/local-library tests pass. The offline backend suite remains green; four live Semantic Scholar checks may receive the provider's HTTP 429 rate limit.

@@ -33,6 +33,19 @@ const defaultConfig: ModelConfig = {
   },
 }
 
+function withoutSecrets(config: ModelConfig): ModelConfig {
+  return {
+    ...config,
+    api_key: '',
+    tasks: Object.fromEntries(
+      Object.entries(config.tasks || {}).map(([task, taskConfig]) => [
+        task,
+        { ...taskConfig, api_key: '' },
+      ])
+    ),
+  }
+}
+
 export const useModelStore = create<ModelState>()(
   persist(
     (set) => ({
@@ -62,7 +75,15 @@ export const useModelStore = create<ModelState>()(
     }),
     {
       name: 'scholar-agent-model-config',
-      partialize: (state) => ({ config: state.config }),
+      version: 2,
+      migrate: (persistedState: unknown) => {
+        const state = persistedState as Partial<ModelState>
+        return {
+          ...state,
+          config: withoutSecrets(state.config || defaultConfig),
+        }
+      },
+      partialize: (state) => ({ config: withoutSecrets(state.config) }),
     }
   )
 )

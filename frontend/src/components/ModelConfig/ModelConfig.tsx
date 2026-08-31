@@ -11,7 +11,7 @@ const providers: { value: LLMProvider; label: string; models: string[]; baseUrl?
   { value: 'ollama', label: 'Ollama (Local)', models: ['qwen2.5:14b', 'llama3:8b'], baseUrl: 'http://localhost:11434' },
   { value: 'mimo', label: 'Xiaomi MiMo', models: ['mimo-v2.5-pro', 'mimo-v2.5', 'mimo-v2-pro', 'mimo-v2-omni'], baseUrl: 'https://token-plan-cn.xiaomimimo.com/v1' },
   { value: 'deepseek', label: 'DeepSeek', models: ['deepseek-chat', 'deepseek-coder'], baseUrl: 'https://api.deepseek.com/v1' },
-  { value: 'zhipu', label: 'ZhiPu (GLM)', models: ['glm-4-plus', 'glm-4-flash'], baseUrl: 'https://open.bigmodel.cn/api/paas/v4' },
+  { value: 'zhipu', label: 'ZhiPu (GLM)', models: ['glm-5.2', 'glm-5.1', 'glm-5-turbo', 'glm-4.7-flash', 'glm-4.5-flash'], baseUrl: 'https://open.bigmodel.cn/api/paas/v4' },
   { value: 'qwen', label: 'Alibaba Qwen', models: ['qwen-max', 'qwen-plus', 'qwen-turbo'], baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1' },
   { value: 'moonshot', label: 'Moonshot (Kimi)', models: ['moonshot-v1-128k', 'moonshot-v1-32k'], baseUrl: 'https://api.moonshot.cn/v1' },
   { value: 'sensenova', label: 'SenseNova (商汤)', models: ['sensenova-u1-fast', 'sensenova-6.7-flash-lite', 'sensenova-6.5-pro'], baseUrl: 'https://token.sensenova.cn/v1' },
@@ -40,7 +40,7 @@ interface ModelConfigProps {
 
 function TaskModelRow({ taskKey, icon, zhLabel, desc, currentConfig, defaultProvider, defaultModel, providerOptions, onChange }: {
   taskKey: string; icon: string; zhLabel: string; desc: string;
-  currentConfig: { provider?: string; model_name?: string; api_key?: string; base_url?: string } | undefined;
+  currentConfig: { provider?: string; model_name?: string; api_key?: string; base_url?: string; api_key_configured?: boolean } | undefined;
   defaultProvider: string; defaultModel: string;
   providerOptions: typeof providers; onChange: (taskKey: string, cfg: any) => void;
 }) {
@@ -72,7 +72,16 @@ function TaskModelRow({ taskKey, icon, zhLabel, desc, currentConfig, defaultProv
         <div className="p-3 space-y-2 border-t border-gray-200 dark:border-gray-700">
           {/* 提供商 + 模型 */}
           <div className="flex gap-2">
-            <select value={taskProvider} onChange={(e) => onChange(taskKey, { provider: e.target.value, model_name: '', api_key: taskApiKey, base_url: taskBaseUrl })}
+            <select value={taskProvider} onChange={(e) => {
+              const nextProvider = providerOptions.find((option) => option.value === e.target.value)
+              onChange(taskKey, {
+                provider: e.target.value,
+                model_name: nextProvider?.models[0] || '',
+                api_key: '',
+                api_key_configured: false,
+                base_url: nextProvider?.baseUrl || '',
+              })
+            }}
               className="config-select flex-1">
               {providerOptions.map((pp) => <option key={pp.value} value={pp.value}>{pp.label}</option>)}
             </select>
@@ -83,7 +92,7 @@ function TaskModelRow({ taskKey, icon, zhLabel, desc, currentConfig, defaultProv
           <div>
             <label className="text-xs text-gray-400 dark:text-gray-500 block mb-0.5">{isZh ? 'API Key（可选，留空用默认）' : 'API Key (optional, uses default if empty)'}</label>
             <input type="password" value={taskApiKey} onChange={(e) => onChange(taskKey, { api_key: e.target.value, provider: taskProvider, model_name: taskModel, base_url: taskBaseUrl })}
-              placeholder={isZh ? '留空使用默认' : 'Leave empty for default'} className="config-input text-xs" />
+              placeholder={currentConfig?.api_key_configured ? (isZh ? '已安全保存在本机后端' : 'Saved securely by the local backend') : (isZh ? '留空使用默认' : 'Leave empty for default')} className="config-input text-xs" />
           </div>
           {/* Base URL */}
           <div>
@@ -126,12 +135,13 @@ export default function ModelConfig({ config, testResult, isTesting, isSaving, o
               const newProvider = e.target.value as LLMProvider
               const p = providers.find((pp) => pp.value === newProvider)
               const newModel = p?.models[0] || ''
-              // 更新主配置 + 所有任务模型的提供商
-              const newTasks: Record<string, any> = {}
-              for (const [key, val] of Object.entries(config.tasks || {})) {
-                newTasks[key] = { ...val, provider: newProvider }
-              }
-              onConfigChange({ provider: newProvider, model_name: newModel, base_url: p?.baseUrl || '', tasks: newTasks })
+              onConfigChange({
+                provider: newProvider,
+                model_name: newModel,
+                api_key: '',
+                api_key_configured: false,
+                base_url: p?.baseUrl || '',
+              })
             }}
             className="config-select">
             {providers.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
@@ -157,7 +167,7 @@ export default function ModelConfig({ config, testResult, isTesting, isSaving, o
           <div className="config-field">
             <label className="config-label">{t('settings.apiKey')}</label>
             <input type="password" value={config.api_key || ''} onChange={(e) => onConfigChange({ api_key: e.target.value })}
-              placeholder={t('settings.apiKeyPlaceholder')} className="config-input" />
+              placeholder={config.api_key_configured ? t('settings.apiKeySaved') : t('settings.apiKeyPlaceholder')} className="config-input" />
           </div>
         )}
 
