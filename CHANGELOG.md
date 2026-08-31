@@ -2,6 +2,25 @@
 
 All notable changes to ScholarNova are recorded here. The project follows semantic versioning.
 
+## [Unreleased]
+
+### Added
+
+- Read-only Zotero Local API detection and collection discovery from the Settings page.
+- Explicit import of up to 100 Zotero bibliographic records with DOI-based idempotent updates.
+- A zero-network local-library search source so imported Zotero papers participate in normal ScholarNova searches.
+
+### Security
+
+- Zotero access is pinned to `127.0.0.1:23119`; users cannot supply an arbitrary integration URL.
+- The integration never writes to Zotero, never accesses `zotero.sqlite` directly, and does not upload a user's library.
+
+### Verified
+
+- 8 focused Zotero/local-library tests pass. The offline backend suite remains green; four live Semantic Scholar checks may receive the provider's HTTP 429 rate limit.
+- The four remaining full-suite failures are live Semantic Scholar integration checks returning HTTP 429, not local regressions.
+- All 16 frontend tests, TypeScript checks, and the production frontend build pass.
+
 ## [1.1.1] - 2026-07-19
 
 ### Added

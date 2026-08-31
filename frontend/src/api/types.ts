@@ -2,7 +2,7 @@
 // 枚举类型
 // =============================================================================
 
-export type DataSource = 'semantic_scholar' | 'openalex' | 'crossref' | 'arxiv'
+export type DataSource = 'semantic_scholar' | 'openalex' | 'crossref' | 'arxiv' | 'zotero'
 
 export type SearchStatus = 'pending' | 'running' | 'completed' | 'failed'
 
@@ -316,6 +316,30 @@ export interface HealthResponse {
     redis: 'connected' | 'disconnected'
     llm: 'available' | 'unavailable'
   }
+}
+
+export interface ZoteroStatus {
+  connected: boolean
+  server_id: string | null
+  zotero_version: string | null
+  mode: 'local_read_only'
+}
+
+export interface ZoteroCollection {
+  key: string
+  name: string
+  parent_collection: string | null
+  version: number | null
+}
+
+export interface ZoteroImportResult {
+  success: boolean
+  created: number
+  updated: number
+  skipped: number
+  total: number
+  paper_ids: string[]
+  read_only: boolean
 }
 
 export interface SuccessResponse {

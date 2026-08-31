@@ -37,7 +37,7 @@ class SearchRequest(BaseModel):
     )
     max_results: int = Field(50, description="最大返回结果数", ge=1, le=500)
     sources: List[DataSource] = Field(
-        default=[DataSource.CROSSREF, DataSource.OPENALEX],
+        default=[DataSource.CROSSREF, DataSource.OPENALEX, DataSource.ZOTERO],
         description="指定数据源",
     )
     date_from: Optional[str] = Field(None, description="起始日期 (YYYY-MM-DD)")

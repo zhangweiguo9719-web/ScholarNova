@@ -145,6 +145,24 @@ export interface Translations {
     language: string
     theme: string
     darkMode: string
+    zoteroTitle: string
+    zoteroDescription: string
+    zoteroReadOnly: string
+    zoteroChecking: string
+    zoteroConnected: string
+    zoteroConnectedHint: string
+    zoteroNotFound: string
+    zoteroApiDisabled: string
+    zoteroEnableHint: string
+    zoteroDetect: string
+    zoteroCollection: string
+    zoteroAllItems: string
+    zoteroImport: string
+    zoteroImporting: string
+    zoteroImportSuccess: string
+    zoteroImportFailed: string
+    zoteroImportSummary: string
+    zoteroDownload: string
   }
 
   // 页脚
@@ -347,6 +365,24 @@ export const translations: Record<Locale, Translations> = {
       language: '语言',
       theme: '主题',
       darkMode: '深色模式',
+      zoteroTitle: '连接 Zotero',
+      zoteroDescription: '从本机 Zotero 文献库导入论文元数据；需要全文时可获取合法开放版本或手动导入 PDF。',
+      zoteroReadOnly: '只读连接',
+      zoteroChecking: '正在检测本机 Zotero…',
+      zoteroConnected: 'Zotero 已连接',
+      zoteroConnectedHint: '检测到 {count} 个文献文件夹；导入不会修改 Zotero 中的任何内容。',
+      zoteroNotFound: '未检测到 Zotero',
+      zoteroApiDisabled: 'Zotero 已启动，但本地 API 尚未启用',
+      zoteroEnableHint: '请先启动 Zotero，并在“设置 → 高级”中启用本地 API，然后重新检测。',
+      zoteroDetect: '重新检测',
+      zoteroCollection: '导入范围',
+      zoteroAllItems: '最近 50 篇顶层文献',
+      zoteroImport: '导入到 ScholarNova',
+      zoteroImporting: '正在导入…',
+      zoteroImportSuccess: '导入完成：新增 {created} 篇，更新 {updated} 篇',
+      zoteroImportFailed: 'Zotero 导入失败',
+      zoteroImportSummary: '共读取 {total} 篇：新增 {created}，更新 {updated}，跳过 {skipped}。',
+      zoteroDownload: '尚未安装 Zotero？前往官网下载',
     },
     footer: {
       poweredBy: '由 AI 驱动',
@@ -544,6 +580,24 @@ export const translations: Record<Locale, Translations> = {
       language: 'Language',
       theme: 'Theme',
       darkMode: 'Dark Mode',
+      zoteroTitle: 'Connect Zotero',
+      zoteroDescription: 'Import metadata from your local Zotero library, then use a lawful open copy or upload your PDF for full-text analysis.',
+      zoteroReadOnly: 'Read-only',
+      zoteroChecking: 'Detecting Zotero on this computer…',
+      zoteroConnected: 'Zotero connected',
+      zoteroConnectedHint: '{count} collections found. Importing never modifies your Zotero library.',
+      zoteroNotFound: 'Zotero was not detected',
+      zoteroApiDisabled: 'Zotero is running, but its local API is disabled',
+      zoteroEnableHint: 'Start Zotero, enable its local API under Settings → Advanced, and try again.',
+      zoteroDetect: 'Detect again',
+      zoteroCollection: 'Import scope',
+      zoteroAllItems: '50 most recent top-level items',
+      zoteroImport: 'Import to ScholarNova',
+      zoteroImporting: 'Importing…',
+      zoteroImportSuccess: 'Import complete: {created} created, {updated} updated',
+      zoteroImportFailed: 'Zotero import failed',
+      zoteroImportSummary: '{total} items read: {created} created, {updated} updated, {skipped} skipped.',
+      zoteroDownload: 'Need Zotero? Download it from the official website',
     },
     footer: {
       poweredBy: 'Powered by AI',

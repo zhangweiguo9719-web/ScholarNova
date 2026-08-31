@@ -43,6 +43,11 @@ _SOURCE_DESCRIPTORS: dict[str, dict[str, str]] = {
         "api_name": "arXiv Atom API",
         "endpoint": "export.arxiv.org/api/query",
     },
+    "zotero": {
+        "label": "Zotero 本地文献库",
+        "api_name": "ScholarNova Local Library",
+        "endpoint": "local database (no network request)",
+    },
     "semantic_scholar_batch": {
         "label": "Semantic Scholar",
         "api_name": "Semantic Scholar Batch API",
@@ -193,6 +198,7 @@ async def _execute_search_task(run_id: str, request: SearchRequest) -> None:
     from app.services.sources.arxiv import ArxivSource
     from app.services.sources.crossref import CrossRefSource
     from app.services.sources.openalex import OpenAlexSource
+    from app.services.sources.local_library import LocalLibrarySource
     from app.services.sources.semantic_scholar import SemanticScholarSource
     from app.config import settings
 
@@ -280,6 +286,8 @@ async def _execute_search_task(run_id: str, request: SearchRequest) -> None:
                     )
                 elif source_value == "arxiv":
                     sources_map[source_type] = ArxivSource()
+                elif source_value == "zotero":
+                    sources_map[source_type] = LocalLibrarySource()
 
             print(f"[SEARCH] sources_map keys: {list(sources_map.keys())}")
             logger.debug(

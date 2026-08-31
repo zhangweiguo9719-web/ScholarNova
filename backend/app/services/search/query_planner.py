@@ -743,6 +743,7 @@ class QueryPlanner:
             DataSource.OPENALEX: "OpenAlex offers broad open-access coverage and rich metadata",
             DataSource.CROSSREF: "CrossRef provides authoritative DOI-based metadata",
             DataSource.ARXIV: "arXiv has the latest preprints and open-access papers",
+            DataSource.ZOTERO: "Zotero searches the user's imported local research library without a network request",
         }
         base = rationales.get(source, f"Search {source.value}")
         if intent == "exact_lookup":

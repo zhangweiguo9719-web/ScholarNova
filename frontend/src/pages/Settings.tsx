@@ -4,6 +4,7 @@ import { useModelStore } from '@/stores/modelStore'
 import { useLocaleStore } from '@/stores/localeStore'
 import ModelConfig from '@/components/ModelConfig/ModelConfig'
 import NetworkConfig from '@/components/NetworkConfig'
+import ZoteroIntegration from '@/components/ZoteroIntegration'
 
 export default function Settings() {
   const { t } = useLocaleStore()
@@ -74,6 +75,10 @@ export default function Settings() {
           onTest={handleTest}
           onSave={handleSave}
         />
+
+        <div className="mt-6">
+          <ZoteroIntegration />
+        </div>
 
         <div className="mt-6">
           <NetworkConfig />

@@ -17,6 +17,7 @@ class DataSource(str, Enum):
     OPENALEX = "openalex"
     CROSSREF = "crossref"
     ARXIV = "arxiv"
+    ZOTERO = "zotero"
 
 
 class SubQuery(BaseModel):

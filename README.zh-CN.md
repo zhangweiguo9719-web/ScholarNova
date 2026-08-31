@@ -12,7 +12,7 @@
 
 # ScholarNova：AI 学术论文检索与研究工作台
 
-ScholarNova 面向复杂科研问题，将自然语言查询转化为检索计划，连接多个学术数据源，对论文进行去重、排序、质量分析和证据整理，并将研究发现沉淀到个人知识库与研究路线中。
+ScholarNova 面向复杂科研问题，将自然语言查询转化为检索计划，连接多个学术数据源和用户自己的 Zotero 文献库，对论文进行去重、排序、质量分析和证据整理，并将研究发现沉淀到个人知识库与研究路线中。
 
 公开版采用 **BYOK（Bring Your Own Key）**：仓库不提供、不收集任何私人 API Key，也不包含授权评测数据。使用者可以自行选择模型、学术数据源和部署环境。
 
@@ -48,6 +48,7 @@ ScholarNova 面向复杂科研问题，将自然语言查询转化为检索计�
 
 - 复杂学术查询理解、约束识别、子查询分解与有界迭代检索。
 - Semantic Scholar、OpenAlex、Crossref、arXiv 多源搜索。
+- 通过 Zotero Local API 只读连接本机文献库，显式导入后可与在线学术源一起检索。
 - 标题、摘要、年份、venue、引用量和查询约束综合排序。
 - 完整论文卡片：标题、作者、摘要、年份、来源、引用量、相关度和质量信号。
 - 实时显示检索耗时、实际调用的 API、检索式、单源篇数与耗时；允许主动重复执行相同关键词。
@@ -62,6 +63,17 @@ ScholarNova 面向复杂科研问题，将自然语言查询转化为检索计�
 - 个人研究知识库、主题分类、研究路线与 SenseNova U1 框架图。
 - 中英文切换、明暗主题、缓存、重试、限流和熔断。
 - API 调用次数、端到端延时与真实 LLM Token 计量。
+
+### Zotero 本地连接（`main` 源码版）
+
+1. 启动 Zotero，在 Zotero 的“设置 → 高级”中启用本地 API。
+2. 打开 ScholarNova 的“设置 → 连接 Zotero”，确认状态显示为“已连接”。
+3. 选择一个 Zotero 文件夹或最近 50 篇顶层文献，点击“导入到 ScholarNova”。
+4. 后续普通搜索会同时检索已导入的 Zotero 元数据，不产生额外网络请求。
+
+当前接入严格只读：ScholarNova 不修改 Zotero、不直接访问 `zotero.sqlite`，也不会上传整个文献库。导入会使用 Zotero Item Key 和 DOI 避免重复；附件 PDF 暂不自动复制，需要全文时可获取合法开放版本，或由用户手动导入自己有权使用的 PDF。
+
+> 该功能当前位于 `main` 源码分支，将随下一个 Windows 版本发布；上方 v1.1.1 安装包尚不包含此功能。
 
 ### 分区数据与学校图书馆
 
@@ -90,8 +102,21 @@ flowchart LR
     S --- OA["OpenAlex"]
     S --- CR["Crossref"]
     S --- AX["arXiv"]
+    S --- Z["Zotero 本地文献库"]
     Q --- LLM["用户选择的 LLM"]
 ```
+
+### 应用技术栈
+
+| 层级 | 技术与职责 |
+| --- | --- |
+| 桌面应用 | Electron、electron-builder、PyInstaller；提供一体化 Windows 安装与本地服务 |
+| 前端 | React 18、TypeScript、Vite、Zustand、React Router、Axios、Mermaid |
+| 后端 | Python、FastAPI、Pydantic、AsyncIO、Uvicorn |
+| 数据 | SQLAlchemy、SQLite（本地）、PostgreSQL（服务端）、Redis/内存缓存 |
+| 检索 | Semantic Scholar、OpenAlex、Crossref、arXiv、Zotero Local API；查询分解、并发召回、去重、约束过滤与 MMR 排序 |
+| 文档与 AI | PyMuPDF 全文/图表解析，多模型任务路由，OpenAI-compatible、Anthropic、Ollama、MiMo、SenseNova |
+| 工程化 | pytest、Vitest、Ruff、Docker Compose、GitHub Actions |
 
 ## Docker 源码部署（开发者/高级用户）
 

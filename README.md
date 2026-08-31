@@ -16,7 +16,7 @@
   <strong>English</strong> · <a href="README.zh-CN.md">简体中文</a>
 </p>
 
-ScholarNova is a Windows desktop application and self-hostable academic discovery workspace for complex research questions. It turns a natural-language request into a query plan, retrieves papers from multiple scholarly indexes, ranks and explains the results, exposes evidence and quality signals, and organizes findings into a personal knowledge base.
+ScholarNova is a Windows desktop application and self-hostable academic discovery workspace for complex research questions. It turns a natural-language request into a query plan, retrieves papers from scholarly indexes and the user's own Zotero library, ranks and explains the results, exposes evidence and quality signals, and organizes findings into a personal knowledge base.
 
 The public edition is **BYOK (Bring Your Own Key)**: this repository contains no private API keys or licensed benchmark data. You choose the model provider, scholarly data sources, and deployment environment.
 
@@ -59,6 +59,7 @@ Developers who want to build the application themselves can use the [Windows des
 
 - Understands and decomposes multi-constraint academic queries.
 - Searches Semantic Scholar, OpenAlex, Crossref, and arXiv.
+- Connects to the local Zotero library in read-only mode and searches explicitly imported metadata alongside online sources.
 - Deduplicates and ranks papers using title, abstract, year, venue, citations, and query constraints.
 - Displays abstracts, authors, metadata, relevance, citation percentile, citation velocity, and traceable quality signals.
 - Shows live elapsed time, exact source API/query/call status, and supports an intentional re-run of the same query.
@@ -73,6 +74,17 @@ Developers who want to build the application themselves can use the [Windows des
 - Saves discoveries into a knowledge base and generates research routes and framework diagrams.
 - Supports English/Chinese UI, light/dark themes, rate limiting, retries, caching, and circuit breaking.
 - Records API calls, end-to-end latency, and real LLM token usage when a model is invoked.
+
+### Local Zotero connection (`main` source build)
+
+1. Start Zotero and enable its local API under **Zotero Settings → Advanced**.
+2. Open **ScholarNova Settings → Connect Zotero** and confirm that the connection is detected.
+3. Select a Zotero collection, or the 50 most recent top-level items, and choose **Import to ScholarNova**.
+4. Normal ScholarNova searches will also query the imported local metadata without making an extra network request.
+
+The integration is deliberately read-only: ScholarNova neither modifies Zotero nor reads `zotero.sqlite` directly, and it never uploads an entire library. Imports are idempotent by Zotero Item Key and DOI. Attachment PDFs are not copied automatically; use a lawful open copy or upload a PDF you are authorized to use when full text is required.
+
+> This feature is currently available from the `main` source branch and will ship in the next Windows release. The v1.1.1 executables above do not contain it yet.
 
 ### Journal data and institutional access
 
@@ -101,8 +113,21 @@ flowchart LR
     S --- OA["OpenAlex"]
     S --- CR["Crossref"]
     S --- AX["arXiv"]
+    S --- Z["Local Zotero library"]
     Q --- LLM["User-selected LLM"]
 ```
+
+### Application stack
+
+| Layer | Technology and responsibility |
+| --- | --- |
+| Desktop | Electron, electron-builder, and PyInstaller for a self-contained Windows application |
+| Frontend | React 18, TypeScript, Vite, Zustand, React Router, Axios, and Mermaid |
+| Backend | Python, FastAPI, Pydantic, AsyncIO, and Uvicorn |
+| Data | SQLAlchemy, local SQLite, server PostgreSQL, and Redis/in-memory caching |
+| Retrieval | Semantic Scholar, OpenAlex, Crossref, arXiv, and Zotero Local API; query planning, concurrent recall, deduplication, constraints, and MMR ranking |
+| Documents and AI | PyMuPDF full-text/figure parsing and task-routed OpenAI-compatible, Anthropic, Ollama, MiMo, and SenseNova models |
+| Engineering | pytest, Vitest, Ruff, Docker Compose, and GitHub Actions |
 
 ## Source deployment with Docker Compose (advanced)
 

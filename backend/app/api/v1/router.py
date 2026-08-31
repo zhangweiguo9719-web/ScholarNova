@@ -4,7 +4,18 @@ API v1 路由注册
 
 from fastapi import APIRouter
 
-from app.api.v1 import analysis, evidence, health, knowledge, model_config, network, papers, recommendations, search
+from app.api.v1 import (
+    analysis,
+    evidence,
+    health,
+    integrations,
+    knowledge,
+    model_config,
+    network,
+    papers,
+    recommendations,
+    search,
+)
 
 # 创建 API 路由器
 api_router = APIRouter()
@@ -61,4 +72,10 @@ api_router.include_router(
     network.router,
     prefix="/network",
     tags=["network"],
+)
+
+api_router.include_router(
+    integrations.router,
+    prefix="/integrations",
+    tags=["integrations"],
 )

@@ -25,6 +25,9 @@ import type {
   AIAnalyzeResponse,
   RecommendResponse,
   FulltextStatus,
+  ZoteroStatus,
+  ZoteroCollection,
+  ZoteroImportResult,
 } from './types'
 
 const api = axios.create({
@@ -51,7 +54,12 @@ api.interceptors.response.use(
   (error) => {
     // 统一错误处理
     const message = error.response?.data?.detail || 'An error occurred'
-    console.error('API Error:', message)
+    const expectedZoteroDiscoveryFailure =
+      error.config?.url === '/integrations/zotero/status' &&
+      error.response?.status === 503
+    if (!expectedZoteroDiscoveryFailure) {
+      console.error('API Error:', message)
+    }
     return Promise.reject(error)
   }
 )
@@ -163,6 +171,19 @@ export const networkApi = {
   libraryLink: (query: string) =>
     api.get('/network/library-link', { params: { q: query } }),
   testProxy: () => api.get('/network/proxy-test'),
+}
+
+export const zoteroApi = {
+  status: () => api.get<ZoteroStatus>('/integrations/zotero/status'),
+  collections: () =>
+    api.get<{ items: ZoteroCollection[]; total: number }>(
+      '/integrations/zotero/collections'
+    ),
+  importItems: (collectionKey: string | null, limit: number = 50) =>
+    api.post<ZoteroImportResult>('/integrations/zotero/import', {
+      collection_key: collectionKey || null,
+      limit,
+    }),
 }
 
 // =============================================================================
