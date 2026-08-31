@@ -11,6 +11,7 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 - A zero-network local-library search source so imported Zotero papers participate in normal ScholarNova searches.
 - A traceable research-assistant MVP that retrieves evidence from the ScholarNova knowledge base and live local Zotero before invoking the configured model.
 - An in-app Zotero setup checklist, detected version display, and a clear Zotero 10+ write-back requirement notice.
+- A Chinese client-product roadmap covering model portability, fast/deep search, evidence-grounded RAG, authorized library access, reference-manager adapters, MCP boundaries, rollout phases, and acceptance metrics.
 
 ### Security
 

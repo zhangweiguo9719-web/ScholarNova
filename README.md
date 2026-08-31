@@ -18,6 +18,8 @@
 
 ScholarNova is a Windows desktop application and self-hostable academic discovery workspace for complex research questions. It turns a natural-language request into a query plan, retrieves papers from scholarly indexes and the user's own Zotero library, ranks and explains the results, exposes evidence and quality signals, and organizes findings into a personal knowledge base.
 
+> Product architecture and rollout plan: [Client AI application roadmap (Simplified Chinese)](docs/AI_APPLICATION_ROADMAP.zh-CN.md).
+
 The public edition is **BYOK (Bring Your Own Key)**: this repository contains no private API keys or licensed benchmark data. You choose the model provider, scholarly data sources, and deployment environment.
 
 ## Download ScholarNova for Windows (recommended)
