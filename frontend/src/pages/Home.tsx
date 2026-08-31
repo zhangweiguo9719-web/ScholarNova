@@ -24,7 +24,7 @@ export default function Home() {
       ]
 
   return (
-    <div className="min-h-[calc(100vh-3.5rem)] flex flex-col">
+    <div className="home-page min-h-[calc(100vh-3.5rem)] flex flex-col">
       {/* Hero */}
       <section className="flex-1 flex flex-col items-center justify-center px-4 py-16">
         <div className="text-center mb-10 max-w-2xl">

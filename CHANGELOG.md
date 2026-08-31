@@ -23,6 +23,11 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 - Zhipu connection probes now disable hidden reasoning and skip retries, preventing an empty tiny probe or an overloaded model from looking like a broken API key.
 - Model-test timeouts now return an actionable message instead of an empty error.
 
+### Fixed
+
+- Scoped the large landing-page hero styles to the home page so they no longer create excessive whitespace or oversized typography on the research-assistant page.
+- Kept an empty assistant conversation at the top of the page instead of automatically scrolling to the composer on first load or after clearing.
+
 ### Security
 
 - Model credentials are no longer persisted in browser storage or returned by the configuration API; blank saves preserve matching secrets already stored by the local backend.

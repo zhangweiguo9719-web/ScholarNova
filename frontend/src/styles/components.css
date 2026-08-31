@@ -288,18 +288,18 @@ footer {
 }
 
 /* Home */
-main > div.min-h-\[calc\(100vh-3\.5rem\)\] {
+main > .home-page {
   min-height: calc(100vh - 4rem);
 }
 
-main section:first-child {
+main .home-page section:first-child {
   position: relative;
   min-height: 560px;
   padding-top: 4.75rem;
   padding-bottom: 2.75rem;
 }
 
-main section:first-child::before {
+main .home-page section:first-child::before {
   position: absolute;
   width: min(720px, 92vw);
   height: 330px;
@@ -312,13 +312,13 @@ main section:first-child::before {
   pointer-events: none;
 }
 
-main section:first-child > div {
+main .home-page section:first-child > div {
   position: relative;
   max-width: 54rem;
   margin-bottom: 0;
 }
 
-main section:first-child .inline-flex.items-center.rounded-full {
+main .home-page section:first-child .inline-flex.items-center.rounded-full {
   border: 1px solid color-mix(in srgb, var(--ui-accent) 25%, transparent);
   color: var(--ui-accent) !important;
   background: var(--ui-accent-soft) !important;
@@ -326,7 +326,7 @@ main section:first-child .inline-flex.items-center.rounded-full {
   letter-spacing: 0.035em;
 }
 
-main section:first-child h1 {
+main .home-page section:first-child h1 {
   max-width: 850px;
   margin-right: auto;
   margin-bottom: 1.35rem;
@@ -339,20 +339,20 @@ main section:first-child h1 {
   text-wrap: balance;
 }
 
-main section:first-child h1 span {
+main .home-page section:first-child h1 span {
   color: transparent !important;
   background: linear-gradient(100deg, var(--ui-brand), var(--ui-accent-bright) 54%, var(--ui-accent));
   -webkit-background-clip: text;
   background-clip: text;
 }
 
-.dark main section:first-child h1 span {
+.dark main .home-page section:first-child h1 span {
   background: linear-gradient(100deg, #d9a94f 8%, #ffe7aa 50%, #bf8436 94%);
   -webkit-background-clip: text;
   background-clip: text;
 }
 
-main section:first-child p {
+main .home-page section:first-child p {
   max-width: 48rem;
   margin-right: auto;
   margin-bottom: 2.15rem;
@@ -362,19 +362,19 @@ main section:first-child p {
   line-height: 1.82;
 }
 
-main section:first-child .text-xs button {
+main .home-page section:first-child .text-xs button {
   border-color: var(--ui-border) !important;
   color: var(--ui-muted) !important;
   background: color-mix(in srgb, var(--ui-surface) 82%, transparent);
 }
 
-main section:first-child .text-xs button:hover {
+main .home-page section:first-child .text-xs button:hover {
   border-color: var(--ui-border-strong) !important;
   color: var(--ui-brand) !important;
   background: color-mix(in srgb, var(--ui-brand) 6%, transparent);
 }
 
-main section:nth-child(2) {
+main .home-page section:nth-child(2) {
   padding-top: 1.25rem;
 }
 
@@ -417,7 +417,7 @@ main section:nth-child(2) {
   color: var(--ui-text-soft) !important;
 }
 
-main section:nth-child(3) > div {
+main .home-page section:nth-child(3) > div {
   padding: 1rem 1.5rem;
   border: 1px solid var(--ui-border);
   border-radius: 1rem;
@@ -426,11 +426,11 @@ main section:nth-child(3) > div {
   backdrop-filter: blur(12px);
 }
 
-main section:nth-child(3) .text-2xl {
+main .home-page section:nth-child(3) .text-2xl {
   color: var(--ui-brand) !important;
 }
 
-main section:nth-child(3) .w-px {
+main .home-page section:nth-child(3) .w-px {
   background: var(--ui-border) !important;
 }
 
@@ -772,16 +772,16 @@ main .space-y-2 > .border.border-gray-200 {
     margin-left: 0.15rem !important;
   }
 
-  main section:first-child {
+  main .home-page section:first-child {
     min-height: 520px;
     padding-top: 3.5rem;
   }
 
-  main section:first-child h1 {
+  main .home-page section:first-child h1 {
     font-size: clamp(2.65rem, 13vw, 4rem);
   }
 
-  main section:first-child p {
+  main .home-page section:first-child p {
     font-size: 0.98rem;
   }
 
@@ -814,11 +814,11 @@ main .space-y-2 > .border.border-gray-200 {
     display: none;
   }
 
-  main section:first-child {
+  main .home-page section:first-child {
     padding-top: 3rem;
   }
 
-  main section:first-child h1 {
+  main .home-page section:first-child h1 {
     letter-spacing: -0.05em;
   }
 

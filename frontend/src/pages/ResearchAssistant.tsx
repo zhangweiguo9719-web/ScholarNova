@@ -113,7 +113,9 @@ export default function ResearchAssistant() {
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(messages.slice(-16)))
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    if (messages.length > 0) {
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }
   }, [messages])
 
   useEffect(() => {
@@ -157,6 +159,12 @@ export default function ResearchAssistant() {
     } finally {
       setSending(false)
     }
+  }
+
+  const clearConversation = () => {
+    setMessages([])
+    setError('')
+    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }))
   }
 
   return (
@@ -238,7 +246,7 @@ export default function ResearchAssistant() {
               </div>
               <div className="mt-3 flex items-center justify-between gap-3 text-[11px] text-[var(--ui-muted)]">
                 <span className="inline-flex items-center gap-1"><ShieldCheck className="h-3.5 w-3.5" />{copy.safety}</span>
-                {messages.length > 0 && <button onClick={() => { setMessages([]); setError('') }} className="inline-flex shrink-0 items-center gap-1 hover:text-[var(--ui-text)]"><Eraser className="h-3.5 w-3.5" />{copy.clear}</button>}
+                {messages.length > 0 && <button onClick={clearConversation} className="inline-flex shrink-0 items-center gap-1 hover:text-[var(--ui-text)]"><Eraser className="h-3.5 w-3.5" />{copy.clear}</button>}
               </div>
             </div>
           </div>
