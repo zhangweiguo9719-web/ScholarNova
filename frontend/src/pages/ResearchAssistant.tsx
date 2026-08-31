@@ -207,7 +207,7 @@ export default function ResearchAssistant() {
               {messages.map((message) => (
                 <article key={message.id} className={message.role === 'user' ? 'ml-auto max-w-3xl' : 'mr-auto max-w-4xl'}>
                   <div className={`rounded-2xl px-4 py-3 text-sm leading-7 ${message.role === 'user' ? 'bg-[var(--ui-brand)] text-white dark:text-[#101722]' : 'border border-[var(--ui-border)] bg-[var(--ui-surface-soft)] text-[var(--ui-text)]'}`}>
-                    <p className="whitespace-pre-wrap">{message.content}</p>
+                    <div className="whitespace-pre-wrap">{message.content}</div>
                   </div>
                   {message.result && <AgentTrace result={message.result} copy={copy} />}
                 </article>

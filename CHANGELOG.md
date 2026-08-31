@@ -27,6 +27,7 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 
 - Scoped the large landing-page hero styles to the home page so they no longer create excessive whitespace or oversized typography on the research-assistant page.
 - Kept an empty assistant conversation at the top of the page instead of automatically scrolling to the composer on first load or after clearing.
+- Prevented shared card paragraph styles from overriding the user-message contrast in the research assistant.
 
 ### Security
 
