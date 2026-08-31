@@ -28,6 +28,7 @@ export interface Translations {
     search: string
     settings: string
     knowledge: string
+    assistant: string
     help: string
   }
 
@@ -155,6 +156,13 @@ export interface Translations {
     zoteroNotFound: string
     zoteroApiDisabled: string
     zoteroEnableHint: string
+    zoteroSetupTitle: string
+    zoteroSetupStep1: string
+    zoteroSetupStep2: string
+    zoteroSetupStep3: string
+    zoteroApiAddress: string
+    zoteroVersion: string
+    zoteroWriteUpgrade: string
     zoteroDetect: string
     zoteroCollection: string
     zoteroAllItems: string
@@ -261,6 +269,7 @@ export const translations: Record<Locale, Translations> = {
       search: '搜索',
       settings: '设置',
       knowledge: '知识库',
+      assistant: '智能体',
       help: '帮助',
     },
     home: {
@@ -376,6 +385,13 @@ export const translations: Record<Locale, Translations> = {
       zoteroNotFound: '未检测到 Zotero',
       zoteroApiDisabled: 'Zotero 已启动，但本地 API 尚未启用',
       zoteroEnableHint: '请先启动 Zotero，并在“设置 → 高级”中启用本地 API，然后重新检测。',
+      zoteroSetupTitle: '首次连接前请完成',
+      zoteroSetupStep1: '启动 Zotero 桌面端，并保持程序运行。',
+      zoteroSetupStep2: '打开“设置 → 高级”，勾选“允许此计算机上的其他应用程序与 Zotero 通讯”。',
+      zoteroSetupStep3: '返回 ScholarNova 点击“重新检测”，连接成功后即可选择文献文件夹。',
+      zoteroApiAddress: '本地接口：http://127.0.0.1:23119/api/（不要向公网暴露）',
+      zoteroVersion: '检测到 Zotero {version}',
+      zoteroWriteUpgrade: '当前版本可供 ScholarNova 读取；若后续需要将检索结果直接写回 Zotero，请升级到 Zotero 10 或更高版本。',
       zoteroDetect: '重新检测',
       zoteroCollection: '导入范围',
       zoteroAllItems: '最近 50 篇顶层文献',
@@ -477,6 +493,7 @@ export const translations: Record<Locale, Translations> = {
       search: 'Search',
       settings: 'Settings',
       knowledge: 'Knowledge',
+      assistant: 'Assistant',
       help: 'Help',
     },
     home: {
@@ -592,6 +609,13 @@ export const translations: Record<Locale, Translations> = {
       zoteroNotFound: 'Zotero was not detected',
       zoteroApiDisabled: 'Zotero is running, but its local API is disabled',
       zoteroEnableHint: 'Start Zotero, enable its local API under Settings → Advanced, and try again.',
+      zoteroSetupTitle: 'Before the first connection',
+      zoteroSetupStep1: 'Start the Zotero desktop app and keep it running.',
+      zoteroSetupStep2: 'Open Settings → Advanced and enable “Allow other applications on this computer to communicate with Zotero”.',
+      zoteroSetupStep3: 'Return to ScholarNova and select “Detect again”; after connecting, choose a collection.',
+      zoteroApiAddress: 'Local endpoint: http://127.0.0.1:23119/api/ (never expose it to the public internet)',
+      zoteroVersion: 'Zotero {version} detected',
+      zoteroWriteUpgrade: 'ScholarNova can read this version. Upgrade to Zotero 10 or later before enabling direct write-back in a future release.',
       zoteroDetect: 'Detect again',
       zoteroCollection: 'Import scope',
       zoteroAllItems: '50 most recent top-level items',

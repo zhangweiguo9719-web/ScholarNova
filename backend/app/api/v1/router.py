@@ -5,6 +5,7 @@ API v1 路由注册
 from fastapi import APIRouter
 
 from app.api.v1 import (
+    agent,
     analysis,
     evidence,
     health,
@@ -19,6 +20,12 @@ from app.api.v1 import (
 
 # 创建 API 路由器
 api_router = APIRouter()
+
+api_router.include_router(
+    agent.router,
+    prefix="/agent",
+    tags=["agent"],
+)
 
 # 注册各模块路由
 api_router.include_router(

@@ -28,6 +28,8 @@ import type {
   ZoteroStatus,
   ZoteroCollection,
   ZoteroImportResult,
+  AgentChatResponse,
+  AgentMessage,
 } from './types'
 
 const api = axios.create({
@@ -186,6 +188,15 @@ export const zoteroApi = {
       collection_key: collectionKey || null,
       limit,
     }),
+}
+
+export const agentApi = {
+  chat: (data: {
+    question: string
+    history?: AgentMessage[]
+    use_knowledge?: boolean
+    use_zotero?: boolean
+  }) => api.post<AgentChatResponse>('/agent/chat', data),
 }
 
 // =============================================================================

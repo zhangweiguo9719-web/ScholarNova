@@ -4,7 +4,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import axios from 'axios'
-import { searchApi, papersApi, modelApi, healthApi } from '../client'
+import { agentApi, searchApi, papersApi, modelApi, healthApi } from '../client'
 
 // Mock axios
 vi.mock('axios', () => {
@@ -155,6 +155,25 @@ describe('API Client', () => {
       await healthApi.check()
 
       expect(mockedAxios.get).toHaveBeenCalledWith('/health')
+    })
+  })
+
+  describe('agentApi', () => {
+    it('should call POST /agent/chat with selected local sources', async () => {
+      const mockedAxios = vi.mocked(axios.create())
+      mockedAxios.post.mockResolvedValue({ data: { answer: 'Grounded answer' } })
+
+      await agentApi.chat({
+        question: 'What are the research gaps?',
+        use_knowledge: true,
+        use_zotero: true,
+      })
+
+      expect(mockedAxios.post).toHaveBeenCalledWith('/agent/chat', {
+        question: 'What are the research gaps?',
+        use_knowledge: true,
+        use_zotero: true,
+      })
     })
   })
 })

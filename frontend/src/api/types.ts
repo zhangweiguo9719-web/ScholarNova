@@ -344,6 +344,40 @@ export interface ZoteroImportResult {
   read_only: boolean
 }
 
+export interface AgentMessage {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+export interface AgentCitation {
+  id: string
+  source: 'knowledge' | 'zotero'
+  title: string
+  doi: string | null
+  item_id: string | null
+  url: string | null
+}
+
+export interface AgentToolStep {
+  tool: string
+  status: 'completed' | 'skipped' | 'unavailable'
+  count: number
+  detail: string
+}
+
+export interface AgentChatResponse {
+  answer: string
+  citations: AgentCitation[]
+  tool_steps: AgentToolStep[]
+  provider: string | null
+  model: string | null
+  prompt_tokens: number
+  completion_tokens: number
+  total_tokens: number
+  grounded: boolean
+  created_at: string
+}
+
 export interface SuccessResponse {
   success: boolean
   message: string

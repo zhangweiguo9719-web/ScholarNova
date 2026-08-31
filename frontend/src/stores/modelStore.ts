@@ -29,6 +29,7 @@ const defaultConfig: ModelConfig = {
     translation: { provider: 'mimo', model_name: 'mimo-v2.5-pro' },    // 翻译
     vision: { provider: 'mimo', model_name: 'mimo-v2.5' },             // 视觉/多模态
     recommendation: { provider: 'mimo', model_name: 'mimo-v2.5-pro' }, // 推荐
+    assistant: { provider: 'mimo', model_name: 'mimo-v2.5-pro' },      // 科研问答智能体
     diagram: { provider: 'sensenova', model_name: 'sensenova-u1-fast', api_key: '', base_url: 'https://token.sensenova.cn/v1' }, // 仅出图
   },
 }

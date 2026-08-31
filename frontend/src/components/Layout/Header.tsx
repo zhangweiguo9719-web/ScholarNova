@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { BookOpen, Search, Settings, Moon, Sun, BookMarked } from 'lucide-react'
+import { BookOpen, Search, Settings, Moon, Sun, BookMarked, Bot } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import clsx from 'clsx'
 import { useLocaleStore } from '@/stores/localeStore'
@@ -31,6 +31,7 @@ export default function Header() {
     { to: '/', label: t('nav.home'), icon: BookOpen },
     { to: '/search', label: t('nav.search'), icon: Search },
     { to: '/knowledge', label: t('nav.knowledge') || '知识库', icon: BookMarked },
+    { to: '/assistant', label: t('nav.assistant'), icon: Bot },
     { to: '/settings', label: t('nav.settings'), icon: Settings },
   ]
 

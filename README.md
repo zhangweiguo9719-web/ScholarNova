@@ -60,6 +60,7 @@ Developers who want to build the application themselves can use the [Windows des
 - Understands and decomposes multi-constraint academic queries.
 - Searches Semantic Scholar, OpenAlex, Crossref, and arXiv.
 - Connects to the local Zotero library in read-only mode and searches explicitly imported metadata alongside online sources.
+- Includes a traceable research-assistant MVP that retrieves evidence from the ScholarNova knowledge base and live local Zotero before calling the user's model.
 - Deduplicates and ranks papers using title, abstract, year, venue, citations, and query constraints.
 - Displays abstracts, authors, metadata, relevance, citation percentile, citation velocity, and traceable quality signals.
 - Shows live elapsed time, exact source API/query/call status, and supports an intentional re-run of the same query.
@@ -77,14 +78,20 @@ Developers who want to build the application themselves can use the [Windows des
 
 ### Local Zotero connection (`main` source build)
 
-1. Start Zotero and enable its local API under **Zotero Settings → Advanced**.
+1. Start Zotero, open **Zotero Settings → Advanced**, and enable **Allow other applications on this computer to communicate with Zotero**.
 2. Open **ScholarNova Settings → Connect Zotero** and confirm that the connection is detected.
 3. Select a Zotero collection, or the 50 most recent top-level items, and choose **Import to ScholarNova**.
 4. Normal ScholarNova searches will also query the imported local metadata without making an extra network request.
 
 The integration is deliberately read-only: ScholarNova neither modifies Zotero nor reads `zotero.sqlite` directly, and it never uploads an entire library. Imports are idempotent by Zotero Item Key and DOI. Attachment PDFs are not copied automatically; use a lawful open copy or upload a PDF you are authorized to use when full text is required.
 
+ScholarNova displays the detected Zotero version. Zotero 9 is sufficient for the current read-only workflow; direct write-back requires Zotero 10 or later and is intentionally not enabled in this MVP.
+
 > This feature is currently available from the `main` source branch and will ship in the next Windows release. The v1.1.1 executables above do not contain it yet.
+
+### Traceable research assistant (`main` source build)
+
+Open **Assistant** to ask questions over two user-controlled sources: saved ScholarNova knowledge and the live local Zotero library. The agent first retrieves a small evidence set, then asks the configured task model to answer with `[S1]`-style source markers. It shows each retrieval step, cited records, selected model, and provider-reported Token usage. If no local material is found, it does not call the model and asks the user to add evidence instead. Conversation history stays on the local device and the assistant never writes to Zotero automatically.
 
 ### Journal data and institutional access
 
@@ -108,6 +115,8 @@ flowchart LR
     R --> A["AI analysis and evidence"]
     A --> K["Knowledge base"]
     K --> G["Research route and diagram"]
+    K --> RA["Grounded research assistant"]
+    Z --> RA
 
     S --- SS["Semantic Scholar"]
     S --- OA["OpenAlex"]

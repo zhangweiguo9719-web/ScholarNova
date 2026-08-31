@@ -25,6 +25,7 @@ const taskTypes = [
   { key: 'translation', icon: '🌐', zhLabel: '翻译', enLabel: 'Translation', desc: '摘要中英文翻译' },
   { key: 'vision', icon: '👁️', zhLabel: '图表/架构分析', enLabel: 'Vision', desc: '论文图表、架构图识别分析' },
   { key: 'recommendation', icon: '📄', zhLabel: '论文推荐', enLabel: 'Recommendation', desc: '基于知识库推荐新论文' },
+  { key: 'assistant', icon: '🤖', zhLabel: '科研问答智能体', enLabel: 'Research Assistant', desc: '知识库与 Zotero 的可追溯问答' },
   { key: 'diagram', icon: '🎨', zhLabel: '图表生成', enLabel: 'Diagram Generation', desc: '研究架构图/流程图生成' },
 ]
 

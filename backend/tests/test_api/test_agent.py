@@ -1,0 +1,151 @@
+"""Tests for the grounded research-assistant prototype."""
+
+from unittest.mock import AsyncMock
+
+import pytest
+
+from app.models.knowledge import KnowledgeBase
+
+
+class FakeGateway:
+    def __init__(self, *args, **kwargs) -> None:
+        self.last_usage = {
+            "prompt_tokens": 120,
+            "completion_tokens": 40,
+            "total_tokens": 160,
+            "requests": 1,
+        }
+
+    async def chat(self, messages, **kwargs) -> str:
+        assert "[S1]" in messages[-1]["content"]
+        return "现有材料指出需要进行可追溯检索。[S1]"
+
+
+@pytest.mark.asyncio
+async def test_agent_answers_from_knowledge_with_citations(
+    client,
+    db_session,
+    monkeypatch,
+) -> None:
+    db_session.add(
+        KnowledgeBase(
+            title="可追溯学术检索",
+            category="科研智能体",
+            content="研究系统应保留检索证据并约束回答来源。",
+            source_paper_title="Evidence-grounded Research Assistants",
+            source_paper_doi="10.1000/agent.1",
+            research_points=["来源追踪"],
+            tags=["agent"],
+        )
+    )
+    await db_session.flush()
+    monkeypatch.setattr("app.api.v1.agent.LLMGateway", FakeGateway)
+    monkeypatch.setattr(
+        "app.api.v1.agent.ZoteroLocalClient.search_items",
+        AsyncMock(return_value=[]),
+    )
+
+    response = await client.post(
+        "/api/v1/agent/chat",
+        json={"question": "如何实现可追溯学术检索？"},
+    )
+
+    data = response.json()
+    assert response.status_code == 200
+    assert data["grounded"] is True
+    assert data["citations"][0]["source"] == "knowledge"
+    assert data["citations"][0]["doi"] == "10.1000/agent.1"
+    assert data["total_tokens"] == 160
+    assert {step["tool"] for step in data["tool_steps"]} == {
+        "knowledge_search",
+        "zotero_search",
+    }
+
+
+@pytest.mark.asyncio
+async def test_agent_returns_guidance_without_materials(
+    client,
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(
+        "app.api.v1.agent.ZoteroLocalClient.search_items",
+        AsyncMock(return_value=[]),
+    )
+
+    response = await client.post(
+        "/api/v1/agent/chat",
+        json={"question": "请总结我的研究资料"},
+    )
+
+    data = response.json()
+    assert response.status_code == 200
+    assert data["grounded"] is False
+    assert data["total_tokens"] == 0
+    assert "没有找到" in data["answer"]
+
+
+@pytest.mark.asyncio
+async def test_agent_continues_when_zotero_is_unavailable(
+    client,
+    db_session,
+    monkeypatch,
+) -> None:
+    db_session.add(
+        KnowledgeBase(
+            title="本地知识",
+            category="测试",
+            content="本地知识库仍然可以用于问答。",
+        )
+    )
+    await db_session.flush()
+    monkeypatch.setattr("app.api.v1.agent.LLMGateway", FakeGateway)
+    monkeypatch.setattr(
+        "app.api.v1.agent.ZoteroLocalClient.search_items",
+        AsyncMock(side_effect=RuntimeError("offline")),
+    )
+
+    response = await client.post(
+        "/api/v1/agent/chat",
+        json={"question": "本地知识如何使用？"},
+    )
+
+    data = response.json()
+    assert response.status_code == 200
+    zotero_step = next(step for step in data["tool_steps"] if step["tool"] == "zotero_search")
+    assert zotero_step["status"] == "unavailable"
+
+
+@pytest.mark.asyncio
+async def test_agent_retries_zotero_with_a_keyword(
+    client,
+    monkeypatch,
+) -> None:
+    search = AsyncMock(
+        side_effect=[
+            [],
+            [{
+                "key": "ZOTERO1",
+                "data": {
+                    "title": "Explainability in Agent Systems",
+                    "abstractNote": "A review of explainable agent systems.",
+                    "url": "https://example.org/agent-paper",
+                },
+            }],
+        ]
+    )
+    monkeypatch.setattr("app.api.v1.agent.LLMGateway", FakeGateway)
+    monkeypatch.setattr("app.api.v1.agent.ZoteroLocalClient.search_items", search)
+
+    response = await client.post(
+        "/api/v1/agent/chat",
+        json={
+            "question": "What research themes appear in my Zotero papers about agent systems?",
+            "use_knowledge": False,
+        },
+    )
+
+    data = response.json()
+    assert response.status_code == 200
+    assert search.await_count == 2
+    assert data["citations"][0]["source"] == "zotero"
+    assert data["citations"][0]["item_id"] == "ZOTERO1"

@@ -81,7 +81,10 @@ class ZoteroLocalClient:
         return ZoteroStatus(
             connected=True,
             server_id=response.headers.get("Zotero-Server-ID"),
-            zotero_version=response.headers.get("Zotero-Version"),
+            zotero_version=(
+                response.headers.get("Zotero-Version")
+                or response.headers.get("X-Zotero-Version")
+            ),
         )
 
     async def collections(self) -> list[dict[str, Any]]:
@@ -148,6 +151,42 @@ class ZoteroLocalClient:
         if not isinstance(payload, list):
             raise ZoteroClientError("Zotero 文献数据格式不正确")
 
+        excluded = {"attachment", "note", "annotation"}
+        return [
+            item
+            for item in payload
+            if isinstance(item, dict)
+            and isinstance(item.get("data"), dict)
+            and item["data"].get("itemType") not in excluded
+        ]
+
+    async def search_items(
+        self,
+        query: str,
+        *,
+        limit: int = 6,
+    ) -> list[dict[str, Any]]:
+        """Search top-level bibliographic items in the live local library."""
+        clean_query = query.strip()
+        if not clean_query:
+            return []
+        response = await self._get(
+            "/users/0/items/top",
+            params={
+                "q": clean_query[:300],
+                "qmode": "everything",
+                "limit": min(max(limit, 1), 20),
+                "sort": "dateModified",
+                "direction": "desc",
+                "format": "json",
+            },
+        )
+        try:
+            payload = response.json()
+        except ValueError as exc:
+            raise ZoteroClientError("Zotero 搜索结果无法解析") from exc
+        if not isinstance(payload, list):
+            raise ZoteroClientError("Zotero 搜索结果格式不正确")
         excluded = {"attachment", "note", "annotation"}
         return [
             item

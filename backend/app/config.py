@@ -187,6 +187,7 @@ MODEL_PROFILES = {
     "translation": {"provider": None, "model": None, "api_key": None, "base_url": None},
     "vision": {"provider": "mimo", "model": "mimo-v2.5", "api_key": None, "base_url": None},
     "recommendation": {"provider": None, "model": None, "api_key": None, "base_url": None},
+    "assistant": {"provider": None, "model": None, "api_key": None, "base_url": None},
     "diagram": {"provider": "sensenova", "model": "sensenova-u1-fast", "api_key": "ENV", "base_url": "https://token.sensenova.cn/v1"},
 }
 

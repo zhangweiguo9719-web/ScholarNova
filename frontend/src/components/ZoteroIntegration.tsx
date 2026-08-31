@@ -8,6 +8,8 @@ import {
   Loader2,
   RefreshCw,
   ShieldCheck,
+  CheckCircle2,
+  Network,
 } from 'lucide-react'
 import { zoteroApi } from '@/api/client'
 import type {
@@ -41,6 +43,7 @@ export default function ZoteroIntegration() {
   const [detectionCode, setDetectionCode] = useState<string | null>(null)
   const [importing, setImporting] = useState(false)
   const [result, setResult] = useState<ZoteroImportResult | null>(null)
+  const zoteroMajorVersion = Number.parseInt(status?.zotero_version || '', 10)
 
   const detect = useCallback(async (silent: boolean = false) => {
     setChecking(true)
@@ -142,6 +145,16 @@ export default function ZoteroIntegration() {
                   })
                 : t('settings.zoteroEnableHint')}
             </p>
+            {status?.zotero_version && (
+              <p className="mt-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                {t('settings.zoteroVersion', { version: status.zotero_version })}
+              </p>
+            )}
+            {status?.connected && Number.isFinite(zoteroMajorVersion) && zoteroMajorVersion < 10 && (
+              <p className="mt-2 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs leading-5 text-amber-700 dark:text-amber-300">
+                {t('settings.zoteroWriteUpgrade')}
+              </p>
+            )}
           </div>
           <button
             type="button"
@@ -153,6 +166,40 @@ export default function ZoteroIntegration() {
             {t('settings.zoteroDetect')}
           </button>
         </div>
+
+        <details
+          open={!status?.connected}
+          className="group rounded-xl border border-[var(--ui-border)] bg-[var(--ui-surface-soft)]"
+        >
+          <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-semibold text-[var(--ui-text)]">
+            <Network className="h-4 w-4 text-[var(--ui-accent)]" />
+            {t('settings.zoteroSetupTitle')}
+            <span className="ml-auto text-xs font-normal text-[var(--ui-muted)] group-open:hidden">
+              {status?.connected ? '✓' : ''}
+            </span>
+          </summary>
+          <div className="space-y-3 border-t border-[var(--ui-border)] px-4 py-4">
+            {[
+              t('settings.zoteroSetupStep1'),
+              t('settings.zoteroSetupStep2'),
+              t('settings.zoteroSetupStep3'),
+            ].map((step, index) => (
+              <div key={step} className="flex items-start gap-3 text-sm leading-6 text-[var(--ui-text-soft)]">
+                {status?.connected ? (
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                ) : (
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--ui-accent-soft)] text-[11px] font-bold text-[var(--ui-accent)]">
+                    {index + 1}
+                  </span>
+                )}
+                <span>{step}</span>
+              </div>
+            ))}
+            <p className="rounded-lg border border-[var(--ui-border)] px-3 py-2 font-mono text-[11px] text-[var(--ui-muted)]">
+              {t('settings.zoteroApiAddress')}
+            </p>
+          </div>
+        </details>
 
         {status?.connected && (
           <div className="grid gap-3 sm:grid-cols-[1fr_auto]">

@@ -7,6 +7,7 @@ import Settings from './pages/Settings'
 import Knowledge from './pages/Knowledge'
 import KnowledgeAnalysis from './pages/KnowledgeAnalysis'
 import RouteDetail from './pages/RouteDetail'
+import ResearchAssistant from './pages/ResearchAssistant'
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
           <Route path="/knowledge" element={<Knowledge />} />
           <Route path="/knowledge/analysis" element={<KnowledgeAnalysis />} />
           <Route path="/knowledge/route/:id" element={<RouteDetail />} />
+          <Route path="/assistant" element={<ResearchAssistant />} />
         </Route>
       </Routes>
     </>

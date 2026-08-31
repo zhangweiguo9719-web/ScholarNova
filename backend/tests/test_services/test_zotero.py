@@ -38,6 +38,18 @@ async def test_status_reads_server_identity() -> None:
 
 
 @pytest.mark.asyncio
+async def test_status_reads_legacy_x_zotero_version_header() -> None:
+    client = ZoteroLocalClient()
+    client._get = AsyncMock(  # type: ignore[method-assign]
+        return_value=response([], {"X-Zotero-Version": "9.0.6"})
+    )
+
+    status = await client.status()
+
+    assert status.zotero_version == "9.0.6"
+
+
+@pytest.mark.asyncio
 async def test_collections_normalises_zotero_payload() -> None:
     client = ZoteroLocalClient()
     client._get = AsyncMock(  # type: ignore[method-assign]
@@ -88,6 +100,27 @@ async def test_items_excludes_children_and_rejects_unsafe_key() -> None:
 
     with pytest.raises(ValueError):
         await client.items(collection_key="../private")
+
+
+@pytest.mark.asyncio
+async def test_search_items_uses_local_quicksearch() -> None:
+    client = ZoteroLocalClient()
+    client._get = AsyncMock(  # type: ignore[method-assign]
+        return_value=response(
+            [
+                {"key": "PAPER1", "data": {"itemType": "journalArticle", "title": "Agent"}},
+                {"key": "FILE1", "data": {"itemType": "attachment", "title": "PDF"}},
+            ]
+        )
+    )
+
+    items = await client.search_items("research agent", limit=30)
+
+    assert [item["key"] for item in items] == ["PAPER1"]
+    called_params = client._get.await_args.kwargs["params"]  # type: ignore[attr-defined]
+    assert called_params["q"] == "research agent"
+    assert called_params["qmode"] == "everything"
+    assert called_params["limit"] == 20
 
 
 @pytest.mark.asyncio
