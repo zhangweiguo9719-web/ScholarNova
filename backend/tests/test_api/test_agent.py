@@ -53,6 +53,7 @@ async def test_agent_answers_from_knowledge_with_citations(
     data = response.json()
     assert response.status_code == 200
     assert data["grounded"] is True
+    assert data["response_type"] == "research"
     assert data["citations"][0]["source"] == "knowledge"
     assert data["citations"][0]["doi"] == "10.1000/agent.1"
     assert data["total_tokens"] == 160
@@ -60,6 +61,64 @@ async def test_agent_answers_from_knowledge_with_citations(
         "knowledge_search",
         "zotero_search",
     }
+
+
+@pytest.mark.asyncio
+async def test_agent_answers_product_help_without_search_or_model(
+    client,
+    monkeypatch,
+) -> None:
+    zotero_search = AsyncMock(return_value=[])
+    monkeypatch.setattr(
+        "app.api.v1.agent.ZoteroLocalClient.search_items",
+        zotero_search,
+    )
+
+    response = await client.post(
+        "/api/v1/agent/chat",
+        json={"question": "目前这个智能体怎么使用呢？"},
+    )
+
+    data = response.json()
+    assert response.status_code == 200
+    assert data["response_type"] == "product_help"
+    assert data["grounded"] is False
+    assert data["citations"] == []
+    assert data["total_tokens"] == 0
+    assert data["tool_steps"][0]["tool"] == "product_help"
+    assert "目前这个智能体的使用方式" in data["answer"]
+    zotero_search.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_agent_does_not_use_unrelated_recent_knowledge(
+    client,
+    db_session,
+    monkeypatch,
+) -> None:
+    db_session.add(
+        KnowledgeBase(
+            title="交通流预测",
+            category="交通工程",
+            content="研究交通事故严重程度与道路流量。",
+        )
+    )
+    await db_session.flush()
+    monkeypatch.setattr(
+        "app.api.v1.agent.ZoteroLocalClient.search_items",
+        AsyncMock(return_value=[]),
+    )
+
+    response = await client.post(
+        "/api/v1/agent/chat",
+        json={"question": "量子纠错码有哪些实验进展？"},
+    )
+
+    data = response.json()
+    assert response.status_code == 200
+    assert data["grounded"] is False
+    assert data["citations"] == []
+    assert "没有找到" in data["answer"]
 
 
 @pytest.mark.asyncio

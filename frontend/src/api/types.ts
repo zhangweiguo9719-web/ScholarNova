@@ -369,6 +369,7 @@ export interface AgentChatResponse {
   answer: string
   citations: AgentCitation[]
   tool_steps: AgentToolStep[]
+  response_type: 'research' | 'product_help'
   provider: string | null
   model: string | null
   prompt_tokens: number

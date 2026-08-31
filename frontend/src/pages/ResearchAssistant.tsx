@@ -73,6 +73,8 @@ export default function ResearchAssistant() {
     noSource: '本次没有可引用材料',
     grounded: '基于本地材料',
     notGrounded: '材料不足',
+    productHelp: '产品使用指南',
+    productHelpSource: '本回答来自 ScholarNova 内置使用指南，无需论文引用。',
     model: '模型',
     tokens: 'Token',
     safety: '回答是研究辅助信息，请回到原始论文核验关键结论。',
@@ -101,6 +103,8 @@ export default function ResearchAssistant() {
     noSource: 'No citable local material was found',
     grounded: 'Grounded locally',
     notGrounded: 'Insufficient material',
+    productHelp: 'Product guide',
+    productHelpSource: 'This response comes from the built-in ScholarNova guide and does not require paper citations.',
     model: 'Model',
     tokens: 'Tokens',
     safety: 'This is research assistance. Verify important claims against the original papers.',
@@ -265,12 +269,13 @@ function SourceToggle({ active, onClick, icon, label, warning = false }: { activ
 }
 
 function AgentTrace({ result, copy }: { result: AgentChatResponse; copy: Record<string, any> }) {
+  const isProductHelp = result.response_type === 'product_help'
   return (
     <div className="mt-3 space-y-3 rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface)] p-3 text-xs text-[var(--ui-text-soft)]">
       <div className="flex flex-wrap items-center gap-2">
-        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 font-semibold ${result.grounded ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'}`}>
-          {result.grounded ? <ShieldCheck className="h-3.5 w-3.5" /> : <AlertTriangle className="h-3.5 w-3.5" />}
-          {result.grounded ? copy.grounded : copy.notGrounded}
+        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 font-semibold ${isProductHelp ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400' : result.grounded ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'}`}>
+          {isProductHelp ? <Bot className="h-3.5 w-3.5" /> : result.grounded ? <ShieldCheck className="h-3.5 w-3.5" /> : <AlertTriangle className="h-3.5 w-3.5" />}
+          {isProductHelp ? copy.productHelp : result.grounded ? copy.grounded : copy.notGrounded}
         </span>
         {result.model && <span>{copy.model}: {result.provider}/{result.model}</span>}
         <span>{copy.tokens}: {result.total_tokens}</span>
@@ -303,7 +308,7 @@ function AgentTrace({ result, copy }: { result: AgentChatResponse; copy: Record<
               </div>
             })}
           </div>
-        ) : <p>{copy.noSource}</p>}
+        ) : <p>{isProductHelp ? copy.productHelpSource : copy.noSource}</p>}
       </div>
     </div>
   )

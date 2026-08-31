@@ -53,6 +53,7 @@ class AgentChatResponse(BaseModel):
     answer: str
     citations: list[AgentCitation]
     tool_steps: list[AgentToolStep]
+    response_type: Literal["research", "product_help"] = "research"
     provider: str | None = None
     model: str | None = None
     prompt_tokens: int = 0
@@ -70,6 +71,43 @@ _EN_STOP = {
     "papers", "research", "show", "summarize", "that", "the", "these",
     "what", "which", "with", "zotero",
 }
+
+_PRODUCT_HELP_PATTERNS = (
+    re.compile(r"(?:这个|目前|scholarnova).{0,8}(?:智能体|平台|系统).{0,8}(?:怎么|如何|怎样).{0,4}(?:用|使用|操作)"),
+    re.compile(r"(?:怎么|如何|怎样).{0,6}(?:使用|操作).{0,8}(?:这个)?(?:智能体|scholarnova|平台|系统)"),
+    re.compile(r"(?:智能体|scholarnova|平台|系统).{0,8}(?:使用方法|操作流程|使用说明|功能介绍)"),
+    re.compile(r"how (?:do i|to|can i) use (?:this |the )?(?:assistant|scholarnova|platform|app)"),
+    re.compile(r"(?:scholarnova|this assistant).{0,12}(?:user guide|how .*works|what can .*do)"),
+)
+
+
+def _is_product_help(question: str) -> bool:
+    normalized = " ".join(question.casefold().split())
+    return any(pattern.search(normalized) for pattern in _PRODUCT_HELP_PATTERNS)
+
+
+def _product_help_answer(question: str) -> str:
+    if re.search(r"[\u4e00-\u9fff]", question):
+        return (
+            "目前这个智能体的使用方式如下：\n\n"
+            "1. 准备材料：先在“搜索”页检索论文并完成分析，把需要长期使用的内容保存到 ScholarNova 知识库；也可以在“设置”中连接已经启动的本机 Zotero。\n"
+            "2. 选择来源：进入“智能体”页面后，按需开启“ScholarNova 知识库”和“本机 Zotero”。未连接 Zotero 时可以只使用知识库。\n"
+            "3. 提出科研问题：适合询问现有材料的研究共识、方法差异、研究空白、证据对比和可验证研究问题。问题越具体，检索越准确。\n"
+            "4. 核验回答：科研回答中的 [S1]、[S2] 对应下方引用材料。重要结论仍应返回原论文核验。\n"
+            "5. 注意边界：智能体只依据实际检索到的本地材料回答；材料不足时会明确说明，不会自动修改 Zotero，也不会用无关论文拼凑答案。\n\n"
+            "可以从这些问题开始：\n"
+            "• 总结知识库中关于某个主题的主要研究空白。\n"
+            "• 比较 Zotero 文献中两种方法的证据与局限。\n"
+            "• 基于现有材料提出三个可验证的研究问题。"
+        )
+    return (
+        "Here is how to use the assistant:\n\n"
+        "1. Prepare evidence: analyze papers from Search and save useful findings to the ScholarNova knowledge base, or connect a running local Zotero from Settings.\n"
+        "2. Choose sources: enable the ScholarNova knowledge base, local Zotero, or both on the Assistant page.\n"
+        "3. Ask a focused research question about consensus, method differences, research gaps, evidence, or testable next steps.\n"
+        "4. Verify the answer: [S1] and [S2] point to the source cards shown below the response. Check important claims against the original paper.\n"
+        "5. Know the boundary: the assistant answers only from retrieved local evidence, reports insufficient material, and never modifies Zotero automatically."
+    )
 
 
 def _query_terms(question: str) -> list[str]:
@@ -134,7 +172,7 @@ async def _knowledge_materials(
         reverse=True,
     )
     relevant = [item for item in ranked if _knowledge_score(item, terms) > 0]
-    return (relevant or ranked)[:limit]
+    return relevant[:limit]
 
 
 def _zotero_author_names(data: dict[str, Any]) -> str:
@@ -167,6 +205,23 @@ async def chat_with_research_agent(
     limited = check_rate_limit(http_request, endpoint_type="analysis")
     if limited:
         return limited
+
+    if _is_product_help(request.question):
+        return AgentChatResponse(
+            answer=_product_help_answer(request.question),
+            citations=[],
+            tool_steps=[
+                AgentToolStep(
+                    tool="product_help",
+                    status="completed",
+                    count=1,
+                    detail="根据 ScholarNova 内置使用指南回答，未调用论文检索或模型",
+                )
+            ],
+            response_type="product_help",
+            grounded=False,
+            created_at=datetime.now(),
+        )
 
     contexts: list[str] = []
     citations: list[AgentCitation] = []
