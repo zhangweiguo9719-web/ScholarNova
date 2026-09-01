@@ -73,6 +73,12 @@ export default function ResearchAssistant() {
     noSource: '本次没有可引用材料',
     grounded: '基于本地材料',
     notGrounded: '材料不足',
+    verified: '引用校验通过',
+    partial: '引用覆盖不完整',
+    verificationFailed: '引用校验失败',
+    fallback: '模型离线 · 证据回退',
+    coverage: '引用覆盖',
+    uncited: '未引用事实句',
     productHelp: '产品使用指南',
     productHelpSource: '本回答来自 ScholarNova 内置使用指南，无需论文引用。',
     model: '模型',
@@ -105,6 +111,12 @@ export default function ResearchAssistant() {
     noSource: 'No citable local material was found',
     grounded: 'Grounded locally',
     notGrounded: 'Insufficient material',
+    verified: 'Citation checks passed',
+    partial: 'Partial citation coverage',
+    verificationFailed: 'Citation checks failed',
+    fallback: 'Model offline · evidence fallback',
+    coverage: 'Citation coverage',
+    uncited: 'Uncited factual segments',
     productHelp: 'Product guide',
     productHelpSource: 'This response comes from the built-in ScholarNova guide and does not require paper citations.',
     model: 'Model',
@@ -274,18 +286,40 @@ function SourceToggle({ active, onClick, icon, label, warning = false }: { activ
 
 function AgentTrace({ result, copy, isChinese }: { result: AgentChatResponse; copy: Record<string, any>; isChinese: boolean }) {
   const isProductHelp = result.response_type === 'product_help'
+  const verificationStatus = result.verification_status || (result.grounded ? 'verified' : 'not_applicable')
+  const statusLabel = result.fallback_used
+    ? copy.fallback
+    : verificationStatus === 'verified'
+      ? copy.verified
+      : verificationStatus === 'partial'
+        ? copy.partial
+        : verificationStatus === 'failed'
+          ? copy.verificationFailed
+          : copy.notGrounded
+  const statusStyle = verificationStatus === 'verified'
+    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+    : verificationStatus === 'failed'
+      ? 'bg-red-500/10 text-red-600 dark:text-red-400'
+      : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
   return (
     <div className="mt-3 space-y-3 rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface)] p-3 text-xs text-[var(--ui-text-soft)]">
       <div className="flex flex-wrap items-center gap-2">
-        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 font-semibold ${isProductHelp ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400' : result.grounded ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'}`}>
-          {isProductHelp ? <Bot className="h-3.5 w-3.5" /> : result.grounded ? <ShieldCheck className="h-3.5 w-3.5" /> : <AlertTriangle className="h-3.5 w-3.5" />}
-          {isProductHelp ? copy.productHelp : result.grounded ? copy.grounded : copy.notGrounded}
+        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 font-semibold ${isProductHelp ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400' : statusStyle}`}>
+          {isProductHelp ? <Bot className="h-3.5 w-3.5" /> : verificationStatus === 'verified' ? <ShieldCheck className="h-3.5 w-3.5" /> : <AlertTriangle className="h-3.5 w-3.5" />}
+          {isProductHelp ? copy.productHelp : statusLabel}
         </span>
         {result.model && <span>{copy.model}: {result.provider}/{result.model}</span>}
         {!isProductHelp && <span>{copy.retrieval}: {result.retrieval_mode === 'hybrid' ? 'BM25 + Embedding RRF' : 'BM25'}</span>}
         {result.retrieval_tokens > 0 && <span>{copy.embeddingTokens}: {result.retrieval_tokens}</span>}
+        {!isProductHelp && verificationStatus !== 'not_applicable' && <span>{copy.coverage}: {Math.round((result.citation_coverage || 0) * 100)}%</span>}
         <span>{copy.tokens}: {result.total_tokens}</span>
       </div>
+      {!isProductHelp && (verificationStatus === 'partial' || verificationStatus === 'failed') && (
+        <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-2.5 py-2 text-amber-700 dark:text-amber-300">
+          {copy.uncited}: {result.uncited_claim_count || 0}
+          {result.invalid_citation_ids?.length > 0 && ` · ${isChinese ? '无效编号' : 'Invalid IDs'}: ${result.invalid_citation_ids.join(', ')}`}
+        </div>
+      )}
       <div>
         <p className="mb-2 inline-flex items-center gap-1 font-semibold text-[var(--ui-text)]"><Sparkles className="h-3.5 w-3.5 text-[var(--ui-accent)]" />{copy.tools}</p>
         <div className="flex flex-wrap gap-2">

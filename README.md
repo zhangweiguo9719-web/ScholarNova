@@ -100,6 +100,8 @@ Open **Assistant** to ask questions over user-controlled ScholarNova knowledge, 
 
 The hybrid path embeds up to 256 source-balanced candidates, fuses vector and BM25 ranks with RRF, and caches vectors locally by provider, model, and content hash. Repeated material does not consume embedding tokens again. A timeout, rate limit, invalid profile, or offline embedding service falls back to BM25 without blocking the answer. Embedding credentials are independent from chat credentials and are never returned to the browser. The trace reports the retrieval mode, embedding tokens, chat tokens, cited records, and page-aware source locations. If no local material is found, the answer model is not called. Conversation history remains local and the assistant never writes to Zotero automatically.
 
+After generation, a zero-token deterministic verifier reports factual-segment citation coverage, unknown source IDs, and uncited segments as verified, partial, or failed. This is an integrity check, not a claim of semantic entailment. If the answer model is offline or times out, ScholarNova returns a bounded list of retrieved evidence with valid `[S1]` markers instead of failing the whole request, and labels the response as a deterministic evidence fallback.
+
 ### Journal data and institutional access
 
 Open **Settings → Journal quartiles** to import a CSV or JSON file that you are licensed to use. A minimal CSV is:

@@ -35,6 +35,18 @@ class FakeEmbeddingGateway:
         )
 
 
+class FailingGateway(FakeGateway):
+    async def chat(self, messages, **kwargs) -> str:
+        del messages, kwargs
+        raise RuntimeError("model offline")
+
+
+class UncitedGateway(FakeGateway):
+    async def chat(self, messages, **kwargs) -> str:
+        del messages, kwargs
+        return "现有材料指出需要进行可追溯检索。[S1]\n仍需要跨领域实验验证。"
+
+
 @pytest.mark.asyncio
 async def test_agent_answers_from_knowledge_with_citations(
     client,
@@ -73,12 +85,92 @@ async def test_agent_answers_from_knowledge_with_citations(
     assert data["total_tokens"] == 160
     assert data["retrieval_tokens"] == 0
     assert data["retrieval_mode"] == "bm25"
+    assert data["verification_status"] == "verified"
+    assert data["citation_coverage"] == 1.0
+    assert data["inference_mode"] == "model"
     assert {step["tool"] for step in data["tool_steps"]} == {
+        "answer_generation",
+        "answer_verification",
+        "evidence_pack",
         "semantic_retrieval",
         "knowledge_search",
         "paper_fulltext_search",
         "zotero_search",
     }
+
+
+@pytest.mark.asyncio
+async def test_agent_returns_traceable_evidence_when_model_is_offline(
+    client,
+    db_session,
+    monkeypatch,
+) -> None:
+    db_session.add(
+        KnowledgeBase(
+            title="可恢复科研智能体",
+            category="科研智能体",
+            content="模型不可用时，系统仍返回带来源编号的检索证据。",
+        )
+    )
+    await db_session.flush()
+    monkeypatch.setattr("app.api.v1.agent.LLMGateway", FailingGateway)
+    monkeypatch.setattr(
+        "app.api.v1.agent.ZoteroLocalClient.search_items",
+        AsyncMock(return_value=[]),
+    )
+
+    response = await client.post(
+        "/api/v1/agent/chat",
+        json={"question": "模型不可用时如何保持科研问答可恢复？"},
+    )
+
+    data = response.json()
+    assert response.status_code == 200
+    assert data["fallback_used"] is True
+    assert data["inference_mode"] == "deterministic_fallback"
+    assert data["verification_status"] == "verified"
+    assert data["grounded"] is True
+    assert data["prompt_tokens"] == 0
+    assert data["completion_tokens"] == 0
+    assert "[S1]" in data["answer"]
+    generation = next(
+        step for step in data["tool_steps"]
+        if step["tool"] == "answer_generation"
+    )
+    assert generation["status"] == "unavailable"
+
+
+@pytest.mark.asyncio
+async def test_agent_reports_partial_citation_coverage(
+    client,
+    db_session,
+    monkeypatch,
+) -> None:
+    db_session.add(
+        KnowledgeBase(
+            title="可追溯回答",
+            category="科研智能体",
+            content="科研回答需要保留来源编号。",
+        )
+    )
+    await db_session.flush()
+    monkeypatch.setattr("app.api.v1.agent.LLMGateway", UncitedGateway)
+    monkeypatch.setattr(
+        "app.api.v1.agent.ZoteroLocalClient.search_items",
+        AsyncMock(return_value=[]),
+    )
+
+    response = await client.post(
+        "/api/v1/agent/chat",
+        json={"question": "科研回答如何保持可追溯？"},
+    )
+
+    data = response.json()
+    assert response.status_code == 200
+    assert data["verification_status"] == "partial"
+    assert data["citation_coverage"] == 0.5
+    assert data["uncited_claim_count"] == 1
+    assert data["grounded"] is False
 
 
 @pytest.mark.asyncio

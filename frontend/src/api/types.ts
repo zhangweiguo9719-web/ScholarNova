@@ -394,6 +394,12 @@ export interface AgentChatResponse {
   retrieval_tokens: number
   total_tokens: number
   retrieval_mode: 'bm25' | 'hybrid'
+  inference_mode: 'model' | 'deterministic_fallback' | 'none'
+  verification_status: 'verified' | 'partial' | 'failed' | 'not_applicable'
+  citation_coverage: number
+  uncited_claim_count: number
+  invalid_citation_ids: string[]
+  fallback_used: boolean
   grounded: boolean
   created_at: string
 }

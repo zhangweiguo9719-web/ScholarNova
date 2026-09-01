@@ -6,7 +6,7 @@ import re
 from datetime import datetime
 from typing import Any, Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,6 +17,7 @@ from app.database import get_db
 from app.models.knowledge import KnowledgeBase
 from app.models.paper import PaperChunk, PaperEntity
 from app.services.features.knowledge import ensure_knowledge_features
+from app.services.inference import build_retrieval_fallback, verify_answer_citations
 from app.services.integrations.zotero import ZoteroLocalClient
 from app.services.llm.gateway import LLMGateway
 from app.services.retrieval.adapters import from_knowledge, from_paper, from_zotero
@@ -69,6 +70,14 @@ class AgentChatResponse(BaseModel):
     retrieval_tokens: int = 0
     total_tokens: int = 0
     retrieval_mode: Literal["bm25", "hybrid"] = "bm25"
+    inference_mode: Literal["model", "deterministic_fallback", "none"] = "none"
+    verification_status: Literal[
+        "verified", "partial", "failed", "not_applicable"
+    ] = "not_applicable"
+    citation_coverage: float = 0.0
+    uncited_claim_count: int = 0
+    invalid_citation_ids: list[str] = Field(default_factory=list)
+    fallback_used: bool = False
     grounded: bool = True
     created_at: datetime
 
@@ -203,6 +212,7 @@ async def chat_with_research_agent(
         )
 
     contexts: list[str] = []
+    evidence_items: list[tuple[str, str, str]] = []
     citations: list[AgentCitation] = []
     steps: list[AgentToolStep] = []
     knowledge_candidates: list[RetrievalChunk] = []
@@ -354,6 +364,20 @@ async def chat_with_research_agent(
                     url=metadata.get("url"),
                 )
             )
+        evidence_items.append((source_id, chunk.title, chunk.content))
+
+    steps.append(
+        AgentToolStep(
+            tool="evidence_pack",
+            status="completed" if contexts else "skipped",
+            count=len(contexts),
+            detail=(
+                f"已打包 {len(contexts)} 个带稳定来源编号的证据片段"
+                if contexts
+                else "没有检索到可打包证据"
+            ),
+        )
+    )
 
     if not contexts:
         return AgentChatResponse(
@@ -396,6 +420,8 @@ async def chat_with_research_agent(
             ),
         }
     )
+    inference_mode: Literal["model", "deterministic_fallback"] = "model"
+    fallback_used = False
     try:
         request_options: dict[str, Any] = {}
         if model_config.get("provider") == "zhipu":
@@ -408,13 +434,41 @@ async def chat_with_research_agent(
             max_tokens=1800,
             **request_options,
         )
-    except Exception as exc:
-        raise HTTPException(
-            status_code=502,
-            detail="科研问答模型暂时不可用，请检查模型配置后重试。",
-        ) from exc
+        usage = gateway.last_usage
+        steps.append(
+            AgentToolStep(
+                tool="answer_generation",
+                status="completed",
+                count=1,
+                detail=f"使用 {model_config.get('provider')}/{model_config.get('model')} 生成回答",
+            )
+        )
+    except Exception:
+        answer = build_retrieval_fallback(request.question, evidence_items)
+        inference_mode = "deterministic_fallback"
+        fallback_used = True
+        usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+        steps.append(
+            AgentToolStep(
+                tool="answer_generation",
+                status="unavailable",
+                count=0,
+                detail="回答模型暂时不可用，已返回确定性检索证据，不中断本次问答",
+            )
+        )
 
-    usage = gateway.last_usage
+    verification = verify_answer_citations(
+        answer,
+        [citation.id for citation in citations],
+    )
+    steps.append(
+        AgentToolStep(
+            tool="answer_verification",
+            status="completed",
+            count=verification.cited_claim_count,
+            detail=verification.detail,
+        )
+    )
     return AgentChatResponse(
         answer=answer.strip(),
         citations=citations,
@@ -426,6 +480,12 @@ async def chat_with_research_agent(
         retrieval_tokens=retrieval.embedding_tokens,
         total_tokens=usage["total_tokens"] + retrieval.embedding_tokens,
         retrieval_mode=retrieval.mode,
-        grounded=True,
+        inference_mode=inference_mode,
+        verification_status=verification.status,
+        citation_coverage=verification.coverage,
+        uncited_claim_count=verification.uncited_claim_count,
+        invalid_citation_ids=list(verification.invalid_citation_ids),
+        fallback_used=fallback_used,
+        grounded=verification.status == "verified",
         created_at=datetime.now(),
     )

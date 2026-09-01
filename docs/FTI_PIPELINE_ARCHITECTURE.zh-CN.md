@@ -25,7 +25,7 @@ ScholarNova 不直接复制其“社交内容采集 + 微调个人写作模型�
 | 数据采集 | `services/sources`、`services/search/retriever.py`、`services/pdf`、`services/integrations/zotero.py` | 多学术 API、并发检索、PDF 获取解析、Zotero 读取 | 统一文档契约、授权馆藏连接器、增量同步 |
 | 特征 | `deduplicator.py`、`constraint_verifier.py`、`evidence`、`knowledge_chunks`、`paper_chunks`、`services/retrieval` | 去重、约束验证、证据跨度、知识/PDF 分块、中英文 BM25、统一检索片段契约 | 可选向量索引、图像区域级 Chunk |
 | 评测优化 | `services/evaluation/benchmark.py`、`tests/evaluation` | F1/Precision/Recall、基准适配、离线回归 | RAG 黄金集、按流水线版本对比、发布阈值 |
-| 推理 | `orchestrator.py`、`ranker.py`、`llm/gateway.py`、`api/v1/agent.py` | 查询规划、多源召回、知识库/Zotero 联合排序、统一模型网关、来源约束问答 | 主备模型路由、稀疏+向量混合召回、答案充分性校验 |
+| 推理 | `orchestrator.py`、`ranker.py`、`llm/gateway.py`、`services/inference`、`api/v1/agent.py` | 查询规划、多源召回、混合排序、证据打包、统一模型网关、引用完整性校验与模型离线证据回退 | 可选主备模型路由、语义蕴含校验、阶段耗时持久化 |
 | 监控门禁 | `SearchRun`、质量快照、Token 记录、GitHub Actions | 搜索耗时/API 次数、模型用量、276 项离线测试 | 统一 Trace ID、阶段耗时、线上质量抽样与数据漂移 |
 
 ## 3. 目标数据流
@@ -150,6 +150,14 @@ FTI-2D 增加可选混合语义检索：
 6. 每次回答分别记录 Embedding Token 和回答模型 Token；缓存命中不增加向量 Token。
 7. 四条中英文、跨语言和长文主题黄金回归样本中，混合检索 Top-1 为 4/4，BM25 为 3/4。该结果只用于算法回归，不是 PaSa/AstaBench 竞赛成绩。
 
+FTI-3A 建立可恢复推理基线：
+
+1. 智能体轨迹明确显示 `retrieve → evidence_pack → answer_generation → answer_verification`。
+2. 回答后用确定性规则检查事实句引用覆盖、无效来源编号和未引用事实句，不增加一次模型调用。
+3. 校验结果分为 `verified / partial / failed`，前端显示覆盖率和问题数量，不再只凭“检索到材料”就宣称回答已充分落地。
+4. 回答模型超时、配置错误或离线时，返回有界的原始检索证据与合法来源编号，而不是让整个请求返回 502。
+5. 当前校验只保证引用完整性，不宣称证据在语义上必然支持结论；语义蕴含与冲突检查仍属于后续能力。
+
 ## 6. 分阶段优化顺序
 
 ### FTI-1：特征基线（本轮）
@@ -167,9 +175,10 @@ FTI-2D 增加可选混合语义检索：
 - 下一步补齐通用 DocumentRecord、PDF 图像区域证据、缓存清理策略和真实产品查询集评测。
 - 验收：固定黄金集 Recall@K、MRR、证据命中率不低于基线，延迟与磁盘增长可解释。
 
-### FTI-3：推理管线与模型主备
+### FTI-3：推理管线与模型主备（3A 已完成）
 
 - 明确 `intent → plan → retrieve → rerank → evidence → generate → verify` 阶段。
+- 已完成证据打包、生成、引用完整性校验的可观察轨迹，以及模型离线确定性证据回退。
 - 依据模型能力选择文本、视觉、结构化输出和工具调用模型。
 - 主模型失败时切备用模型；模型均不可用时返回确定性检索结果。
 - 验收：每一步可观察；任何单个外部服务失败不导致整个搜索不可用。
