@@ -136,7 +136,7 @@ def check_rate_limit(
 
     Args:
         request: FastAPI 请求对象
-        endpoint_type: 端点类型 ("search" 或 "analysis")
+        endpoint_type: 端点类型（search、analysis 或 agent）
 
     Returns:
         如果被限制返回 429 JSONResponse，否则返回 None
@@ -146,11 +146,13 @@ def check_rate_limit(
     # 根据端点类型选择限制
     if endpoint_type == "analysis":
         max_requests = settings.RATE_LIMIT_ANALYSIS_PER_MINUTE
+    elif endpoint_type == "agent":
+        max_requests = settings.RATE_LIMIT_AGENT_PER_MINUTE
     else:
         max_requests = settings.RATE_LIMIT_SEARCH_PER_MINUTE
 
     is_allowed, retry_after = _rate_limiter.is_allowed(
-        client_ip=client_ip,
+        client_ip=f"{endpoint_type}:{client_ip}",
         max_requests=max_requests,
         window_seconds=60,
     )

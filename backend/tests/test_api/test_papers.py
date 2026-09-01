@@ -128,10 +128,12 @@ class TestFulltextUpload:
         assert response.status_code == 200
         assert response.json()["available"] is True
         assert response.json()["page_count"] == 1
+        assert response.json()["feature_count"] >= 1
 
         status = await client.get(f"/api/v1/papers/{paper.id}/fulltext/status")
         assert status.status_code == 200
         assert status.json()["available"] is True
+        assert status.json()["feature_count"] >= 1
 
 class TestListPapers:
     """GET /api/v1/papers endpoint contract."""

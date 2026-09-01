@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 from app.models.knowledge import KnowledgeBase
+from app.models.paper import PaperChunk, PaperEntity
 
 
 class FakeGateway:
@@ -59,8 +60,61 @@ async def test_agent_answers_from_knowledge_with_citations(
     assert data["total_tokens"] == 160
     assert {step["tool"] for step in data["tool_steps"]} == {
         "knowledge_search",
+        "paper_fulltext_search",
         "zotero_search",
     }
+
+
+@pytest.mark.asyncio
+async def test_agent_answers_from_indexed_pdf_chunk(
+    client,
+    db_session,
+    monkeypatch,
+) -> None:
+    paper = PaperEntity(
+        id="paper-feature-1",
+        title="Evidence-aware Retrieval Agents",
+        abstract="A retrieval agent study.",
+        doi="10.1000/pdf.1",
+        source="test",
+    )
+    db_session.add(paper)
+    await db_session.flush()
+    db_session.add(
+        PaperChunk(
+            id="a" * 64,
+            paper_id=paper.id,
+            position=0,
+            kind="section",
+            heading="Methods",
+            page=3,
+            content="The retrieval agent uses BM25 and citation verification.",
+            content_hash="b" * 64,
+            feature_version="pdf-parser-chunker-v1",
+            char_count=58,
+        )
+    )
+    await db_session.flush()
+    monkeypatch.setattr("app.api.v1.agent.LLMGateway", FakeGateway)
+
+    response = await client.post(
+        "/api/v1/agent/chat",
+        json={
+            "question": "How does the retrieval agent use citation verification?",
+            "use_zotero": False,
+        },
+    )
+
+    data = response.json()
+    assert response.status_code == 200
+    assert data["grounded"] is True
+    assert data["citations"][0]["source"] == "paper"
+    assert data["citations"][0]["doi"] == "10.1000/pdf.1"
+    paper_step = next(
+        step for step in data["tool_steps"]
+        if step["tool"] == "paper_fulltext_search"
+    )
+    assert paper_step["count"] == 1
 
 
 @pytest.mark.asyncio

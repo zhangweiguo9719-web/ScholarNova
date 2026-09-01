@@ -6,6 +6,7 @@ import hashlib
 from typing import Any
 
 from app.models.knowledge import KnowledgeBase, KnowledgeChunk
+from app.models.paper import PaperChunk, PaperEntity
 from app.services.retrieval.contracts import RetrievalChunk
 
 
@@ -77,5 +78,29 @@ def from_zotero(item: dict[str, Any]) -> RetrievalChunk | None:
             "venue": data.get("publicationTitle") or data.get("conferenceName") or "未知",
             "doi": str(data.get("DOI") or "").strip() or None,
             "url": str(data.get("url") or "").strip() or None,
+        },
+    )
+
+
+def from_paper(paper: PaperEntity, chunk: PaperChunk) -> RetrievalChunk:
+    """Adapt a parsed PDF feature without losing section/page provenance."""
+    return RetrievalChunk(
+        chunk_id=chunk.id,
+        document_id=f"paper:{paper.id}",
+        source="paper",
+        title=paper.title,
+        content=chunk.content,
+        position=chunk.position,
+        feature_version=chunk.feature_version,
+        content_hash=chunk.content_hash,
+        metadata={
+            "paper_id": paper.id,
+            "kind": chunk.kind,
+            "heading": chunk.heading,
+            "page": chunk.page,
+            "doi": paper.doi,
+            "url": paper.url,
+            "year": paper.year,
+            "venue": paper.venue,
         },
     )

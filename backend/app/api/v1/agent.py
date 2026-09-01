@@ -15,10 +15,11 @@ from app.config import get_model_for_task
 from app.core.rate_limiter import check_rate_limit
 from app.database import get_db
 from app.models.knowledge import KnowledgeBase
+from app.models.paper import PaperChunk, PaperEntity
 from app.services.features.knowledge import ensure_knowledge_features
 from app.services.integrations.zotero import ZoteroLocalClient
 from app.services.llm.gateway import LLMGateway
-from app.services.retrieval.adapters import from_knowledge, from_zotero
+from app.services.retrieval.adapters import from_knowledge, from_paper, from_zotero
 from app.services.retrieval.bm25 import rank_chunks
 from app.services.retrieval.contracts import RetrievalChunk
 
@@ -39,7 +40,7 @@ class AgentChatRequest(BaseModel):
 
 class AgentCitation(BaseModel):
     id: str
-    source: Literal["knowledge", "zotero"]
+    source: Literal["knowledge", "paper", "zotero"]
     title: str
     doi: str | None = None
     item_id: str | None = None
@@ -94,7 +95,7 @@ def _product_help_answer(question: str) -> str:
     if re.search(r"[\u4e00-\u9fff]", question):
         return (
             "目前这个智能体的使用方式如下：\n\n"
-            "1. 准备材料：先在“搜索”页检索论文并完成分析，把需要长期使用的内容保存到 ScholarNova 知识库；也可以在“设置”中连接已经启动的本机 Zotero。\n"
+            "1. 准备材料：先在“搜索”页检索论文并完成分析；导入过的授权 PDF 会建立本地全文检索片段，需要长期使用的结论还可以保存到 ScholarNova 知识库；也可以在“设置”中连接已经启动的本机 Zotero。\n"
             "2. 选择来源：进入“智能体”页面后，按需开启“ScholarNova 知识库”和“本机 Zotero”。未连接 Zotero 时可以只使用知识库。\n"
             "3. 提出科研问题：适合询问现有材料的研究共识、方法差异、研究空白、证据对比和可验证研究问题。问题越具体，检索越准确。\n"
             "4. 核验回答：科研回答中的 [S1]、[S2] 对应下方引用材料。重要结论仍应返回原论文核验。\n"
@@ -106,7 +107,7 @@ def _product_help_answer(question: str) -> str:
         )
     return (
         "Here is how to use the assistant:\n\n"
-        "1. Prepare evidence: analyze papers from Search and save useful findings to the ScholarNova knowledge base, or connect a running local Zotero from Settings.\n"
+        "1. Prepare evidence: analyze papers from Search; authorized imported PDFs are indexed locally, useful findings can be saved to the ScholarNova knowledge base, and a running local Zotero can be connected from Settings.\n"
         "2. Choose sources: enable the ScholarNova knowledge base, local Zotero, or both on the Assistant page.\n"
         "3. Ask a focused research question about consensus, method differences, research gaps, evidence, or testable next steps.\n"
         "4. Verify the answer: [S1] and [S2] point to the source cards shown below the response. Check important claims against the original paper.\n"
@@ -158,6 +159,16 @@ async def _knowledge_candidates(
     ]
 
 
+async def _paper_candidates(db: AsyncSession) -> list[RetrievalChunk]:
+    result = await db.execute(
+        select(PaperEntity, PaperChunk)
+        .join(PaperChunk, PaperChunk.paper_id == PaperEntity.id)
+        .order_by(PaperChunk.created_at.desc(), PaperChunk.position)
+        .limit(600)
+    )
+    return [from_paper(paper, chunk) for paper, chunk in result.all()]
+
+
 @router.post("/chat", response_model=AgentChatResponse)
 async def chat_with_research_agent(
     request: AgentChatRequest,
@@ -165,7 +176,7 @@ async def chat_with_research_agent(
     db: AsyncSession = Depends(get_db),
 ) -> AgentChatResponse:
     """Answer with traceable evidence gathered from local research tools."""
-    limited = check_rate_limit(http_request, endpoint_type="analysis")
+    limited = check_rate_limit(http_request, endpoint_type="agent")
     if limited:
         return limited
 
@@ -190,12 +201,14 @@ async def chat_with_research_agent(
     citations: list[AgentCitation] = []
     steps: list[AgentToolStep] = []
     knowledge_candidates: list[RetrievalChunk] = []
+    paper_candidates: list[RetrievalChunk] = []
     zotero_candidates: list[RetrievalChunk] = []
     zotero_status: Literal["completed", "skipped", "unavailable"] = "skipped"
     zotero_detail = "用户未启用 Zotero 检索"
 
     if request.use_knowledge:
         knowledge_candidates = await _knowledge_candidates(db)
+        paper_candidates = await _paper_candidates(db)
 
     if request.use_zotero:
         try:
@@ -218,12 +231,26 @@ async def chat_with_research_agent(
 
     ranked = rank_chunks(
         request.question,
-        [*knowledge_candidates, *zotero_candidates],
+        [*knowledge_candidates, *paper_candidates, *zotero_candidates],
         limit=6,
         max_per_document=2,
     )
     selected_knowledge = sum(item.chunk.source == "knowledge" for item in ranked)
+    selected_papers = sum(item.chunk.source == "paper" for item in ranked)
     selected_zotero = sum(item.chunk.source == "zotero" for item in ranked)
+    steps.append(
+        AgentToolStep(
+            tool="paper_fulltext_search",
+            status="completed" if request.use_knowledge else "skipped",
+            count=selected_papers,
+            detail=(
+                f"BM25 从 {len(paper_candidates)} 个已解析 PDF 片段中选择了 "
+                f"{selected_papers} 个相关片段"
+                if request.use_knowledge
+                else "用户未启用 ScholarNova 本地材料检索"
+            ),
+        )
+    )
     steps.append(
         AgentToolStep(
             tool="knowledge_search",
@@ -271,6 +298,25 @@ async def chat_with_research_agent(
                     item_id=metadata.get("knowledge_id"),
                 )
             )
+        elif chunk.source == "paper":
+            location = metadata.get("heading") or metadata.get("kind") or "正文"
+            if metadata.get("page") is not None:
+                location = f"{location}，第 {metadata['page']} 页"
+            contexts.append(
+                f"[{source_id}] ScholarNova 已解析 PDF\n"
+                f"标题：{chunk.title}\n位置：{location}\n"
+                f"特征版本：{chunk.feature_version}\n内容：{chunk.content}"
+            )
+            citations.append(
+                AgentCitation(
+                    id=source_id,
+                    source="paper",
+                    title=chunk.title,
+                    doi=metadata.get("doi"),
+                    item_id=metadata.get("paper_id"),
+                    url=metadata.get("url"),
+                )
+            )
         elif chunk.source == "zotero":
             contexts.append(
                 f"[{source_id}] Zotero 本地文献\n"
@@ -294,7 +340,7 @@ async def chat_with_research_agent(
         return AgentChatResponse(
             answer=(
                 "当前没有找到可引用的本地材料。请先将论文保存到 ScholarNova 知识库，"
-                "或启动 Zotero 并在“设置 → 高级”中允许本机应用与 Zotero 通讯。"
+                "导入有权使用的 PDF，或启动 Zotero 并在“设置 → 高级”中允许本机应用与 Zotero 通讯。"
             ),
             citations=[],
             tool_steps=steps,

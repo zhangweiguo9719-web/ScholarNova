@@ -249,6 +249,8 @@ export interface FulltextStatus {
   source: string | null
   file_size: number
   page_count?: number
+  feature_count?: number
+  feature_error?: string | null
 }
 
 export interface CompareResult {
@@ -351,7 +353,7 @@ export interface AgentMessage {
 
 export interface AgentCitation {
   id: string
-  source: 'knowledge' | 'zotero'
+  source: 'knowledge' | 'paper' | 'zotero'
   title: string
   doi: string | null
   item_id: string | null

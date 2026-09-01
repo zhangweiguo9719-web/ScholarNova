@@ -8,7 +8,17 @@ import uuid
 from datetime import date, datetime
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import Boolean, Date, DateTime, Integer, String, Text, func
+from sqlalchemy import (
+    Boolean,
+    Date,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.types import JSON
 from sqlalchemy.orm import Mapped, mapped_column
 import json
@@ -255,3 +265,33 @@ class PaperEntity(Base):
             "issue": self.issue,
             "pages": self.pages,
         }
+
+
+class PaperChunk(Base):
+    """Versioned searchable feature extracted from an authorized paper PDF."""
+
+    __tablename__ = "paper_chunks"
+    __table_args__ = (
+        UniqueConstraint("paper_id", "position", name="uq_paper_chunk_position"),
+    )
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    paper_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("paper_entities.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    position: Mapped[int] = mapped_column(Integer, nullable=False)
+    kind: Mapped[str] = mapped_column(String(30), nullable=False, index=True)
+    heading: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    page: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    content_hash: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    feature_version: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
+    char_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )

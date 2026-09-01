@@ -144,6 +144,7 @@ class Settings(BaseSettings):
     ALLOWED_HOSTS: List[str] = ["localhost", "127.0.0.1"]
     RATE_LIMIT_SEARCH_PER_MINUTE: int = 30  # 每 IP 每分钟搜索请求数
     RATE_LIMIT_ANALYSIS_PER_MINUTE: int = 10  # 每 IP 每分钟分析请求数
+    RATE_LIMIT_AGENT_PER_MINUTE: int = 20  # 每 IP 每分钟科研问答请求数
     MAX_REQUEST_SIZE: int = 10 * 1024 * 1024  # 最大请求体 10MB
     MAX_QUERY_LENGTH: int = 2000  # 查询字符串最大长度
     MAX_LIST_ITEMS: int = 100  # 列表字段最大元素数

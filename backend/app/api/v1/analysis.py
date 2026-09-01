@@ -11,11 +11,11 @@ from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.models.paper import PaperEntity
+from app.models.paper import PaperChunk, PaperEntity
 from app.schemas.query import AnalysisRequest, AnalysisResult
 from app.core.rate_limiter import check_rate_limit
 
@@ -208,7 +208,9 @@ def _uploaded_pdf_path(paper_id: str):
 
 
 async def _load_document_context(
-    paper_id: str, paper_info: dict
+    paper_id: str,
+    paper_info: dict,
+    db: AsyncSession | None = None,
 ) -> tuple[str, list[str], str, Optional[str]]:
     """Fetch and parse a legal OA PDF; never bypass institutional access."""
     from app.config import settings
@@ -245,6 +247,12 @@ async def _load_document_context(
         parsed = await asyncio.wait_for(PDFParser().parse(pdf_path), timeout=30)
         if not parsed or len((parsed.full_text or "").strip()) < 500:
             return "", [], "abstract", "PDF 可打开，但未提取到足够的正文文字"
+        if db is not None:
+            paper = await db.get(PaperEntity, paper_id)
+            if paper is not None:
+                from app.services.features.paper import ensure_paper_features
+
+                await ensure_paper_features(db, paper, parsed)
         visuals = await asyncio.to_thread(_visual_pages, pdf_path)
         return _document_text(parsed), visuals, f"fulltext:{source}", None
     except Exception as exc:
@@ -262,10 +270,14 @@ async def get_fulltext_status(
     if not await _find_paper_info(paper_id, db):
         raise HTTPException(status_code=404, detail="Paper not found")
     pdf_path = _uploaded_pdf_path(paper_id)
+    feature_count = (await db.execute(
+        select(func.count(PaperChunk.id)).where(PaperChunk.paper_id == paper_id)
+    )).scalar_one()
     return {
         "available": pdf_path.exists(),
         "source": "uploaded" if pdf_path.exists() else None,
         "file_size": pdf_path.stat().st_size if pdf_path.exists() else 0,
+        "feature_count": feature_count,
     }
 
 
@@ -300,11 +312,28 @@ async def upload_fulltext(
     temporary_path = pdf_path.with_suffix(".tmp")
     temporary_path.write_bytes(content)
     temporary_path.replace(pdf_path)
+    feature_count = 0
+    feature_error: str | None = None
+    try:
+        from app.services.features.paper import rebuild_paper_features
+        from app.services.pdf.parser import PDFParser
+
+        paper = await db.get(PaperEntity, paper_id)
+        parsed = await asyncio.wait_for(PDFParser().parse(pdf_path), timeout=30)
+        if paper is not None and parsed is not None:
+            feature_count = len(await rebuild_paper_features(db, paper, parsed))
+        else:
+            feature_error = "PDF 已保存，但当前论文记录无法建立检索特征"
+    except Exception as exc:
+        logger.warning("Uploaded PDF feature extraction failed", exc_info=True)
+        feature_error = f"PDF 已保存，但检索特征生成失败：{exc}"
     return {
         "available": True,
         "source": "uploaded",
         "file_size": len(content),
         "page_count": page_count,
+        "feature_count": feature_count,
+        "feature_error": feature_error,
     }
 
 
@@ -327,7 +356,7 @@ async def analyze_paper(
         raise HTTPException(status_code=404, detail="Paper not found")
 
     document_text, visual_pages, coverage, document_error = await _load_document_context(
-        paper_id, paper_info
+        paper_id, paper_info, db
     )
     paper_text = f"""
 Title: {paper_info['title']}

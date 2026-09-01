@@ -6,6 +6,7 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 
 ### Added
 
+- Versioned `paper_chunks` features for authorized PDF abstracts, sections, tables, and figure captions, indexed into the same local retrieval pipeline as knowledge and Zotero.
 - A provider-neutral `RetrievalChunk` contract and dependency-free Chinese/English BM25 retrieval layer for research-assistant evidence.
 - The first FTI-style feature pipeline: versioned, content-addressed knowledge chunks with lazy backfill and lifecycle synchronization.
 - A ScholarNova-specific FTI architecture map covering collection, feature, evaluation/optimization, inference, observability, and release gates.
@@ -23,7 +24,9 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 
 ### Changed
 
-- The research assistant now ranks ScholarNova knowledge chunks and live Zotero records in one candidate pool, limits each document to two evidence chunks, and performs no extra model call for retrieval.
+- Search, analysis, and research-assistant requests now use independent local rate-limit buckets, so one workflow cannot consume another workflow's allowance.
+- PDF upload and full-text analysis synchronize deterministic retrieval features without making an additional LLM call.
+- The research assistant now ranks ScholarNova knowledge, parsed PDF, and live Zotero chunks in one candidate pool, limits each document to two evidence chunks, and performs no extra model call for retrieval.
 - The research assistant now retrieves diverse, relevant knowledge chunks instead of truncating whole knowledge records into the model context.
 - Refreshed the Zhipu GLM selector with current official model IDs, including GLM-5.2 and lower-cost Flash options.
 - Zhipu connection probes now disable hidden reasoning and skip retries, preventing an empty tiny probe or an overloaded model from looking like a broken API key.
@@ -42,7 +45,7 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 
 ### Verified
 
-- 271 non-integration backend tests pass, including deterministic Chinese/English tokenization, BM25 relevance, document diversity, and unrelated-material rejection.
+- 275 non-integration backend tests and 18 frontend tests pass; TypeScript checks are clean. Local transactional validation created four PDF features, retrieved two relevant chunks, and rolled the test record back without invoking a model.
 - 13 focused Zotero, local-library, and research-assistant tests pass. The offline backend suite remains green; three live Semantic Scholar checks may receive the provider's HTTP 429 rate limit.
 - The three remaining full-suite failures are live Semantic Scholar integration checks returning HTTP 429, not local regressions.
 - All 16 frontend tests, TypeScript checks, and the production frontend build pass.

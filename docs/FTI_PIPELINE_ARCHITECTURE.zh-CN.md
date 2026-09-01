@@ -23,10 +23,10 @@ ScholarNova 不直接复制其“社交内容采集 + 微调个人写作模型�
 | 流水线 | 当前代码 | 已有能力 | 主要缺口 |
 | --- | --- | --- | --- |
 | 数据采集 | `services/sources`、`services/search/retriever.py`、`services/pdf`、`services/integrations/zotero.py` | 多学术 API、并发检索、PDF 获取解析、Zotero 读取 | 统一文档契约、授权馆藏连接器、增量同步 |
-| 特征 | `deduplicator.py`、`constraint_verifier.py`、`evidence`、`knowledge_chunks`、`services/retrieval` | 去重、约束验证、证据跨度、知识分块 v1、中英文 BM25、统一检索片段契约 | 可选向量索引、页码/图表级 Chunk |
+| 特征 | `deduplicator.py`、`constraint_verifier.py`、`evidence`、`knowledge_chunks`、`paper_chunks`、`services/retrieval` | 去重、约束验证、证据跨度、知识/PDF 分块、中英文 BM25、统一检索片段契约 | 可选向量索引、图像区域级 Chunk |
 | 评测优化 | `services/evaluation/benchmark.py`、`tests/evaluation` | F1/Precision/Recall、基准适配、离线回归 | RAG 黄金集、按流水线版本对比、发布阈值 |
 | 推理 | `orchestrator.py`、`ranker.py`、`llm/gateway.py`、`api/v1/agent.py` | 查询规划、多源召回、知识库/Zotero 联合排序、统一模型网关、来源约束问答 | 主备模型路由、稀疏+向量混合召回、答案充分性校验 |
-| 监控门禁 | `SearchRun`、质量快照、Token 记录、GitHub Actions | 搜索耗时/API 次数、模型用量、271 项离线测试 | 统一 Trace ID、阶段耗时、线上质量抽样与数据漂移 |
+| 监控门禁 | `SearchRun`、质量快照、Token 记录、GitHub Actions | 搜索耗时/API 次数、模型用量、275 项离线测试 | 统一 Trace ID、阶段耗时、线上质量抽样与数据漂移 |
 
 ## 3. 目标数据流
 
@@ -124,6 +124,14 @@ FTI-2A 在此基础上新增：
 4. 每篇文档最多保留两个片段，防止一篇长文挤占全部证据位置。
 5. 无相关命中时停止在检索层，不调用 LLM，因此该阶段不会新增模型 Token 成本。
 
+FTI-2B 继续把 PDF 接入同一条流水线：
+
+1. 新增 `paper_chunks` 特征表，保存解析器生成的摘要、章节、表格与图注片段。
+2. 每个片段保留论文 ID、内容哈希、特征版本、类型、章节标题和可用页码。
+3. 用户导入 PDF 时立即建立特征；后续执行全文分析时会确定性校验并同步特征。
+4. 科研问答将 PDF、知识库和 Zotero 放入同一 BM25 候选池，而不是把完整长文一次塞给模型。
+5. PDF 特征生成失败不会破坏原有上传和摘要分析流程，错误只影响全文检索增强。
+
 目前仍是本地稀疏检索，不宣称已经具备向量语义召回。稳定数据契约建立后，再增加可选的本地/远程 Embedding 与向量索引；未配置向量能力时必须继续使用当前 BM25 兜底。
 
 ## 6. 分阶段优化顺序
@@ -134,10 +142,11 @@ FTI-2A 在此基础上新增：
 - 智能体片段级检索与来源多样性。
 - 验收：确定性测试通过；旧数据无损；无关问题不引用随机材料。
 
-### FTI-2：统一文档与混合检索（2A 已完成）
+### FTI-2：统一文档与混合检索（2A/2B 稀疏基线已完成）
 
 - 已为知识库与 Zotero 建立统一 `RetrievalChunk`，并完成中英文 BM25 联合排序。
-- 下一步将 PDF 的章节、表格与图注接入相同契约，并补齐 DocumentRecord 持久化。
+- 已将 PDF 的摘要、章节、表格与图注接入相同契约，并用 `paper_chunks` 持久化版本化特征。
+- 下一步补齐通用 DocumentRecord 和 PDF 图像区域证据，再评估向量召回的实际收益。
 - Embedding 做成可选能力，不配置时继续使用稀疏检索。
 - 引入向量索引前先完成索引版本、删除同步和隐私策略。
 - 验收：固定黄金集 Recall@K、MRR、证据命中率不低于基线，延迟与磁盘增长可解释。
