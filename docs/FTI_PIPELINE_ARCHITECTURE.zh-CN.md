@@ -23,10 +23,10 @@ ScholarNova 不直接复制其“社交内容采集 + 微调个人写作模型�
 | 流水线 | 当前代码 | 已有能力 | 主要缺口 |
 | --- | --- | --- | --- |
 | 数据采集 | `services/sources`、`services/search/retriever.py`、`services/pdf`、`services/integrations/zotero.py` | 多学术 API、并发检索、PDF 获取解析、Zotero 读取 | 统一文档契约、授权馆藏连接器、增量同步 |
-| 特征 | `deduplicator.py`、`constraint_verifier.py`、`evidence`、`knowledge_chunks` | 去重、约束验证、证据跨度、知识分块 v1 | BM25 + 向量混合索引、页码/图表级 Chunk |
+| 特征 | `deduplicator.py`、`constraint_verifier.py`、`evidence`、`knowledge_chunks`、`services/retrieval` | 去重、约束验证、证据跨度、知识分块 v1、中英文 BM25、统一检索片段契约 | 可选向量索引、页码/图表级 Chunk |
 | 评测优化 | `services/evaluation/benchmark.py`、`tests/evaluation` | F1/Precision/Recall、基准适配、离线回归 | RAG 黄金集、按流水线版本对比、发布阈值 |
-| 推理 | `orchestrator.py`、`ranker.py`、`llm/gateway.py`、`api/v1/agent.py` | 查询规划、多源召回、排序、统一模型网关、来源约束问答 | 主备模型路由、混合召回、答案充分性校验 |
-| 监控门禁 | `SearchRun`、质量快照、Token 记录、GitHub Actions | 搜索耗时/API 次数、模型用量、267 项离线测试 | 统一 Trace ID、阶段耗时、线上质量抽样与数据漂移 |
+| 推理 | `orchestrator.py`、`ranker.py`、`llm/gateway.py`、`api/v1/agent.py` | 查询规划、多源召回、知识库/Zotero 联合排序、统一模型网关、来源约束问答 | 主备模型路由、稀疏+向量混合召回、答案充分性校验 |
+| 监控门禁 | `SearchRun`、质量快照、Token 记录、GitHub Actions | 搜索耗时/API 次数、模型用量、271 项离线测试 | 统一 Trace ID、阶段耗时、线上质量抽样与数据漂移 |
 
 ## 3. 目标数据流
 
@@ -105,7 +105,7 @@ flowchart LR
 
 记录一次用户请求经过的意图路由、查询规划、数据源、候选集、重排、证据片段、模型调用、Token 和最终校验结果。隐私内容默认保存在本机。
 
-## 5. 第一阶段已落地：知识特征流水线 v1
+## 5. 已落地：知识特征流水线与统一稀疏检索
 
 本轮新增 `knowledge_chunks` 特征表和 `services/features/knowledge.py`：
 
@@ -116,7 +116,15 @@ flowchart LR
 5. 智能体检索相关片段而不是截取整条内容；同一知识条目最多占两个片段。
 6. 无相关特征命中时明确返回材料不足，不回退到任意最近记录。
 
-这一阶段先采用本地稀疏相关度，避免立即引入大型向量数据库和下载模型。稳定数据契约建立后，再增加可选的本地/远程 Embedding 与向量索引。
+FTI-2A 在此基础上新增：
+
+1. 用供应商无关的 `RetrievalChunk` 契约统一知识库和实时 Zotero 候选材料。
+2. 采用不依赖外部模型的中英文 BM25，对标题、元数据和正文片段统一计分。
+3. 两类来源进入同一候选池后再排序，不再各自固定占用上下文名额。
+4. 每篇文档最多保留两个片段，防止一篇长文挤占全部证据位置。
+5. 无相关命中时停止在检索层，不调用 LLM，因此该阶段不会新增模型 Token 成本。
+
+目前仍是本地稀疏检索，不宣称已经具备向量语义召回。稳定数据契约建立后，再增加可选的本地/远程 Embedding 与向量索引；未配置向量能力时必须继续使用当前 BM25 兜底。
 
 ## 6. 分阶段优化顺序
 
@@ -126,10 +134,11 @@ flowchart LR
 - 智能体片段级检索与来源多样性。
 - 验收：确定性测试通过；旧数据无损；无关问题不引用随机材料。
 
-### FTI-2：统一文档与混合检索
+### FTI-2：统一文档与混合检索（2A 已完成）
 
-- 为 PDF、知识库与 Zotero 建立统一 DocumentRecord / FeatureChunk。
-- 增加 BM25；Embedding 做成可选能力，不配置时继续使用稀疏检索。
+- 已为知识库与 Zotero 建立统一 `RetrievalChunk`，并完成中英文 BM25 联合排序。
+- 下一步将 PDF 的章节、表格与图注接入相同契约，并补齐 DocumentRecord 持久化。
+- Embedding 做成可选能力，不配置时继续使用稀疏检索。
 - 引入向量索引前先完成索引版本、删除同步和隐私策略。
 - 验收：固定黄金集 Recall@K、MRR、证据命中率不低于基线，延迟与磁盘增长可解释。
 

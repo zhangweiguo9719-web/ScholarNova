@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Literal
 
@@ -15,10 +14,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import get_model_for_task
 from app.core.rate_limiter import check_rate_limit
 from app.database import get_db
-from app.models.knowledge import KnowledgeBase, KnowledgeChunk
+from app.models.knowledge import KnowledgeBase
 from app.services.features.knowledge import ensure_knowledge_features
 from app.services.integrations.zotero import ZoteroLocalClient
 from app.services.llm.gateway import LLMGateway
+from app.services.retrieval.adapters import from_knowledge, from_zotero
+from app.services.retrieval.bm25 import rank_chunks
+from app.services.retrieval.contracts import RetrievalChunk
 
 router = APIRouter()
 
@@ -138,98 +140,22 @@ def _zotero_queries(question: str) -> list[str]:
     return list(dict.fromkeys(query for query in queries if query))[:4]
 
 
-@dataclass(frozen=True)
-class KnowledgeMaterial:
-    knowledge: KnowledgeBase
-    chunk: KnowledgeChunk
-    score: int
-
-
-def _knowledge_chunk_score(
-    item: KnowledgeBase,
-    chunk: KnowledgeChunk,
-    terms: list[str],
-) -> int:
-    title = (item.title or "").casefold()
-    category = (item.category or "").casefold()
-    content = (chunk.content or "").casefold()
-    tags = " ".join(item.tags or []).casefold()
-    research_points = " ".join(item.research_points or []).casefold()
-    return sum(
-        8 * (term in title)
-        + 4 * (term in category)
-        + 3 * (term in tags)
-        + 3 * (term in research_points)
-        + 2 * min(3, content.count(term))
-        for term in terms
-    )
-
-
-async def _knowledge_materials(
+async def _knowledge_candidates(
     db: AsyncSession,
-    question: str,
-    *,
-    limit: int = 4,
-) -> list[KnowledgeMaterial]:
+) -> list[RetrievalChunk]:
     result = await db.execute(
         select(KnowledgeBase).order_by(KnowledgeBase.updated_at.desc()).limit(80)
     )
     items = list(result.scalars().all())
     if not items:
         return []
-    terms = _query_terms(question)
     chunks = await ensure_knowledge_features(db, items)
     item_by_id = {item.id: item for item in items}
-    ranked = sorted(
-        (
-            KnowledgeMaterial(
-                knowledge=item_by_id[chunk.knowledge_id],
-                chunk=chunk,
-                score=_knowledge_chunk_score(item_by_id[chunk.knowledge_id], chunk, terms),
-            )
-            for chunk in chunks
-            if chunk.knowledge_id in item_by_id
-        ),
-        key=lambda material: (
-            material.score,
-            str(material.knowledge.updated_at or ""),
-            -material.chunk.position,
-        ),
-        reverse=True,
-    )
-    selected: list[KnowledgeMaterial] = []
-    per_item: dict[str, int] = {}
-    for material in ranked:
-        if material.score <= 0:
-            continue
-        knowledge_id = material.knowledge.id
-        if per_item.get(knowledge_id, 0) >= 2:
-            continue
-        selected.append(material)
-        per_item[knowledge_id] = per_item.get(knowledge_id, 0) + 1
-        if len(selected) >= limit:
-            break
-    return selected
-
-
-def _zotero_author_names(data: dict[str, Any]) -> str:
-    names: list[str] = []
-    for creator in data.get("creators") or []:
-        if not isinstance(creator, dict):
-            continue
-        name = str(creator.get("name") or "").strip()
-        if not name:
-            name = " ".join(
-                part
-                for part in (
-                    str(creator.get("firstName") or "").strip(),
-                    str(creator.get("lastName") or "").strip(),
-                )
-                if part
-            )
-        if name:
-            names.append(name)
-    return ", ".join(names[:8])
+    return [
+        from_knowledge(item_by_id[chunk.knowledge_id], chunk)
+        for chunk in chunks
+        if chunk.knowledge_id in item_by_id
+    ]
 
 
 @router.post("/chat", response_model=AgentChatResponse)
@@ -263,48 +189,13 @@ async def chat_with_research_agent(
     contexts: list[str] = []
     citations: list[AgentCitation] = []
     steps: list[AgentToolStep] = []
+    knowledge_candidates: list[RetrievalChunk] = []
+    zotero_candidates: list[RetrievalChunk] = []
+    zotero_status: Literal["completed", "skipped", "unavailable"] = "skipped"
+    zotero_detail = "用户未启用 Zotero 检索"
 
     if request.use_knowledge:
-        knowledge_materials = await _knowledge_materials(db, request.question)
-        for material in knowledge_materials:
-            item = material.knowledge
-            chunk = material.chunk
-            source_id = f"S{len(citations) + 1}"
-            contexts.append(
-                f"[{source_id}] ScholarNova 知识库\n"
-                f"标题：{item.title}\n分类：{item.category}\n"
-                f"特征版本：{chunk.feature_version}\n片段：{chunk.position + 1}\n"
-                f"内容：{chunk.content}\n"
-                f"研究点：{'；'.join(item.research_points or [])[:500]}"
-            )
-            citations.append(
-                AgentCitation(
-                    id=source_id,
-                    source="knowledge",
-                    title=item.source_paper_title or item.title,
-                    doi=item.source_paper_doi,
-                    item_id=item.id,
-                )
-            )
-        steps.append(
-            AgentToolStep(
-                tool="knowledge_search",
-                status="completed",
-                count=len(knowledge_materials),
-                detail=(
-                    f"从 ScholarNova 知识特征层选择了 {len(knowledge_materials)} 个相关片段，"
-                    f"覆盖 {len({material.knowledge.id for material in knowledge_materials})} 条知识记录"
-                ),
-            )
-        )
-    else:
-        steps.append(
-            AgentToolStep(
-                tool="knowledge_search",
-                status="skipped",
-                detail="用户未启用知识库检索",
-            )
-        )
+        knowledge_candidates = await _knowledge_candidates(db)
 
     if request.use_zotero:
         try:
@@ -314,51 +205,90 @@ async def chat_with_research_agent(
                 zotero_items = await zotero_client.search_items(zotero_query, limit=4)
                 if zotero_items:
                     break
-            for item in zotero_items:
-                data = item.get("data") or {}
-                title = str(data.get("title") or "未命名 Zotero 文献").strip()
-                source_id = f"S{len(citations) + 1}"
-                contexts.append(
-                    f"[{source_id}] Zotero 本地文献\n"
-                    f"标题：{title}\n作者：{_zotero_author_names(data)}\n"
-                    f"日期：{data.get('date') or '未知'}\n"
-                    f"期刊/会议：{data.get('publicationTitle') or data.get('conferenceName') or '未知'}\n"
-                    f"摘要：{str(data.get('abstractNote') or '')[:1400]}"
-                )
-                citations.append(
-                    AgentCitation(
-                        id=source_id,
-                        source="zotero",
-                        title=title,
-                        doi=str(data.get("DOI") or "").strip() or None,
-                        item_id=str(item.get("key") or "").strip() or None,
-                        url=str(data.get("url") or "").strip() or None,
-                    )
-                )
-            steps.append(
-                AgentToolStep(
-                    tool="zotero_search",
-                    status="completed",
-                    count=len(zotero_items),
-                    detail=f"从本机 Zotero 选择了 {len(zotero_items)} 篇相关文献",
-                )
-            )
+            zotero_candidates = [
+                candidate
+                for item in zotero_items
+                if (candidate := from_zotero(item)) is not None
+            ]
+            zotero_status = "completed"
+            zotero_detail = f"从本机 Zotero 获得 {len(zotero_candidates)} 个候选片段"
         except Exception:
-            steps.append(
-                AgentToolStep(
-                    tool="zotero_search",
-                    status="unavailable",
-                    detail="Zotero 未启动或本地 API 尚未启用，已继续使用其他材料",
+            zotero_status = "unavailable"
+            zotero_detail = "Zotero 未启动或本地 API 尚未启用，已继续使用其他材料"
+
+    ranked = rank_chunks(
+        request.question,
+        [*knowledge_candidates, *zotero_candidates],
+        limit=6,
+        max_per_document=2,
+    )
+    selected_knowledge = sum(item.chunk.source == "knowledge" for item in ranked)
+    selected_zotero = sum(item.chunk.source == "zotero" for item in ranked)
+    steps.append(
+        AgentToolStep(
+            tool="knowledge_search",
+            status="completed" if request.use_knowledge else "skipped",
+            count=selected_knowledge,
+            detail=(
+                f"BM25 从 {len(knowledge_candidates)} 个知识片段中选择了 "
+                f"{selected_knowledge} 个相关片段"
+                if request.use_knowledge
+                else "用户未启用知识库检索"
+            ),
+        )
+    )
+    steps.append(
+        AgentToolStep(
+            tool="zotero_search",
+            status=zotero_status,
+            count=selected_zotero,
+            detail=(
+                f"{zotero_detail}，统一排序后保留 {selected_zotero} 个"
+                if zotero_status == "completed"
+                else zotero_detail
+            ),
+        )
+    )
+
+    for ranked_item in ranked:
+        chunk = ranked_item.chunk
+        metadata = chunk.metadata
+        source_id = f"S{len(citations) + 1}"
+        if chunk.source == "knowledge":
+            contexts.append(
+                f"[{source_id}] ScholarNova 知识库\n"
+                f"标题：{chunk.title}\n分类：{metadata.get('category') or '未分类'}\n"
+                f"特征版本：{chunk.feature_version}\n片段：{chunk.position + 1}\n"
+                f"内容：{chunk.content}\n"
+                f"研究点：{metadata.get('research_points') or '未记录'}"
+            )
+            citations.append(
+                AgentCitation(
+                    id=source_id,
+                    source="knowledge",
+                    title=chunk.title,
+                    doi=metadata.get("doi"),
+                    item_id=metadata.get("knowledge_id"),
                 )
             )
-    else:
-        steps.append(
-            AgentToolStep(
-                tool="zotero_search",
-                status="skipped",
-                detail="用户未启用 Zotero 检索",
+        elif chunk.source == "zotero":
+            contexts.append(
+                f"[{source_id}] Zotero 本地文献\n"
+                f"标题：{chunk.title}\n作者：{metadata.get('authors') or '未知'}\n"
+                f"日期：{metadata.get('date') or '未知'}\n"
+                f"期刊/会议：{metadata.get('venue') or '未知'}\n"
+                f"摘要：{chunk.content or '摘要暂缺，请回到原文核验'}"
             )
-        )
+            citations.append(
+                AgentCitation(
+                    id=source_id,
+                    source="zotero",
+                    title=chunk.title,
+                    doi=metadata.get("doi"),
+                    item_id=metadata.get("item_id"),
+                    url=metadata.get("url"),
+                )
+            )
 
     if not contexts:
         return AgentChatResponse(
