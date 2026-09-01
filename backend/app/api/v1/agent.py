@@ -45,6 +45,9 @@ class AgentCitation(BaseModel):
     doi: str | None = None
     item_id: str | None = None
     url: str | None = None
+    section: str | None = None
+    page: int | None = None
+    chunk_index: int | None = None
 
 
 class AgentToolStep(BaseModel):
@@ -296,6 +299,7 @@ async def chat_with_research_agent(
                     title=chunk.title,
                     doi=metadata.get("doi"),
                     item_id=metadata.get("knowledge_id"),
+                    chunk_index=chunk.position + 1,
                 )
             )
         elif chunk.source == "paper":
@@ -315,6 +319,8 @@ async def chat_with_research_agent(
                     doi=metadata.get("doi"),
                     item_id=metadata.get("paper_id"),
                     url=metadata.get("url"),
+                    section=metadata.get("heading") or metadata.get("kind"),
+                    page=metadata.get("page"),
                 )
             )
         elif chunk.source == "zotero":

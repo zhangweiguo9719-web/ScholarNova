@@ -213,7 +213,7 @@ export default function ResearchAssistant() {
                   <div className={`rounded-2xl px-4 py-3 text-sm leading-7 ${message.role === 'user' ? 'bg-[var(--ui-brand)] text-white dark:text-[#101722]' : 'border border-[var(--ui-border)] bg-[var(--ui-surface-soft)] text-[var(--ui-text)]'}`}>
                     <div className="whitespace-pre-wrap">{message.content}</div>
                   </div>
-                  {message.result && <AgentTrace result={message.result} copy={copy} />}
+                  {message.result && <AgentTrace result={message.result} copy={copy} isChinese={isChinese} />}
                 </article>
               ))}
 
@@ -268,7 +268,7 @@ function SourceToggle({ active, onClick, icon, label, warning = false }: { activ
   )
 }
 
-function AgentTrace({ result, copy }: { result: AgentChatResponse; copy: Record<string, any> }) {
+function AgentTrace({ result, copy, isChinese }: { result: AgentChatResponse; copy: Record<string, any>; isChinese: boolean }) {
   const isProductHelp = result.response_type === 'product_help'
   return (
     <div className="mt-3 space-y-3 rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface)] p-3 text-xs text-[var(--ui-text-soft)]">
@@ -296,12 +296,20 @@ function AgentTrace({ result, copy }: { result: AgentChatResponse; copy: Record<
           <div className="grid gap-2 sm:grid-cols-2">
             {result.citations.map((citation) => {
               const safeUrl = /^https?:\/\//i.test(citation.url || '') ? citation.url : null
+              const location = citation.source === 'paper'
+                ? [citation.section, citation.page ? (isChinese ? `第 ${citation.page} 页` : `p. ${citation.page}`) : null].filter(Boolean).join(' · ')
+                : citation.source === 'knowledge' && citation.chunk_index
+                  ? (isChinese ? `知识片段 ${citation.chunk_index}` : `Knowledge chunk ${citation.chunk_index}`)
+                  : citation.source === 'zotero'
+                    ? (isChinese ? 'Zotero 元数据与摘要' : 'Zotero metadata and abstract')
+                    : ''
               return <div key={citation.id} className="rounded-lg border border-[var(--ui-border)] px-2.5 py-2">
                 <div className="flex items-start gap-2">
                   <span className="font-mono font-bold text-[var(--ui-accent)]">[{citation.id}]</span>
                   <div className="min-w-0 flex-1">
                     <p className="line-clamp-2 font-medium text-[var(--ui-text)]">{citation.title}</p>
                     <p className="mt-1 uppercase tracking-wide text-[10px] text-[var(--ui-muted)]">{citation.source}</p>
+                    {location && <p className="mt-1 text-[11px] text-[var(--ui-text-soft)]">{location}</p>}
                   </div>
                   {safeUrl && <a href={safeUrl} target="_blank" rel="noreferrer" aria-label={citation.title}><ExternalLink className="h-3.5 w-3.5" /></a>}
                 </div>

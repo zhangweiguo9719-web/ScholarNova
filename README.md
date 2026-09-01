@@ -65,6 +65,7 @@ Developers who want to build the application themselves can use the [Windows des
 - Searches Semantic Scholar, OpenAlex, Crossref, and arXiv.
 - Connects to the local Zotero library in read-only mode and searches explicitly imported metadata alongside online sources.
 - Includes a traceable research-assistant MVP that jointly ranks knowledge chunks, parsed PDF sections/tables/captions, and live local Zotero records with dependency-free multilingual BM25 before calling the user's model.
+- Preserves section and page locators when available and shows localized evidence locations on assistant citation cards.
 - Deduplicates and ranks papers using title, abstract, year, venue, citations, and query constraints.
 - Displays abstracts, authors, metadata, relevance, citation percentile, citation velocity, and traceable quality signals.
 - Shows live elapsed time, exact source API/query/call status, and supports an intentional re-run of the same query.

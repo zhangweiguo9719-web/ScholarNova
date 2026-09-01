@@ -12,7 +12,7 @@ from app.models.paper import PaperChunk, PaperEntity
 from app.services.features.knowledge import split_knowledge_text
 from app.services.pdf.parser import ParsedDocument
 
-PAPER_FEATURE_VERSION = "pdf-parser-chunker-v1"
+PAPER_FEATURE_VERSION = "pdf-parser-chunker-v2"
 _WHITESPACE = re.compile(r"[ \t\r\f\v]+")
 
 
@@ -35,6 +35,22 @@ def _table_text(table: dict) -> str:
     return "\n".join(part for part in (caption, row_text) if part)
 
 
+def _fulltext_chunks(text: str) -> list[tuple[int | None, str]]:
+    """Split parser page markers before normal chunking to preserve page locators."""
+    normalized = _clean(text)
+    matches = list(re.finditer(r"\[Page\s+(\d+)\]", normalized, re.IGNORECASE))
+    if not matches:
+        return [(None, chunk) for chunk in split_knowledge_text(normalized)]
+    chunks: list[tuple[int | None, str]] = []
+    for index, match in enumerate(matches):
+        start = match.end()
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(normalized)
+        page = int(match.group(1))
+        for chunk in split_knowledge_text(normalized[start:end]):
+            chunks.append((page, chunk))
+    return chunks
+
+
 def build_paper_chunks(
     paper: PaperEntity,
     parsed: ParsedDocument,
@@ -48,7 +64,7 @@ def build_paper_chunks(
     for section in parsed.sections or []:
         heading = _clean(section.heading) or "Section"
         for content in split_knowledge_text(_clean(section.text)):
-            entries.append(("section", heading, None, content))
+            entries.append(("section", heading, section.page_start, content))
 
     for table in parsed.tables or []:
         content = _table_text(table)
@@ -65,8 +81,8 @@ def build_paper_chunks(
             entries.append(("figure", heading, page, caption))
 
     if not entries:
-        for content in split_knowledge_text(_clean(parsed.full_text)):
-            entries.append(("fulltext", "Full text", None, content))
+        for page, content in _fulltext_chunks(parsed.full_text):
+            entries.append(("fulltext", "Full text", page, content))
 
     chunks: list[PaperChunk] = []
     for position, (kind, heading, page, content) in enumerate(entries):

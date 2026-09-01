@@ -65,6 +65,8 @@ class DocumentSection:
     level: int  # 1=一级标题, 2=二级标题
     text: str
     paragraph_index: int  # 在文档中的段落位置
+    page_start: Optional[int] = None
+    page_end: Optional[int] = None
 
 
 @dataclass
@@ -243,13 +245,13 @@ class PDFParser:
         all_text_parts: list[str] = []
         for page_num in range(doc.page_count):
             page = doc[page_num]
-            text = page.get_text()
+            text = page.get_text() or ""
+            page_texts.append(text)
             if text:
-                page_texts.append(text)
                 all_text_parts.append(f"[Page {page_num + 1}]\n{text}")
 
         full_text = "\n\n".join(all_text_parts)
-        combined_text = "\n".join(page_texts)
+        combined_text = "\n".join(text for text in page_texts if text)
 
         # 提取元数据
         metadata = self._extract_metadata(doc)
@@ -261,7 +263,7 @@ class PDFParser:
         abstract = self._extract_abstract(combined_text)
 
         # 提取章节
-        sections = self._extract_structured_sections(combined_text)
+        sections = self._extract_structured_sections(full_text)
 
         # 提取参考文献
         references = self._extract_references(combined_text)
@@ -270,7 +272,7 @@ class PDFParser:
         tables = self._extract_tables(doc)
 
         # 提取图片描述
-        figures = self._extract_figure_captions(combined_text)
+        figures = self._extract_figure_captions_from_pages(page_texts)
 
         return ParsedDocument(
             title=title,
@@ -450,9 +452,16 @@ class PDFParser:
         current_level = 1
         current_lines: list[str] = []
         para_idx = 0
+        current_page: Optional[int] = None
+        page_start: Optional[int] = None
+        page_end: Optional[int] = None
 
         for line in lines:
             stripped = line.strip()
+            page_match = re.fullmatch(r"\[Page\s+(\d+)\]", stripped, re.IGNORECASE)
+            if page_match:
+                current_page = int(page_match.group(1))
+                continue
             if not stripped:
                 current_lines.append("")
                 continue
@@ -468,14 +477,22 @@ class PDFParser:
                             level=current_level,
                             text=section_text,
                             paragraph_index=para_idx,
+                            page_start=page_start,
+                            page_end=page_end,
                         )
                     )
                     para_idx += 1
 
                 current_heading, current_level = detected
                 current_lines = []
+                page_start = current_page
+                page_end = current_page
             else:
                 current_lines.append(stripped)
+                if page_start is None:
+                    page_start = current_page
+                if current_page is not None:
+                    page_end = current_page
 
         # 最后一个章节
         section_text = "\n".join(current_lines).strip()
@@ -486,6 +503,8 @@ class PDFParser:
                     level=current_level,
                     text=section_text,
                     paragraph_index=para_idx,
+                    page_start=page_start,
+                    page_end=page_end,
                 )
             )
 
@@ -499,6 +518,9 @@ class PDFParser:
         current_level = 1
         current_lines: list[str] = []
         para_idx = 0
+        current_page: Optional[int] = None
+        page_start: Optional[int] = None
+        page_end: Optional[int] = None
 
         # 匹配格式化标题的正则
         # 全大写标题行（如 "INTRODUCTION"）
@@ -513,6 +535,10 @@ class PDFParser:
 
         for line in lines:
             stripped = line.strip()
+            page_match = re.fullmatch(r"\[Page\s+(\d+)\]", stripped, re.IGNORECASE)
+            if page_match:
+                current_page = int(page_match.group(1))
+                continue
             if not stripped:
                 current_lines.append("")
                 continue
@@ -528,6 +554,8 @@ class PDFParser:
                             level=current_level,
                             text=section_text,
                             paragraph_index=para_idx,
+                            page_start=page_start,
+                            page_end=page_end,
                         )
                     )
                     para_idx += 1
@@ -539,8 +567,14 @@ class PDFParser:
                     2 if match.group(3) or (match.group(2) and "." in stripped[:4]) else 1
                 )
                 current_lines = []
+                page_start = current_page
+                page_end = current_page
             else:
                 current_lines.append(stripped)
+                if page_start is None:
+                    page_start = current_page
+                if current_page is not None:
+                    page_end = current_page
 
         # 最后一个章节
         section_text = "\n".join(current_lines).strip()
@@ -551,6 +585,8 @@ class PDFParser:
                     level=current_level,
                     text=section_text,
                     paragraph_index=para_idx,
+                    page_start=page_start,
+                    page_end=page_end,
                 )
             )
 
@@ -736,4 +772,15 @@ class PDFParser:
                     "caption": caption,
                 }
             )
+        return figures
+
+    def _extract_figure_captions_from_pages(
+        self,
+        page_texts: list[str],
+    ) -> list[dict]:
+        """Extract captions per page so citations retain a verifiable locator."""
+        figures: list[dict] = []
+        for page_index, text in enumerate(page_texts):
+            for figure in self._extract_figure_captions(text):
+                figures.append({**figure, "page": page_index + 1})
         return figures

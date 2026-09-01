@@ -6,6 +6,7 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 
 ### Added
 
+- Page-aware PDF sections and figure captions, plus structured section/page/chunk locators for bilingual research-assistant citation cards.
 - Versioned `paper_chunks` features for authorized PDF abstracts, sections, tables, and figure captions, indexed into the same local retrieval pipeline as knowledge and Zotero.
 - A provider-neutral `RetrievalChunk` contract and dependency-free Chinese/English BM25 retrieval layer for research-assistant evidence.
 - The first FTI-style feature pipeline: versioned, content-addressed knowledge chunks with lazy backfill and lifecycle synchronization.
@@ -24,6 +25,7 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 
 ### Changed
 
+- PDF retrieval features now use `pdf-parser-chunker-v2`; analyzing an older imported PDF deterministically refreshes its locators without changing the original file.
 - Search, analysis, and research-assistant requests now use independent local rate-limit buckets, so one workflow cannot consume another workflow's allowance.
 - PDF upload and full-text analysis synchronize deterministic retrieval features without making an additional LLM call.
 - The research assistant now ranks ScholarNova knowledge, parsed PDF, and live Zotero chunks in one candidate pool, limits each document to two evidence chunks, and performs no extra model call for retrieval.
@@ -45,7 +47,8 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 
 ### Verified
 
-- 275 non-integration backend tests and 18 frontend tests pass; TypeScript checks are clean. Local transactional validation created four PDF features, retrieved two relevant chunks, and rolled the test record back without invoking a model.
+- 276 non-integration backend tests and 18 frontend tests pass; page-aware parsing is covered with a generated three-page PDF fixture.
+- TypeScript checks are clean. Local transactional validation created four PDF features, retrieved two relevant chunks, and rolled the test record back without invoking a model.
 - 13 focused Zotero, local-library, and research-assistant tests pass. The offline backend suite remains green; three live Semantic Scholar checks may receive the provider's HTTP 429 rate limit.
 - The three remaining full-suite failures are live Semantic Scholar integration checks returning HTTP 429, not local regressions.
 - All 16 frontend tests, TypeScript checks, and the production frontend build pass.

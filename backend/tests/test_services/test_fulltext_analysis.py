@@ -7,6 +7,7 @@ from starlette.datastructures import UploadFile
 from app.api.v1 import analysis as analysis_api
 from app.api.v1.analysis import _document_text, _visual_pages
 from app.config import settings
+from app.services.pdf.parser import PDFParser
 
 
 def test_document_context_includes_sections_figures_and_tables():
@@ -46,6 +47,40 @@ def test_visual_pages_include_vector_figure_caption_pages(tmp_path):
 
     assert len(images) == 1
     assert images[0].startswith("data:image/jpeg;base64,")
+
+
+@pytest.mark.asyncio
+async def test_pdf_parser_preserves_section_and_figure_pages(tmp_path):
+    import pymupdf
+
+    pdf_path = tmp_path / "located-evidence.pdf"
+    document = pymupdf.open()
+    page = document.new_page()
+    page.insert_text(
+        (72, 72),
+        "ABSTRACT\nA traceable retrieval study.\n"
+        "INTRODUCTION\nBackground evidence.",
+    )
+    page = document.new_page()
+    page.insert_text(
+        (72, 72),
+        "1 Methods\nThe model uses grounded retrieval and verification.",
+    )
+    page = document.new_page()
+    page.insert_text(
+        (72, 72),
+        "2 Results\nThe method improves recall.\nFigure 1: Evidence pipeline.",
+    )
+    document.save(pdf_path)
+    document.close()
+
+    parsed = await PDFParser().parse(pdf_path)
+
+    assert parsed is not None
+    methods = next(section for section in parsed.sections if section.heading == "Methods")
+    assert methods.page_start == 2
+    assert methods.page_end == 2
+    assert parsed.figures[0]["page"] == 3
 
 
 @pytest.mark.asyncio

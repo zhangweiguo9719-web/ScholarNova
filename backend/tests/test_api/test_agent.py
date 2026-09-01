@@ -90,7 +90,7 @@ async def test_agent_answers_from_indexed_pdf_chunk(
             page=3,
             content="The retrieval agent uses BM25 and citation verification.",
             content_hash="b" * 64,
-            feature_version="pdf-parser-chunker-v1",
+            feature_version="pdf-parser-chunker-v2",
             char_count=58,
         )
     )
@@ -110,6 +110,8 @@ async def test_agent_answers_from_indexed_pdf_chunk(
     assert data["grounded"] is True
     assert data["citations"][0]["source"] == "paper"
     assert data["citations"][0]["doi"] == "10.1000/pdf.1"
+    assert data["citations"][0]["section"] == "Methods"
+    assert data["citations"][0]["page"] == 3
     paper_step = next(
         step for step in data["tool_steps"]
         if step["tool"] == "paper_fulltext_search"

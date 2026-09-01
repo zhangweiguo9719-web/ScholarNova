@@ -16,6 +16,8 @@ def test_paper_features_cover_sections_tables_and_figures() -> None:
                 level=1,
                 text="The system combines sparse retrieval with evidence checks.",
                 paragraph_index=1,
+                page_start=2,
+                page_end=3,
             )
         ],
         tables=[{
@@ -40,6 +42,9 @@ def test_paper_features_cover_sections_tables_and_figures() -> None:
     table = next(chunk for chunk in first if chunk.kind == "table")
     assert table.page == 4
     assert "BM25 | 0.42" in table.content
+    section = next(chunk for chunk in first if chunk.kind == "section")
+    assert section.page == 2
+    assert section.feature_version == "pdf-parser-chunker-v2"
 
 
 def test_paper_features_fall_back_to_full_text() -> None:
@@ -47,10 +52,11 @@ def test_paper_features_fall_back_to_full_text() -> None:
     parsed = ParsedDocument(
         title="Fallback",
         abstract="",
-        full_text="完整正文内容。" * 200,
+        full_text="[Page 1]\n第一页正文。\n\n[Page 2]\n" + "完整正文内容。" * 200,
     )
 
     chunks = build_paper_chunks(paper, parsed)
 
     assert chunks
     assert all(chunk.kind == "fulltext" for chunk in chunks)
+    assert {chunk.page for chunk in chunks} == {1, 2}

@@ -358,6 +358,9 @@ export interface AgentCitation {
   doi: string | null
   item_id: string | null
   url: string | null
+  section: string | null
+  page: number | null
+  chunk_index: number | null
 }
 
 export interface AgentToolStep {

@@ -143,7 +143,16 @@ def _document_text(parsed) -> str:
         len(priority),
     ))
     for section in sections:
-        value = f"\n### {section.heading}\n{section.text.strip()}"
+        page_start = getattr(section, "page_start", None)
+        page_end = getattr(section, "page_end", None)
+        page_label = ""
+        if page_start is not None:
+            page_label = (
+                f" (pages {page_start}-{page_end})"
+                if page_end is not None and page_end != page_start
+                else f" (page {page_start})"
+            )
+        value = f"\n### {section.heading}{page_label}\n{section.text.strip()}"
         remaining = budget - sum(len(item) for item in parts)
         if remaining <= 0:
             break
