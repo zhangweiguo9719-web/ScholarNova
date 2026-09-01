@@ -8,7 +8,7 @@ import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import DateTime, String, Text, func
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.types import JSON
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -143,6 +143,33 @@ class KnowledgeBase(Base):
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
+
+
+class KnowledgeChunk(Base):
+    """由知识条目确定性生成的可检索文本特征。"""
+
+    __tablename__ = "knowledge_chunks"
+    __table_args__ = (
+        UniqueConstraint("knowledge_id", "position", name="uq_knowledge_chunk_position"),
+    )
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    knowledge_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("knowledge_base.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    position: Mapped[int] = mapped_column(Integer, nullable=False)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    content_hash: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    feature_version: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
+    char_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
 
 
 class ResearchRoute(Base):

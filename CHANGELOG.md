@@ -6,6 +6,8 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 
 ### Added
 
+- The first FTI-style feature pipeline: versioned, content-addressed knowledge chunks with lazy backfill and lifecycle synchronization.
+- A ScholarNova-specific FTI architecture map covering collection, feature, evaluation/optimization, inference, observability, and release gates.
 - Read-only Zotero Local API detection and collection discovery from the Settings page.
 - Explicit import of up to 100 Zotero bibliographic records with DOI-based idempotent updates.
 - A zero-network local-library search source so imported Zotero papers participate in normal ScholarNova searches.
@@ -20,6 +22,7 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 
 ### Changed
 
+- The research assistant now retrieves diverse, relevant knowledge chunks instead of truncating whole knowledge records into the model context.
 - Refreshed the Zhipu GLM selector with current official model IDs, including GLM-5.2 and lower-cost Flash options.
 - Zhipu connection probes now disable hidden reasoning and skip retries, preventing an empty tiny probe or an overloaded model from looking like a broken API key.
 - Model-test timeouts now return an actionable message instead of an empty error.

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Literal
 
@@ -14,7 +15,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import get_model_for_task
 from app.core.rate_limiter import check_rate_limit
 from app.database import get_db
-from app.models.knowledge import KnowledgeBase
+from app.models.knowledge import KnowledgeBase, KnowledgeChunk
+from app.services.features.knowledge import ensure_knowledge_features
 from app.services.integrations.zotero import ZoteroLocalClient
 from app.services.llm.gateway import LLMGateway
 
@@ -136,16 +138,29 @@ def _zotero_queries(question: str) -> list[str]:
     return list(dict.fromkeys(query for query in queries if query))[:4]
 
 
-def _knowledge_score(item: KnowledgeBase, terms: list[str]) -> int:
+@dataclass(frozen=True)
+class KnowledgeMaterial:
+    knowledge: KnowledgeBase
+    chunk: KnowledgeChunk
+    score: int
+
+
+def _knowledge_chunk_score(
+    item: KnowledgeBase,
+    chunk: KnowledgeChunk,
+    terms: list[str],
+) -> int:
     title = (item.title or "").casefold()
     category = (item.category or "").casefold()
-    content = (item.content or "").casefold()
+    content = (chunk.content or "").casefold()
     tags = " ".join(item.tags or []).casefold()
+    research_points = " ".join(item.research_points or []).casefold()
     return sum(
-        5 * (term in title)
-        + 3 * (term in category)
-        + 2 * (term in tags)
-        + (term in content)
+        8 * (term in title)
+        + 4 * (term in category)
+        + 3 * (term in tags)
+        + 3 * (term in research_points)
+        + 2 * min(3, content.count(term))
         for term in terms
     )
 
@@ -155,7 +170,7 @@ async def _knowledge_materials(
     question: str,
     *,
     limit: int = 4,
-) -> list[KnowledgeBase]:
+) -> list[KnowledgeMaterial]:
     result = await db.execute(
         select(KnowledgeBase).order_by(KnowledgeBase.updated_at.desc()).limit(80)
     )
@@ -163,16 +178,38 @@ async def _knowledge_materials(
     if not items:
         return []
     terms = _query_terms(question)
+    chunks = await ensure_knowledge_features(db, items)
+    item_by_id = {item.id: item for item in items}
     ranked = sorted(
-        items,
-        key=lambda item: (
-            _knowledge_score(item, terms),
-            str(item.updated_at or ""),
+        (
+            KnowledgeMaterial(
+                knowledge=item_by_id[chunk.knowledge_id],
+                chunk=chunk,
+                score=_knowledge_chunk_score(item_by_id[chunk.knowledge_id], chunk, terms),
+            )
+            for chunk in chunks
+            if chunk.knowledge_id in item_by_id
+        ),
+        key=lambda material: (
+            material.score,
+            str(material.knowledge.updated_at or ""),
+            -material.chunk.position,
         ),
         reverse=True,
     )
-    relevant = [item for item in ranked if _knowledge_score(item, terms) > 0]
-    return relevant[:limit]
+    selected: list[KnowledgeMaterial] = []
+    per_item: dict[str, int] = {}
+    for material in ranked:
+        if material.score <= 0:
+            continue
+        knowledge_id = material.knowledge.id
+        if per_item.get(knowledge_id, 0) >= 2:
+            continue
+        selected.append(material)
+        per_item[knowledge_id] = per_item.get(knowledge_id, 0) + 1
+        if len(selected) >= limit:
+            break
+    return selected
 
 
 def _zotero_author_names(data: dict[str, Any]) -> str:
@@ -228,13 +265,16 @@ async def chat_with_research_agent(
     steps: list[AgentToolStep] = []
 
     if request.use_knowledge:
-        knowledge_items = await _knowledge_materials(db, request.question)
-        for item in knowledge_items:
+        knowledge_materials = await _knowledge_materials(db, request.question)
+        for material in knowledge_materials:
+            item = material.knowledge
+            chunk = material.chunk
             source_id = f"S{len(citations) + 1}"
             contexts.append(
                 f"[{source_id}] ScholarNova 知识库\n"
                 f"标题：{item.title}\n分类：{item.category}\n"
-                f"内容：{(item.content or '')[:1800]}\n"
+                f"特征版本：{chunk.feature_version}\n片段：{chunk.position + 1}\n"
+                f"内容：{chunk.content}\n"
                 f"研究点：{'；'.join(item.research_points or [])[:500]}"
             )
             citations.append(
@@ -250,8 +290,11 @@ async def chat_with_research_agent(
             AgentToolStep(
                 tool="knowledge_search",
                 status="completed",
-                count=len(knowledge_items),
-                detail=f"从 ScholarNova 知识库选择了 {len(knowledge_items)} 条相关材料",
+                count=len(knowledge_materials),
+                detail=(
+                    f"从 ScholarNova 知识特征层选择了 {len(knowledge_materials)} 个相关片段，"
+                    f"覆盖 {len({material.knowledge.id for material in knowledge_materials})} 条知识记录"
+                ),
             )
         )
     else:

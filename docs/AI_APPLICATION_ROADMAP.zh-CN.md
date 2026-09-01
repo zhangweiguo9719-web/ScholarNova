@@ -352,6 +352,8 @@ MCP 工具需要：参数 Schema、超时、域名/路径白名单、读写权�
 
 ### P2：文档摄取与混合 RAG
 
+> 实施状态：已完成知识条目分块、内容哈希、特征版本与片段级检索基线；详见 [FTI 流水线架构](FTI_PIPELINE_ARCHITECTURE.zh-CN.md)。
+
 - 建立 Document/Chunk/IngestionRun。
 - 引入关键词 + 向量混合检索和重排。
 - 长文分层分析、证据映射、部分结果和恢复。

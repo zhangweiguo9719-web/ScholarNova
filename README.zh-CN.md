@@ -13,6 +13,8 @@
 # ScholarNova：AI 学术论文检索与研究工作台
 
 > 面向客户端的后续建设方案见：[AI 应用开发路线图](docs/AI_APPLICATION_ROADMAP.zh-CN.md)。文档说明模型替换、检索加速、长文 RAG、网络兜底、授权馆藏、文献管理器泛化与 MCP 的实施边界。
+>
+> 面向工程落地的流水线拆分见：[ScholarNova FTI 流水线架构](docs/FTI_PIPELINE_ARCHITECTURE.zh-CN.md)。
 
 ScholarNova 面向复杂科研问题，将自然语言查询转化为检索计划，连接多个学术数据源和用户自己的 Zotero 文献库，对论文进行去重、排序、质量分析和证据整理，并将研究发现沉淀到个人知识库与研究路线中。
 

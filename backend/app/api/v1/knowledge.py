@@ -12,6 +12,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.models.knowledge import KnowledgeBase, ResearchRoute
+from app.services.features.knowledge import (
+    delete_knowledge_features,
+    rebuild_knowledge_features,
+)
 from app.schemas.knowledge import (
     AIAnalyzeRequest,
     AIAnalyzeResponse,
@@ -111,6 +115,8 @@ async def create_knowledge(
         card_data=request.card_data,
     )
     db.add(knowledge)
+    await db.flush()
+    await rebuild_knowledge_features(db, knowledge)
     await db.commit()
     await db.refresh(knowledge)
 
@@ -510,6 +516,7 @@ async def update_knowledge(
     if request.notes is not None:
         knowledge.notes = request.notes
 
+    await rebuild_knowledge_features(db, knowledge)
     await db.commit()
     await db.refresh(knowledge)
 
@@ -545,6 +552,7 @@ async def delete_knowledge(
     if not knowledge:
         raise HTTPException(status_code=404, detail="Knowledge not found")
 
+    await delete_knowledge_features(db, knowledge.id)
     await db.delete(knowledge)
     await db.commit()
 
