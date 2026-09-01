@@ -117,7 +117,12 @@ def validate_url(url: str) -> tuple[bool, Optional[str]]:
     # 5. IP 字面量检查
     try:
         ip = ipaddress.ip_address(hostname)
-        if _is_private_ip(str(ip)) and not settings.ALLOW_PRIVATE_IPS:
+        debug_loopback = hostname.lower() in localhost_names and settings.DEBUG
+        if (
+            _is_private_ip(str(ip))
+            and not settings.ALLOW_PRIVATE_IPS
+            and not debug_loopback
+        ):
             return False, f"不允许访问内网 IP 地址: {hostname}"
         return True, None
     except ValueError:

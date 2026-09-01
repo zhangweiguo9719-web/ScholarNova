@@ -102,6 +102,13 @@ class TestSaveModelConfig:
                             "api_key": "diagram-secret",
                         }
                     },
+                    "embedding": {
+                        "enabled": True,
+                        "provider": "openai",
+                        "model_name": "text-embedding-3-small",
+                        "api_key": "embedding-secret",
+                        "base_url": "https://api.openai.com/v1",
+                    },
                 }
             ),
             encoding="utf-8",
@@ -116,6 +123,9 @@ class TestSaveModelConfig:
         assert data["api_key_configured"] is True
         assert data["tasks"]["diagram"]["api_key"] is None
         assert data["tasks"]["diagram"]["api_key_configured"] is True
+        assert data["embedding"]["enabled"] is True
+        assert data["embedding"]["api_key"] is None
+        assert data["embedding"]["api_key_configured"] is True
 
     async def test_save_config_preserves_hidden_credentials(self, client: AsyncClient):
         """页面留空保存时应保留同一提供商已有的本机 Key。"""
@@ -137,6 +147,13 @@ class TestSaveModelConfig:
                             "base_url": "https://token.sensenova.cn/v1",
                         }
                     },
+                    "embedding": {
+                        "enabled": True,
+                        "provider": "openai",
+                        "model_name": "text-embedding-3-small",
+                        "api_key": "embedding-secret",
+                        "base_url": "https://api.openai.com/v1",
+                    },
                 }
             ),
             encoding="utf-8",
@@ -157,6 +174,13 @@ class TestSaveModelConfig:
                         "base_url": "https://token.sensenova.cn/v1",
                     }
                 },
+                "embedding": {
+                    "enabled": True,
+                    "provider": "openai",
+                    "model_name": "text-embedding-3-small",
+                    "api_key": "",
+                    "base_url": "https://api.openai.com/v1",
+                },
             },
         )
         saved = json.loads(config_path.read_text(encoding="utf-8"))
@@ -164,6 +188,7 @@ class TestSaveModelConfig:
         assert response.status_code == 200
         assert saved["api_key"] == "local-secret"
         assert saved["tasks"]["diagram"]["api_key"] == "diagram-secret"
+        assert saved["embedding"]["api_key"] == "embedding-secret"
 
     async def test_save_config_anthropic(self, client: AsyncClient):
         """保存 Anthropic 配置应返回成功"""
@@ -256,6 +281,63 @@ class TestSaveModelConfig:
 
 class TestModelConnection:
     """POST /api/v1/model/test 测试套件"""
+
+    async def test_embedding_connection_reports_dimensions(
+        self,
+        client: AsyncClient,
+        monkeypatch,
+    ):
+        from app.services.retrieval.embeddings import EmbeddingBatch
+
+        embed = AsyncMock(
+            return_value=EmbeddingBatch(vectors=[[0.1, 0.2, 0.3]], input_tokens=5)
+        )
+        monkeypatch.setattr(
+            "app.services.retrieval.embeddings.EmbeddingGateway.embed",
+            embed,
+        )
+        response = await client.post(
+            "/api/v1/model/test-embedding",
+            json={
+                "enabled": True,
+                "provider": "openai",
+                "model_name": "text-embedding-3-small",
+                "api_key": "test-key",
+                "base_url": "https://api.openai.com/v1",
+            },
+        )
+
+        data = response.json()
+        assert response.status_code == 200
+        assert data["success"] is True
+        assert data["model_info"]["dimensions"] == 3
+        assert data["model_info"]["input_tokens"] == 5
+
+    async def test_embedding_connection_accepts_debug_localhost(
+        self,
+        client: AsyncClient,
+        monkeypatch,
+    ):
+        from app.config import settings
+        from app.services.retrieval.embeddings import EmbeddingBatch
+
+        monkeypatch.setattr(settings, "DEBUG", True)
+        monkeypatch.setattr(
+            "app.services.retrieval.embeddings.EmbeddingGateway.embed",
+            AsyncMock(return_value=EmbeddingBatch(vectors=[[0.1, 0.2]])),
+        )
+        response = await client.post(
+            "/api/v1/model/test-embedding",
+            json={
+                "enabled": True,
+                "provider": "ollama",
+                "model_name": "nomic-embed-text",
+                "base_url": "http://127.0.0.1:11434",
+            },
+        )
+
+        assert response.status_code == 200
+        assert response.json()["success"] is True
 
     async def test_test_connection_returns_response(self, client: AsyncClient):
         """测试连接端点应返回标准结构"""

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Save, TestTube, Loader2, Check, X, Globe, Cpu, ChevronDown, ChevronUp } from 'lucide-react'
+import { Save, TestTube, Loader2, Check, X, Globe, Cpu, ChevronDown, ChevronUp, Database, ShieldCheck } from 'lucide-react'
 import clsx from 'clsx'
 import { useLocaleStore } from '@/stores/localeStore'
 import type { LLMProvider, ModelConfig as ModelConfigType, ModelTestResponse } from '@/api/types'
@@ -16,6 +16,14 @@ const providers: { value: LLMProvider; label: string; models: string[]; baseUrl?
   { value: 'moonshot', label: 'Moonshot (Kimi)', models: ['moonshot-v1-128k', 'moonshot-v1-32k'], baseUrl: 'https://api.moonshot.cn/v1' },
   { value: 'sensenova', label: 'SenseNova (商汤)', models: ['sensenova-u1-fast', 'sensenova-6.7-flash-lite', 'sensenova-6.5-pro'], baseUrl: 'https://token.sensenova.cn/v1' },
   { value: 'custom', label: 'Custom (OpenAI Compatible)', models: [] },
+]
+
+const embeddingProviders: { value: LLMProvider; label: string; models: string[]; baseUrl: string }[] = [
+  { value: 'ollama', label: 'Ollama（本机，推荐）', models: ['nomic-embed-text', 'mxbai-embed-large', 'bge-m3'], baseUrl: 'http://localhost:11434' },
+  { value: 'openai', label: 'OpenAI', models: ['text-embedding-3-small', 'text-embedding-3-large'], baseUrl: 'https://api.openai.com/v1' },
+  { value: 'zhipu', label: '智谱 BigModel', models: ['embedding-3'], baseUrl: 'https://open.bigmodel.cn/api/paas/v4' },
+  { value: 'qwen', label: '阿里云百炼', models: ['text-embedding-v4'], baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1' },
+  { value: 'custom', label: 'OpenAI 兼容接口', models: [], baseUrl: '' },
 ]
 
 // 任务类型定义
@@ -37,6 +45,9 @@ interface ModelConfigProps {
   onConfigChange: (partial: Partial<ModelConfigType>) => void
   onTest: () => void
   onSave: () => void
+  embeddingTestResult: ModelTestResponse | null
+  isEmbeddingTesting: boolean
+  onEmbeddingTest: () => void
 }
 
 function TaskModelRow({ taskKey, icon, zhLabel, desc, currentConfig, defaultProvider, defaultModel, providerOptions, onChange }: {
@@ -110,10 +121,19 @@ function TaskModelRow({ taskKey, icon, zhLabel, desc, currentConfig, defaultProv
   )
 }
 
-export default function ModelConfig({ config, testResult, isTesting, isSaving, onConfigChange, onTest, onSave }: ModelConfigProps) {
-  const { t } = useLocaleStore()
+export default function ModelConfig({ config, testResult, isTesting, isSaving, onConfigChange, onTest, onSave, embeddingTestResult, isEmbeddingTesting, onEmbeddingTest }: ModelConfigProps) {
+  const { t, locale } = useLocaleStore()
+  const isZh = locale === 'zh'
   const selectedProvider = providers.find((p) => p.value === config.provider)
   const [showTaskModels, setShowTaskModels] = useState(false)
+  const embedding = config.embedding || {
+    enabled: false,
+    provider: 'ollama' as LLMProvider,
+    model_name: 'nomic-embed-text',
+    api_key: '',
+    base_url: 'http://localhost:11434',
+  }
+  const selectedEmbeddingProvider = embeddingProviders.find((p) => p.value === embedding.provider)
 
   const handleTaskChange = (taskKey: string, cfg: any) => {
     const tasks = { ...(config.tasks || {}), [taskKey]: cfg }
@@ -223,6 +243,79 @@ export default function ModelConfig({ config, testResult, isTesting, isSaving, o
             ))}
           </div>
         )}
+
+        <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50/70 p-4 dark:border-gray-700 dark:bg-gray-800/30">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex gap-3">
+              <div className="mt-0.5 rounded-lg bg-amber-500/10 p-2 text-amber-600 dark:text-amber-400"><Database className="h-4 w-4" /></div>
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  {isZh ? '语义检索增强（可选）' : 'Semantic retrieval (optional)'}
+                </h3>
+                <p className="mt-1 text-xs leading-5 text-gray-500 dark:text-gray-400">
+                  {isZh ? '使用独立 Embedding 模型与 BM25 做 RRF 融合。未配置或调用失败时自动退回 BM25。' : 'Fuse an independent embedding model with BM25 using RRF. Failures automatically fall back to BM25.'}
+                </p>
+              </div>
+            </div>
+            <label className="relative inline-flex cursor-pointer items-center">
+              <input type="checkbox" className="peer sr-only" checked={embedding.enabled}
+                onChange={(event) => onConfigChange({ embedding: { ...embedding, enabled: event.target.checked } })} />
+              <span className="h-6 w-11 rounded-full bg-gray-300 after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:transition peer-checked:bg-amber-500 peer-checked:after:translate-x-5 dark:bg-gray-700" />
+            </label>
+          </div>
+
+          {embedding.enabled && (
+            <div className="mt-4 space-y-3 border-t border-gray-200 pt-4 dark:border-gray-700">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="config-label">{isZh ? 'Embedding 提供商' : 'Embedding provider'}</label>
+                  <select value={embedding.provider} className="config-select" onChange={(event) => {
+                    const next = embeddingProviders.find((provider) => provider.value === event.target.value) || embeddingProviders[0]
+                    onConfigChange({ embedding: { enabled: true, provider: next.value, model_name: next.models[0] || '', api_key: '', api_key_configured: false, base_url: next.baseUrl } })
+                  }}>
+                    {embeddingProviders.map((provider) => <option key={provider.value} value={provider.value}>{provider.label}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="config-label">{isZh ? 'Embedding 模型' : 'Embedding model'}</label>
+                  <input className="config-input" value={embedding.model_name}
+                    onChange={(event) => onConfigChange({ embedding: { ...embedding, model_name: event.target.value } })}
+                    placeholder={selectedEmbeddingProvider?.models[0] || 'embedding model'} />
+                </div>
+              </div>
+              {embedding.provider !== 'ollama' && (
+                <div>
+                  <label className="config-label">API Key</label>
+                  <input type="password" className="config-input" value={embedding.api_key || ''}
+                    onChange={(event) => onConfigChange({ embedding: { ...embedding, api_key: event.target.value } })}
+                    placeholder={embedding.api_key_configured ? (isZh ? '已安全保存在本机后端' : 'Saved by the local backend') : 'Embedding API Key'} />
+                </div>
+              )}
+              <div>
+                <label className="config-label"><Globe className="mr-1 inline h-4 w-4" />API Base URL</label>
+                <input className="config-input" value={embedding.base_url || ''}
+                  onChange={(event) => onConfigChange({ embedding: { ...embedding, base_url: event.target.value } })}
+                  placeholder={selectedEmbeddingProvider?.baseUrl || 'https://…/v1'} />
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-emerald-500/15 bg-emerald-500/5 px-3 py-2">
+                <p className="inline-flex items-center gap-1.5 text-xs text-emerald-700 dark:text-emerald-400"><ShieldCheck className="h-3.5 w-3.5" />{isZh ? '向量缓存在本地数据库；聊天 Key 与 Embedding Key 相互独立。' : 'Vectors are cached locally; chat and embedding credentials stay independent.'}</p>
+                <button type="button" onClick={onEmbeddingTest} disabled={isEmbeddingTesting || !embedding.model_name}
+                  className="config-btn config-btn-secondary !px-3 !py-1.5">
+                  {isEmbeddingTesting ? <Loader2 className="h-4 w-4 animate-spin" /> : <TestTube className="h-4 w-4" />}
+                  {isZh ? '测试语义模型' : 'Test embedding'}
+                </button>
+              </div>
+              {embeddingTestResult && (
+                <div className={clsx('config-test-result', embeddingTestResult.success ? 'config-test-success' : 'config-test-fail')}>
+                  <div className="flex items-center gap-2">
+                    {embeddingTestResult.success ? <Check className="h-4 w-4 text-green-600" /> : <X className="h-4 w-4 text-red-600" />}
+                    <span className="text-sm font-medium">{embeddingTestResult.success ? (isZh ? `连接成功 · ${embeddingTestResult.model_info?.dimensions || 0} 维` : `Connected · ${embeddingTestResult.model_info?.dimensions || 0} dimensions`) : embeddingTestResult.error}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* Test Result */}
         {testResult && (

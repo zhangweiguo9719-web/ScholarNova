@@ -299,5 +299,48 @@ def get_model_for_task(task: str) -> dict:
     }
 
 
+def get_embedding_config() -> dict:
+    """Return the explicitly configured semantic-retrieval profile.
+
+    Embeddings intentionally do not inherit the default chat profile. Many chat
+    providers do not expose an embeddings endpoint, and silently reusing those
+    credentials would turn an optional retrieval enhancement into a failure path.
+    """
+    import json
+
+    defaults = {
+        "enabled": False,
+        "provider": "ollama",
+        "model": "nomic-embed-text",
+        "api_key": None,
+        "base_url": "http://localhost:11434",
+    }
+    default_urls = {
+        "ollama": "http://localhost:11434",
+        "openai": "https://api.openai.com/v1",
+        "zhipu": "https://open.bigmodel.cn/api/paas/v4",
+        "qwen": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+    }
+    config_path = runtime_path("model_config.json")
+    try:
+        if not config_path.exists():
+            return defaults
+        with config_path.open("r", encoding="utf-8") as file:
+            saved = json.load(file)
+        embedding = saved.get("embedding")
+        if not isinstance(embedding, dict):
+            return defaults
+        provider = str(embedding.get("provider") or defaults["provider"])
+        return {
+            "enabled": bool(embedding.get("enabled")),
+            "provider": provider,
+            "model": embedding.get("model_name") or defaults["model"],
+            "api_key": embedding.get("api_key"),
+            "base_url": embedding.get("base_url") or default_urls.get(provider),
+        }
+    except (OSError, TypeError, ValueError):
+        return defaults
+
+
 # 启动时加载保存的配置
 load_saved_model_config()

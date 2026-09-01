@@ -10,6 +10,7 @@ from fastapi import APIRouter, HTTPException, Request
 from app.core.rate_limiter import check_rate_limit
 from app.core.ssrf import validate_base_url
 from app.schemas.search import (
+    EmbeddingModelConfig,
     ModelConfig,
     ModelTestRequest,
     ModelTestResponse,
@@ -55,6 +56,26 @@ async def get_model_config() -> dict:
         safe_task["api_key"] = None
         safe_tasks[task_name] = safe_task
 
+    saved_embedding = saved.get("embedding")
+    if not isinstance(saved_embedding, dict):
+        saved_embedding = {}
+    embedding_provider = saved_embedding.get("provider") or "ollama"
+    embedding_default_urls = {
+        "ollama": "http://localhost:11434",
+        "openai": "https://api.openai.com/v1",
+        "zhipu": "https://open.bigmodel.cn/api/paas/v4",
+        "qwen": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+    }
+    safe_embedding = {
+        "enabled": bool(saved_embedding.get("enabled")),
+        "provider": embedding_provider,
+        "model_name": saved_embedding.get("model_name") or "nomic-embed-text",
+        "api_key": None,
+        "api_key_configured": bool(saved_embedding.get("api_key")),
+        "base_url": saved_embedding.get("base_url")
+        or embedding_default_urls.get(embedding_provider),
+    }
+
     return {
         "provider": provider,
         "model_name": saved.get("model_name") or settings.OPENAI_DEFAULT_MODEL,
@@ -64,6 +85,7 @@ async def get_model_config() -> dict:
         "temperature": saved.get("temperature", 0.7),
         "max_tokens": saved.get("max_tokens", 4096),
         "tasks": safe_tasks,
+        "embedding": safe_embedding,
     }
 
 
@@ -77,6 +99,7 @@ async def save_model_config(
     保存用户的 LLM 模型配置到内存缓存和本地文件
     """
     import json
+
     # 更新全局多模型配置
     from app.config import MODEL_PROFILES, runtime_path, settings
     existing_config = _read_saved_config()
@@ -92,6 +115,32 @@ async def save_model_config(
     )
     config_data = config.model_dump()
     config_data["api_key"] = api_key
+
+    existing_embedding = existing_config.get("embedding")
+    if not isinstance(existing_embedding, dict):
+        existing_embedding = {}
+    if config.embedding is None:
+        if existing_embedding:
+            config_data["embedding"] = existing_embedding
+        else:
+            config_data.pop("embedding", None)
+    else:
+        embedding_data = config.embedding.model_dump()
+        embedding_provider = embedding_data.get("provider") or "ollama"
+        previous_embedding_provider = existing_embedding.get("provider")
+        embedding_data["api_key"] = embedding_data.get("api_key") or (
+            existing_embedding.get("api_key")
+            if previous_embedding_provider == embedding_provider
+            else None
+        )
+        if embedding_data.get("enabled") and embedding_data.get("base_url"):
+            is_valid, error = validate_base_url(embedding_data["base_url"])
+            if not is_valid:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Embedding API 地址不安全: {error}",
+                )
+        config_data["embedding"] = embedding_data
 
     if config.tasks:
         # 有任务级配置，更新对应的任务
@@ -146,6 +195,63 @@ async def save_model_config(
         success=True,
         message="模型配置已保存",
     )
+
+
+@router.post("/test-embedding", response_model=ModelTestResponse)
+async def test_embedding_connection(
+    request: EmbeddingModelConfig,
+    http_request: Request,
+) -> ModelTestResponse:
+    """Test an embedding profile without saving it or calling the chat model."""
+    limited = check_rate_limit(http_request, endpoint_type="analysis")
+    if limited:
+        return limited
+    if request.base_url:
+        is_valid, error = validate_base_url(request.base_url)
+        if not is_valid:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Embedding API 地址不安全: {error}",
+            )
+
+    from app.services.retrieval.embeddings import EmbeddingGateway
+
+    start_time = time.time()
+    try:
+        gateway = EmbeddingGateway(
+            {
+                "provider": request.provider,
+                "model": request.model_name,
+                "api_key": request.api_key,
+                "base_url": request.base_url,
+            }
+        )
+        result = await asyncio.wait_for(
+            gateway.embed(["ScholarNova semantic retrieval connection test"]),
+            timeout=15.0,
+        )
+        return ModelTestResponse(
+            success=True,
+            latency_ms=(time.time() - start_time) * 1000,
+            model_info={
+                "provider": request.provider,
+                "model": request.model_name,
+                "dimensions": len(result.vectors[0]),
+                "input_tokens": result.input_tokens,
+            },
+        )
+    except TimeoutError:
+        return ModelTestResponse(
+            success=False,
+            latency_ms=(time.time() - start_time) * 1000,
+            error="Embedding 连接测试超过 15 秒。",
+        )
+    except Exception as exc:
+        return ModelTestResponse(
+            success=False,
+            latency_ms=(time.time() - start_time) * 1000,
+            error=str(exc),
+        )
 
 
 @router.post("/test", response_model=ModelTestResponse)

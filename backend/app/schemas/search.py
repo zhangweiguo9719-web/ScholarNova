@@ -132,6 +132,16 @@ class TaskModelConfig(BaseModel):
     base_url: Optional[str] = Field(None, description="自定义 API 地址")
 
 
+class EmbeddingModelConfig(BaseModel):
+    """独立的可选语义检索模型配置。"""
+
+    enabled: bool = Field(False, description="是否启用语义检索增强")
+    provider: LLMProviderName = Field("ollama", description="Embedding 提供商")
+    model_name: str = Field("nomic-embed-text", min_length=1, description="Embedding 模型")
+    api_key: Optional[str] = Field(None, description="独立 API Key")
+    base_url: Optional[str] = Field(None, description="Embedding API 地址")
+
+
 class ModelConfig(BaseModel):
     """多模型配置（支持按任务类型分配不同模型）"""
 
@@ -145,6 +155,10 @@ class ModelConfig(BaseModel):
 
     # 按任务类型配置（可选，覆盖主配置）
     tasks: Optional[Dict[str, TaskModelConfig]] = Field(None, description="按任务类型配置模型")
+    embedding: Optional[EmbeddingModelConfig] = Field(
+        None,
+        description="可选语义检索配置；不继承聊天模型凭据",
+    )
 
 
 class ModelTestRequest(BaseModel):

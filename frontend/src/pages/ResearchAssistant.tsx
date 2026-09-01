@@ -77,6 +77,8 @@ export default function ResearchAssistant() {
     productHelpSource: '本回答来自 ScholarNova 内置使用指南，无需论文引用。',
     model: '模型',
     tokens: 'Token',
+    retrieval: '检索',
+    embeddingTokens: '向量 Token',
     safety: '回答是研究辅助信息，请回到原始论文核验关键结论。',
     examples: [
       '总结知识库中的主要研究空白',
@@ -107,6 +109,8 @@ export default function ResearchAssistant() {
     productHelpSource: 'This response comes from the built-in ScholarNova guide and does not require paper citations.',
     model: 'Model',
     tokens: 'Tokens',
+    retrieval: 'Retrieval',
+    embeddingTokens: 'Embedding tokens',
     safety: 'This is research assistance. Verify important claims against the original papers.',
     examples: [
       'Summarize the main research gaps in my knowledge base',
@@ -278,6 +282,8 @@ function AgentTrace({ result, copy, isChinese }: { result: AgentChatResponse; co
           {isProductHelp ? copy.productHelp : result.grounded ? copy.grounded : copy.notGrounded}
         </span>
         {result.model && <span>{copy.model}: {result.provider}/{result.model}</span>}
+        {!isProductHelp && <span>{copy.retrieval}: {result.retrieval_mode === 'hybrid' ? 'BM25 + Embedding RRF' : 'BM25'}</span>}
+        {result.retrieval_tokens > 0 && <span>{copy.embeddingTokens}: {result.retrieval_tokens}</span>}
         <span>{copy.tokens}: {result.total_tokens}</span>
       </div>
       <div>

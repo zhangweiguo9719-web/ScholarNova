@@ -22,6 +22,19 @@ class FakeGateway:
         return "现有材料指出需要进行可追溯检索。[S1]"
 
 
+class FakeEmbeddingGateway:
+    def __init__(self, config) -> None:
+        pass
+
+    async def embed(self, texts):
+        from app.services.retrieval.embeddings import EmbeddingBatch
+
+        return EmbeddingBatch(
+            vectors=[[1.0, 0.0] for _ in texts],
+            input_tokens=len(texts) * 2,
+        )
+
+
 @pytest.mark.asyncio
 async def test_agent_answers_from_knowledge_with_citations(
     client,
@@ -58,11 +71,63 @@ async def test_agent_answers_from_knowledge_with_citations(
     assert data["citations"][0]["source"] == "knowledge"
     assert data["citations"][0]["doi"] == "10.1000/agent.1"
     assert data["total_tokens"] == 160
+    assert data["retrieval_tokens"] == 0
+    assert data["retrieval_mode"] == "bm25"
     assert {step["tool"] for step in data["tool_steps"]} == {
+        "semantic_retrieval",
         "knowledge_search",
         "paper_fulltext_search",
         "zotero_search",
     }
+
+
+@pytest.mark.asyncio
+async def test_agent_reports_hybrid_retrieval_tokens(
+    client,
+    db_session,
+    monkeypatch,
+) -> None:
+    from app.services.retrieval import hybrid
+
+    db_session.add(
+        KnowledgeBase(
+            title="Privacy-aware Agent",
+            category="AI",
+            content="Privacy safeguards constrain the research agent.",
+        )
+    )
+    await db_session.flush()
+    monkeypatch.setattr("app.api.v1.agent.LLMGateway", FakeGateway)
+    monkeypatch.setattr(
+        hybrid,
+        "get_embedding_config",
+        lambda: {
+            "enabled": True,
+            "provider": "custom",
+            "model": "test-embedding",
+            "base_url": "https://embedding.example/v1",
+        },
+    )
+    monkeypatch.setattr(hybrid, "EmbeddingGateway", FakeEmbeddingGateway)
+
+    response = await client.post(
+        "/api/v1/agent/chat",
+        json={
+            "question": "What privacy safeguards constrain the agent?",
+            "use_zotero": False,
+        },
+    )
+
+    data = response.json()
+    assert response.status_code == 200
+    assert data["retrieval_mode"] == "hybrid"
+    assert data["retrieval_tokens"] > 0
+    assert data["total_tokens"] == 160 + data["retrieval_tokens"]
+    semantic_step = next(
+        step for step in data["tool_steps"]
+        if step["tool"] == "semantic_retrieval"
+    )
+    assert semantic_step["status"] == "completed"
 
 
 @pytest.mark.asyncio
@@ -112,6 +177,11 @@ async def test_agent_answers_from_indexed_pdf_chunk(
     assert data["citations"][0]["doi"] == "10.1000/pdf.1"
     assert data["citations"][0]["section"] == "Methods"
     assert data["citations"][0]["page"] == 3
+    semantic_step = next(
+        step for step in data["tool_steps"]
+        if step["tool"] == "semantic_retrieval"
+    )
+    assert semantic_step["status"] == "skipped"
     paper_step = next(
         step for step in data["tool_steps"]
         if step["tool"] == "paper_fulltext_search"

@@ -32,6 +32,13 @@ const defaultConfig: ModelConfig = {
     assistant: { provider: 'mimo', model_name: 'mimo-v2.5-pro' },      // 科研问答智能体
     diagram: { provider: 'sensenova', model_name: 'sensenova-u1-fast', api_key: '', base_url: 'https://token.sensenova.cn/v1' }, // 仅出图
   },
+  embedding: {
+    enabled: false,
+    provider: 'ollama',
+    model_name: 'nomic-embed-text',
+    api_key: '',
+    base_url: 'http://localhost:11434',
+  },
 }
 
 function withoutSecrets(config: ModelConfig): ModelConfig {
@@ -44,6 +51,9 @@ function withoutSecrets(config: ModelConfig): ModelConfig {
         { ...taskConfig, api_key: '' },
       ])
     ),
+    embedding: config.embedding
+      ? { ...config.embedding, api_key: '' }
+      : defaultConfig.embedding,
   }
 }
 
@@ -76,7 +86,7 @@ export const useModelStore = create<ModelState>()(
     }),
     {
       name: 'scholar-agent-model-config',
-      version: 2,
+      version: 3,
       migrate: (persistedState: unknown) => {
         const state = persistedState as Partial<ModelState>
         return {

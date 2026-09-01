@@ -64,7 +64,7 @@ Developers who want to build the application themselves can use the [Windows des
 - Understands and decomposes multi-constraint academic queries.
 - Searches Semantic Scholar, OpenAlex, Crossref, and arXiv.
 - Connects to the local Zotero library in read-only mode and searches explicitly imported metadata alongside online sources.
-- Includes a traceable research-assistant MVP that jointly ranks knowledge chunks, parsed PDF sections/tables/captions, and live local Zotero records with dependency-free multilingual BM25 before calling the user's model.
+- Includes a traceable research assistant with zero-cost multilingual BM25 by default and optional BM25 + embedding + RRF hybrid retrieval across knowledge chunks, parsed PDFs, and live local Zotero records.
 - Preserves section and page locators when available and shows localized evidence locations on assistant citation cards.
 - Deduplicates and ranks papers using title, abstract, year, venue, citations, and query constraints.
 - Displays abstracts, authors, metadata, relevance, citation percentile, citation velocity, and traceable quality signals.
@@ -96,7 +96,9 @@ ScholarNova displays the detected Zotero version. Zotero 9 is sufficient for the
 
 ### Traceable research assistant (`main` source build)
 
-Open **Assistant** to ask questions over two user-controlled sources: saved ScholarNova knowledge and the live local Zotero library. The agent first retrieves a small evidence set, then asks the configured task model to answer with `[S1]`-style source markers. It shows each retrieval step, cited records, selected model, and provider-reported Token usage. If no local material is found, it does not call the model and asks the user to add evidence instead. Conversation history stays on the local device and the assistant never writes to Zotero automatically.
+Open **Assistant** to ask questions over user-controlled ScholarNova knowledge, parsed authorized PDFs, and the live local Zotero library. BM25 remains the default and makes no model call. To add semantic recall, open **Settings → Semantic retrieval**, explicitly configure a separate embedding profile, test it, and save. Supported profiles include local Ollama (`nomic-embed-text`), OpenAI (`text-embedding-3-small`), Zhipu (`embedding-3`), Qwen (`text-embedding-v4`), and custom OpenAI-compatible endpoints.
+
+The hybrid path embeds up to 256 source-balanced candidates, fuses vector and BM25 ranks with RRF, and caches vectors locally by provider, model, and content hash. Repeated material does not consume embedding tokens again. A timeout, rate limit, invalid profile, or offline embedding service falls back to BM25 without blocking the answer. Embedding credentials are independent from chat credentials and are never returned to the browser. The trace reports the retrieval mode, embedding tokens, chat tokens, cited records, and page-aware source locations. If no local material is found, the answer model is not called. Conversation history remains local and the assistant never writes to Zotero automatically.
 
 ### Journal data and institutional access
 

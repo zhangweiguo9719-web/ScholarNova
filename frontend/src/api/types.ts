@@ -58,6 +58,15 @@ export interface TaskModelConfig {
   api_key_configured?: boolean
 }
 
+export interface EmbeddingModelConfig {
+  enabled: boolean
+  provider: LLMProvider
+  model_name: string
+  api_key?: string
+  api_key_configured?: boolean
+  base_url?: string
+}
+
 export interface ModelConfig {
   provider: LLMProvider
   model_name: string
@@ -67,6 +76,7 @@ export interface ModelConfig {
   temperature?: number
   max_tokens?: number
   tasks?: Record<string, TaskModelConfig>
+  embedding?: EmbeddingModelConfig
 }
 
 export interface ModelTestRequest {
@@ -307,6 +317,8 @@ export interface ModelTestResponse {
     provider: string
     model: string
     context_window?: number
+    dimensions?: number
+    input_tokens?: number
   } | null
   error: string | null
 }
@@ -379,7 +391,9 @@ export interface AgentChatResponse {
   model: string | null
   prompt_tokens: number
   completion_tokens: number
+  retrieval_tokens: number
   total_tokens: number
+  retrieval_mode: 'bm25' | 'hybrid'
   grounded: boolean
   created_at: string
 }

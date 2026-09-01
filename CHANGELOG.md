@@ -6,6 +6,10 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 
 ### Added
 
+- Optional hybrid retrieval with an independent embedding profile, local vector cache, cosine ranking, and RRF fusion over BM25 results.
+- Embedding connection testing for Ollama, OpenAI, Zhipu, Qwen, and custom OpenAI-compatible endpoints.
+- Retrieval-mode and embedding-token observability in research-assistant responses and the UI.
+- A four-query bilingual/cross-language retrieval golden set that keeps hybrid Top-1 quality above the BM25 baseline.
 - Page-aware PDF sections and figure captions, plus structured section/page/chunk locators for bilingual research-assistant citation cards.
 - Versioned `paper_chunks` features for authorized PDF abstracts, sections, tables, and figure captions, indexed into the same local retrieval pipeline as knowledge and Zotero.
 - A provider-neutral `RetrievalChunk` contract and dependency-free Chinese/English BM25 retrieval layer for research-assistant evidence.
@@ -20,11 +24,14 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 
 ### Security
 
+- Embedding credentials are isolated from chat credentials, stored only by the local backend, and never returned to browser storage.
 - Zotero access is pinned to `127.0.0.1:23119`; users cannot supply an arbitrary integration URL.
 - The integration never writes to Zotero, never accesses `zotero.sqlite` directly, and does not upload a user's library.
 
 ### Changed
 
+- The research assistant now uses BM25 by default, optionally embeds a source-balanced pool of at most 256 candidates, fuses rankings with RRF, and transparently falls back to BM25 on every semantic-service failure.
+- Embeddings are cached by provider, model, and normalized input hash so repeated content does not consume additional embedding tokens.
 - PDF retrieval features now use `pdf-parser-chunker-v2`; analyzing an older imported PDF deterministically refreshes its locators without changing the original file.
 - Search, analysis, and research-assistant requests now use independent local rate-limit buckets, so one workflow cannot consume another workflow's allowance.
 - PDF upload and full-text analysis synchronize deterministic retrieval features without making an additional LLM call.
@@ -47,7 +54,8 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 
 ### Verified
 
-- 276 non-integration backend tests and 18 frontend tests pass; page-aware parsing is covered with a generated three-page PDF fixture.
+- 282 non-integration backend tests and 18 frontend tests pass; page-aware parsing, hybrid ranking, vector-cache reuse, token accounting, and BM25 fallback are covered without calling a live model.
+- The production frontend build succeeds; the four-case retrieval regression fixture improves Top-1 from BM25 3/4 to hybrid 4/4 and is explicitly not presented as a competition benchmark.
 - TypeScript checks are clean. Local transactional validation created four PDF features, retrieved two relevant chunks, and rolled the test record back without invoking a model.
 - 13 focused Zotero, local-library, and research-assistant tests pass. The offline backend suite remains green; three live Semantic Scholar checks may receive the provider's HTTP 429 rate limit.
 - The three remaining full-suite failures are live Semantic Scholar integration checks returning HTTP 429, not local regressions.

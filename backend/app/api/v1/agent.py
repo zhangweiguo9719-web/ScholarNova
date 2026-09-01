@@ -20,8 +20,8 @@ from app.services.features.knowledge import ensure_knowledge_features
 from app.services.integrations.zotero import ZoteroLocalClient
 from app.services.llm.gateway import LLMGateway
 from app.services.retrieval.adapters import from_knowledge, from_paper, from_zotero
-from app.services.retrieval.bm25 import rank_chunks
 from app.services.retrieval.contracts import RetrievalChunk
+from app.services.retrieval.hybrid import rank_chunks_hybrid
 
 router = APIRouter()
 
@@ -66,7 +66,9 @@ class AgentChatResponse(BaseModel):
     model: str | None = None
     prompt_tokens: int = 0
     completion_tokens: int = 0
+    retrieval_tokens: int = 0
     total_tokens: int = 0
+    retrieval_mode: Literal["bm25", "hybrid"] = "bm25"
     grounded: bool = True
     created_at: datetime
 
@@ -232,22 +234,33 @@ async def chat_with_research_agent(
             zotero_status = "unavailable"
             zotero_detail = "Zotero 未启动或本地 API 尚未启用，已继续使用其他材料"
 
-    ranked = rank_chunks(
+    retrieval = await rank_chunks_hybrid(
+        db,
         request.question,
         [*knowledge_candidates, *paper_candidates, *zotero_candidates],
         limit=6,
         max_per_document=2,
     )
+    ranked = retrieval.ranked
     selected_knowledge = sum(item.chunk.source == "knowledge" for item in ranked)
     selected_papers = sum(item.chunk.source == "paper" for item in ranked)
     selected_zotero = sum(item.chunk.source == "zotero" for item in ranked)
+    steps.append(
+        AgentToolStep(
+            tool="semantic_retrieval",
+            status=retrieval.semantic_status,
+            count=len(ranked) if retrieval.mode == "hybrid" else 0,
+            detail=retrieval.detail,
+        )
+    )
+    ranking_name = "BM25 + Embedding RRF" if retrieval.mode == "hybrid" else "BM25"
     steps.append(
         AgentToolStep(
             tool="paper_fulltext_search",
             status="completed" if request.use_knowledge else "skipped",
             count=selected_papers,
             detail=(
-                f"BM25 从 {len(paper_candidates)} 个已解析 PDF 片段中选择了 "
+                f"{ranking_name} 从 {len(paper_candidates)} 个已解析 PDF 片段中选择了 "
                 f"{selected_papers} 个相关片段"
                 if request.use_knowledge
                 else "用户未启用 ScholarNova 本地材料检索"
@@ -260,7 +273,7 @@ async def chat_with_research_agent(
             status="completed" if request.use_knowledge else "skipped",
             count=selected_knowledge,
             detail=(
-                f"BM25 从 {len(knowledge_candidates)} 个知识片段中选择了 "
+                f"{ranking_name} 从 {len(knowledge_candidates)} 个知识片段中选择了 "
                 f"{selected_knowledge} 个相关片段"
                 if request.use_knowledge
                 else "用户未启用知识库检索"
@@ -350,6 +363,9 @@ async def chat_with_research_agent(
             ),
             citations=[],
             tool_steps=steps,
+            retrieval_tokens=retrieval.embedding_tokens,
+            total_tokens=retrieval.embedding_tokens,
+            retrieval_mode=retrieval.mode,
             grounded=False,
             created_at=datetime.now(),
         )
@@ -407,7 +423,9 @@ async def chat_with_research_agent(
         model=model_config.get("model"),
         prompt_tokens=usage["prompt_tokens"],
         completion_tokens=usage["completion_tokens"],
-        total_tokens=usage["total_tokens"],
+        retrieval_tokens=retrieval.embedding_tokens,
+        total_tokens=usage["total_tokens"] + retrieval.embedding_tokens,
+        retrieval_mode=retrieval.mode,
         grounded=True,
         created_at=datetime.now(),
     )

@@ -31,6 +31,7 @@ from app.schemas.query import (
     SubQuery,
 )
 from app.schemas.search import (
+    EmbeddingModelConfig,
     HealthResponse,
     ModelConfig,
     ModelTestRequest,
@@ -65,6 +66,7 @@ __all__ = [
     "SearchRunDetail",
     "SearchStatus",
     "ModelConfig",
+    "EmbeddingModelConfig",
     "ModelTestRequest",
     "ModelTestResponse",
     "RecommendationRequest",

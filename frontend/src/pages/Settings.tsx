@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { modelApi } from '@/api/client'
 import { useModelStore } from '@/stores/modelStore'
@@ -20,6 +20,8 @@ export default function Settings() {
     setIsTesting,
     setIsSaving,
   } = useModelStore()
+  const [embeddingTestResult, setEmbeddingTestResult] = useState<import('@/api/types').ModelTestResponse | null>(null)
+  const [isEmbeddingTesting, setIsEmbeddingTesting] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -70,6 +72,25 @@ export default function Settings() {
     }
   }
 
+  const handleEmbeddingTest = async () => {
+    if (!config.embedding) return
+    setIsEmbeddingTesting(true)
+    setEmbeddingTestResult(null)
+    try {
+      const response = await modelApi.testEmbedding(config.embedding)
+      setEmbeddingTestResult(response.data)
+    } catch (err: any) {
+      setEmbeddingTestResult({
+        success: false,
+        latency_ms: null,
+        model_info: null,
+        error: err.response?.data?.detail || t('settings.connectionFailed'),
+      })
+    } finally {
+      setIsEmbeddingTesting(false)
+    }
+  }
+
   return (
     <div className="min-h-[calc(100vh-3.5rem)] bg-gray-50 dark:bg-gray-950 px-4 py-8">
       <div className="max-w-2xl mx-auto">
@@ -88,6 +109,9 @@ export default function Settings() {
           onConfigChange={setConfig}
           onTest={handleTest}
           onSave={handleSave}
+          embeddingTestResult={embeddingTestResult}
+          isEmbeddingTesting={isEmbeddingTesting}
+          onEmbeddingTest={handleEmbeddingTest}
         />
 
         <div className="mt-6">

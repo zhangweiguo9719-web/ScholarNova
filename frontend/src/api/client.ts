@@ -154,6 +154,9 @@ export const modelApi = {
 
   testConnection: (request: ModelTestRequest) =>
     api.post<ModelTestResponse>('/model/test', request),
+
+  testEmbedding: (request: NonNullable<ModelConfig['embedding']>) =>
+    api.post<ModelTestResponse>('/model/test-embedding', request),
 }
 
 // =============================================================================

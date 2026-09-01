@@ -1,0 +1,42 @@
+[
+  {
+    "query": "如何降低分布式训练中的隐私泄露",
+    "query_vector": [1.0, 0.0, 0.0, 0.0],
+    "relevant": "federated-privacy",
+    "candidates": [
+      {"id": "federated-privacy", "title": "Differential Privacy for Federated Learning", "content": "Client updates are clipped and noised before secure aggregation.", "vector": [0.98, 0.05, 0.0, 0.0]},
+      {"id": "traffic", "title": "Traffic Forecasting", "content": "A graph model predicts road speed.", "vector": [0.0, 0.95, 0.0, 0.0]},
+      {"id": "education", "title": "Education Analytics", "content": "Student outcomes are evaluated.", "vector": [0.0, 0.0, 0.9, 0.0]}
+    ]
+  },
+  {
+    "query": "citation-aware academic retrieval",
+    "query_vector": [0.0, 1.0, 0.0, 0.0],
+    "relevant": "citation-agent",
+    "candidates": [
+      {"id": "citation-agent", "title": "Citation-aware Academic Retrieval Agents", "content": "Every generated claim keeps a traceable source span.", "vector": [0.0, 0.99, 0.02, 0.0]},
+      {"id": "vision", "title": "Vision Transformer", "content": "Images are split into patches.", "vector": [0.0, 0.0, 0.95, 0.0]},
+      {"id": "database", "title": "Database Transactions", "content": "Serializable isolation is studied.", "vector": [0.0, 0.0, 0.0, 0.95]}
+    ]
+  },
+  {
+    "query": "交通流预测的图神经网络方法",
+    "query_vector": [0.0, 0.0, 1.0, 0.0],
+    "relevant": "traffic-gnn",
+    "candidates": [
+      {"id": "traffic-gnn", "title": "图神经网络交通流预测", "content": "时空图卷积同时建模道路拓扑与时间依赖。", "vector": [0.0, 0.02, 0.99, 0.0]},
+      {"id": "federated", "title": "联邦学习", "content": "多个客户端协同训练模型。", "vector": [0.95, 0.0, 0.0, 0.0]},
+      {"id": "rag", "title": "检索增强生成", "content": "外部资料约束模型回答。", "vector": [0.0, 0.9, 0.0, 0.0]}
+    ]
+  },
+  {
+    "query": "long-context paper analysis hallucination",
+    "query_vector": [0.0, 0.0, 0.0, 1.0],
+    "relevant": "grounded-chunks",
+    "candidates": [
+      {"id": "grounded-chunks", "title": "Grounded Long-document Analysis", "content": "Page-aware chunks and citations reduce unsupported claims in long papers.", "vector": [0.0, 0.0, 0.03, 0.99]},
+      {"id": "ranking", "title": "Journal Ranking", "content": "Venue quality metadata is normalized.", "vector": [0.0, 0.95, 0.0, 0.0]},
+      {"id": "forecast", "title": "Weather Forecast", "content": "Temperature is predicted from observations.", "vector": [0.95, 0.0, 0.0, 0.0]}
+    ]
+  }
+]
