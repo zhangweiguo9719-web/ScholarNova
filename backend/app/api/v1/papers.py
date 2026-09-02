@@ -4,7 +4,6 @@
 
 import csv
 import json
-from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -27,11 +26,15 @@ class TranslateRequest(BaseModel):
 class TranslateResponse(BaseModel):
     translated: str
     cached: bool = False
+    provider: str | None = None
+    model: str | None = None
+    total_tokens: int = 0
+    fallback_used: bool = False
 
 
 class JournalQualityRequest(BaseModel):
     venue: str
-    quality: Optional[PaperQuality] = None
+    quality: PaperQuality | None = None
 
 
 class RankingImportRequest(BaseModel):
@@ -54,11 +57,11 @@ async def translate_text(req: TranslateRequest) -> TranslateResponse:
     if cache_key in _translation_cache:
         return TranslateResponse(translated=_translation_cache[cache_key], cached=True)
 
-    from app.services.llm.gateway import LLMGateway
+    from app.services.inference import chat_with_fallback
 
-    gateway = LLMGateway(task="translation")
     try:
-        result = await gateway.chat(
+        routed = await chat_with_fallback(
+            task="translation",
             messages=[
                 {
                     "role": "system",
@@ -72,13 +75,19 @@ async def translate_text(req: TranslateRequest) -> TranslateResponse:
             temperature=0.2,
             max_tokens=2048,
         )
-        translated = result.strip()
+        translated = routed.content.strip()
         if not translated:
             raise ValueError("empty translation")
         if len(_translation_cache) >= 256:
             _translation_cache.pop(next(iter(_translation_cache)))
         _translation_cache[cache_key] = translated
-        return TranslateResponse(translated=translated)
+        return TranslateResponse(
+            translated=translated,
+            provider=str(routed.profile.get("provider") or ""),
+            model=str(routed.profile.get("model") or ""),
+            total_tokens=routed.usage["total_tokens"],
+            fallback_used=routed.fallback_used,
+        )
     except Exception as exc:
         raise HTTPException(
             status_code=502,

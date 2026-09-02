@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Save, TestTube, Loader2, Check, X, Globe, Cpu, ChevronDown, ChevronUp, Database, ShieldCheck } from 'lucide-react'
 import clsx from 'clsx'
+import { modelApi } from '@/api/client'
 import { useLocaleStore } from '@/stores/localeStore'
-import type { LLMProvider, ModelConfig as ModelConfigType, ModelTestResponse } from '@/api/types'
+import type { LLMProvider, ModelCapabilityReport, ModelConfig as ModelConfigType, ModelTestResponse } from '@/api/types'
 import './ModelConfig.css'
 
 const providers: { value: LLMProvider; label: string; models: string[]; baseUrl?: string }[] = [
@@ -62,12 +63,31 @@ function TaskModelRow({ taskKey, icon, zhLabel, desc, currentConfig, defaultProv
   const { locale } = useLocaleStore()
   const isZh = locale === 'zh'
   const [expanded, setExpanded] = useState(false)
+  const [capability, setCapability] = useState<ModelCapabilityReport | null>(null)
+  const [checkingCapability, setCheckingCapability] = useState(false)
 
   const taskProvider = currentConfig?.provider || defaultProvider
   const taskModel = currentConfig?.model_name || defaultModel
   const taskApiKey = currentConfig?.api_key || ''
   const taskBaseUrl = currentConfig?.base_url || ''
   const p = providerOptions.find((pp) => pp.value === taskProvider)
+
+  useEffect(() => {
+    if (!expanded || !taskModel) return
+    let active = true
+    setCheckingCapability(true)
+    modelApi.getCapabilities(taskProvider as LLMProvider, taskModel, taskKey)
+      .then(({ data }) => {
+        if (active) setCapability(data)
+      })
+      .catch(() => {
+        if (active) setCapability(null)
+      })
+      .finally(() => {
+        if (active) setCheckingCapability(false)
+      })
+    return () => { active = false }
+  }, [expanded, taskKey, taskModel, taskProvider])
 
   return (
     <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
@@ -118,6 +138,32 @@ function TaskModelRow({ taskKey, icon, zhLabel, desc, currentConfig, defaultProv
           <p className="text-xs text-gray-400 dark:text-gray-500">
             {isZh ? '所有字段留空则使用上方的默认模型配置' : 'Leave all fields empty to use the default model config'}
           </p>
+          <div className={clsx(
+            'rounded-lg border px-3 py-2 text-xs',
+            capability?.status === 'supported' && 'border-emerald-500/20 bg-emerald-500/5 text-emerald-700 dark:text-emerald-300',
+            capability?.status === 'unsupported' && 'border-red-500/20 bg-red-500/5 text-red-700 dark:text-red-300',
+            (!capability || capability.status === 'unknown') && 'border-amber-500/20 bg-amber-500/5 text-amber-700 dark:text-amber-300',
+          )}>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <ShieldCheck className="h-3.5 w-3.5" />
+              <span className="font-medium">
+                {checkingCapability
+                  ? (isZh ? '正在检查模型能力…' : 'Checking model capabilities…')
+                  : capability
+                    ? (isZh ? capability.reason_zh : capability.reason_en)
+                    : (isZh ? '暂时无法读取模型能力。' : 'Capability information is temporarily unavailable.')}
+              </span>
+            </div>
+            {capability && (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {Object.entries(capability.capabilities).map(([key, supported]) => (
+                  <span key={key} className="rounded-full border border-current/15 px-2 py-0.5 opacity-90">
+                    {supported === true ? '✓' : supported === false ? '×' : '?'} {capability.labels[key]?.[isZh ? 'zh' : 'en'] || key}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -265,8 +311,8 @@ export default function ModelConfig({ config, testResult, isTesting, isSaving, o
                 </h3>
                 <p className="mt-1 text-xs leading-5 text-gray-500 dark:text-gray-400">
                   {isZh
-                    ? '当前用于科研问答：仅当主模型最终失败时尝试一次，不参与视觉与出图。每次尝试都会独立记录 Token。'
-                    : 'Currently used by the research assistant: tried once only after the primary model fails, never for vision or image generation. Tokens are tracked per attempt.'}
+                    ? '用于科研问答、查询规划和翻译：仅当主模型最终失败时尝试一次，不参与视觉与出图。每次尝试都会独立记录 Token。'
+                    : 'Used for research Q&A, query planning, and translation: tried once only after the primary model fails, never for vision or image generation. Tokens are tracked per attempt.'}
                 </p>
               </div>
             </div>

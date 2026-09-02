@@ -337,6 +337,22 @@ class TestSaveModelConfig:
 class TestModelConnection:
     """POST /api/v1/model/test 测试套件"""
 
+    async def test_capabilities_endpoint_never_calls_provider(
+        self,
+        client: AsyncClient,
+    ):
+        response = await client.get(
+            "/api/v1/model/capabilities",
+            params={
+                "provider": "qwen",
+                "model_name": "qwen-plus",
+                "task": "vision",
+            },
+        )
+
+        assert response.status_code == 200
+        assert response.json()["status"] == "unsupported"
+
     async def test_embedding_connection_reports_dimensions(
         self,
         client: AsyncClient,

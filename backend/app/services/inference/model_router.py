@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+import asyncio
 from dataclasses import asdict, dataclass
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 from app.config import get_fallback_model_config, get_model_for_task
 from app.services.llm.gateway import LLMGateway
@@ -112,6 +116,12 @@ def _request_options(provider: str) -> dict[str, Any]:
     return {}
 
 
+def _route_timeout(task: str) -> float | None:
+    # QueryPlanner owns a 12-second end-to-end planning budget. Bounding each
+    # route leaves time for the explicit fallback before its rule-based plan.
+    return 5.5 if task == "query_planning" else None
+
+
 async def chat_with_fallback(
     *,
     task: str,
@@ -142,11 +152,17 @@ async def chat_with_fallback(
             role=role,
         )
         try:
-            content = await gateway.chat(
+            request = gateway.chat(
                 messages=messages,
                 temperature=temperature,
                 max_tokens=max_tokens,
                 **_request_options(str(profile.get("provider") or "")),
+            )
+            timeout = _route_timeout(task)
+            content = (
+                await asyncio.wait_for(request, timeout=timeout)
+                if timeout is not None
+                else await request
             )
             usage = _read_usage(gateway, succeeded=True)
             _add_usage(total_usage, usage)
@@ -181,3 +197,52 @@ async def chat_with_fallback(
             )
 
     raise AllModelsUnavailableError(attempts, total_usage)
+
+
+class RoutedLLMGateway:
+    """Small gateway-compatible adapter for legacy text-task services.
+
+    It lets existing callers keep their ``.chat(...)`` contract while gaining
+    the explicit primary/fallback route and per-request usage accounting.
+    """
+
+    def __init__(
+        self,
+        task: str,
+        gateway_factory: Callable[..., Any] = LLMGateway,
+    ) -> None:
+        if task not in TEXT_TASKS:
+            raise ValueError(f"RoutedLLMGateway only supports text tasks: {task}")
+        self.task = task
+        self.gateway_factory = gateway_factory
+        self.last_usage = _empty_usage()
+        self._usage = _empty_usage()
+        self.last_result: RoutedChatResult | None = None
+
+    @property
+    def usage(self) -> dict[str, int]:
+        return dict(self._usage)
+
+    def reset_usage(self) -> None:
+        self.last_usage = _empty_usage()
+        self._usage = _empty_usage()
+        self.last_result = None
+
+    async def chat(
+        self,
+        messages: list[dict[str, str]],
+        temperature: float = 0.7,
+        max_tokens: int = 4096,
+        **_: Any,
+    ) -> str:
+        result = await chat_with_fallback(
+            task=self.task,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            gateway_factory=self.gateway_factory,
+        )
+        self.last_result = result
+        self.last_usage = dict(result.usage)
+        _add_usage(self._usage, result.usage)
+        return result.content

@@ -65,6 +65,7 @@ Developers who want to build the application themselves can use the [Windows des
 - Searches Semantic Scholar, OpenAlex, Crossref, and arXiv.
 - Connects to the local Zotero library in read-only mode and searches explicitly imported metadata alongside online sources.
 - Includes a traceable research assistant with zero-cost multilingual BM25 by default and optional BM25 + embedding + RRF hybrid retrieval across knowledge chunks, parsed PDFs, and live local Zotero records.
+- Shows task-aware model capability hints for text, structured output, vision, image generation, and embeddings without making a paid provider call; unknown custom models are labelled for testing rather than falsely claimed as compatible.
 - Preserves section and page locators when available and shows localized evidence locations on assistant citation cards.
 - Deduplicates and ranks papers using title, abstract, year, venue, citations, and query constraints.
 - Displays abstracts, authors, metadata, relevance, citation percentile, citation velocity, and traceable quality signals.
@@ -102,7 +103,7 @@ The hybrid path embeds up to 256 source-balanced candidates, fuses vector and BM
 
 After generation, a zero-token deterministic verifier reports factual-segment citation coverage, unknown source IDs, and uncited segments as verified, partial, or failed. This is an integrity check, not a claim of semantic entailment. If the answer model is offline or times out, ScholarNova returns a bounded list of retrieved evidence with valid `[S1]` markers instead of failing the whole request, and labels the response as a deterministic evidence fallback.
 
-An optional fallback can be configured for research-assistant answers under **Settings → Fallback text model**—for example, Zhipu or MiMo as primary and Alibaba Qwen as fallback. Normal assistant requests call only the primary route. The fallback is tried once only after bounded primary retries fail, and it never applies to vision or SenseNova image generation. The assistant reports the selected provider, primary/fallback route, each attempt, and aggregate provider-reported tokens. If both routes fail, the deterministic evidence fallback remains available. Credentials and endpoints are isolated by provider, so an empty Qwen key never reuses a MiMo or Zhipu credential. The router contract already supports other text-task names, but those task integrations are not presented as complete yet.
+An optional fallback can be configured under **Settings → Fallback text model**—for example, Zhipu or MiMo as primary and Alibaba Qwen as fallback. Research Q&A, AI query planning, and title/abstract translation now use this shared route. Normal requests call only the primary model; fallback is tried once only after bounded primary retries fail. Vision and SenseNova image generation remain isolated task routes. The assistant reports the selected provider, each attempt, and aggregate provider-reported tokens; if both answer routes fail, the deterministic evidence fallback remains available. Credentials and endpoints are isolated by provider, so an empty Qwen key never reuses a MiMo or Zhipu credential. Long-document analysis and knowledge recommendation have not yet been migrated and are not presented as complete.
 
 ### Journal data and institutional access
 

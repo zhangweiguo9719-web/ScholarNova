@@ -6,11 +6,9 @@ SSRF 防护模块
 
 import ipaddress
 import socket
-from typing import Optional
 from urllib.parse import urlparse
 
 from app.config import settings
-
 
 # 内网 IP 段（RFC 1918 / RFC 6890 / RFC 4291）
 PRIVATE_NETWORKS = [
@@ -24,12 +22,6 @@ PRIVATE_NETWORKS = [
     ipaddress.ip_network("fc00::/7"),          # IPv6 unique local
     ipaddress.ip_network("0.0.0.0/8"),         # "This" network
 ]
-
-# 允许的协议
-ALLOWED_SCHEMES = {"https"}
-if settings.ALLOW_HTTP:
-    ALLOWED_SCHEMES.add("http")
-
 
 def _is_private_ip(ip_str: str) -> bool:
     """
@@ -73,7 +65,7 @@ def _resolve_hostname(hostname: str) -> list[str]:
         return []
 
 
-def validate_url(url: str) -> tuple[bool, Optional[str]]:
+def validate_url(url: str) -> tuple[bool, str | None]:
     """
     验证 URL 是否安全（防止 SSRF）
 
@@ -98,18 +90,23 @@ def validate_url(url: str) -> tuple[bool, Optional[str]]:
     except Exception:
         return False, "URL 格式无效"
 
-    # 2. 协议检查
-    if parsed.scheme not in ALLOWED_SCHEMES:
-        allowed = ", ".join(sorted(ALLOWED_SCHEMES))
-        return False, f"仅允许 {allowed} 协议"
-
-    # 3. 主机名检查
+    # 2. 主机名检查
     hostname = parsed.hostname
     if not hostname:
         return False, "URL 缺少主机名"
 
-    # 4. localhost 检查
+    # 3. 协议检查。调试模式下 localhost 可使用 HTTP，支持本机 Ollama。
     localhost_names = {"localhost", "127.0.0.1", "::1", "0.0.0.0"}
+    allowed_schemes = {"https"}
+    if settings.ALLOW_HTTP or (
+        settings.DEBUG and hostname.lower() in localhost_names
+    ):
+        allowed_schemes.add("http")
+    if parsed.scheme not in allowed_schemes:
+        allowed = ", ".join(sorted(allowed_schemes))
+        return False, f"仅允许 {allowed} 协议"
+
+    # 4. localhost 检查
     if hostname.lower() in localhost_names:
         if not settings.ALLOW_PRIVATE_IPS and not settings.DEBUG:
             return False, "不允许访问 localhost（非调试模式）"
@@ -140,7 +137,7 @@ def validate_url(url: str) -> tuple[bool, Optional[str]]:
     return True, None
 
 
-def validate_base_url(url: str) -> tuple[bool, Optional[str]]:
+def validate_base_url(url: str) -> tuple[bool, str | None]:
     """
     验证 LLM API Base URL 是否安全
 

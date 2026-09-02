@@ -6,6 +6,8 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 
 ### Added
 
+- Conservative task-aware capability hints for text, structured output, vision, image generation, and embeddings without a paid model call.
+- Shared primary/fallback routing for AI query planning and academic translation, including translation route and Token metadata.
 - Optional hybrid retrieval with an independent embedding profile, local vector cache, cosine ranking, and RRF fusion over BM25 results.
 - Embedding connection testing for Ollama, OpenAI, Zhipu, Qwen, and custom OpenAI-compatible endpoints.
 - Retrieval-mode and embedding-token observability in research-assistant responses and the UI.
@@ -32,6 +34,7 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 
 ### Changed
 
+- Local Ollama HTTP endpoints are accepted only for localhost in debug mode; external HTTP and private-network SSRF protections remain enforced.
 - The research assistant now uses BM25 by default, optionally embeds a source-balanced pool of at most 256 candidates, fuses rankings with RRF, and transparently falls back to BM25 on every semantic-service failure.
 - Embeddings are cached by provider, model, and normalized input hash so repeated content does not consume additional embedding tokens.
 - Research-assistant traces now expose evidence packing, answer generation, and answer verification as distinct inference stages.
@@ -57,6 +60,7 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 
 ### Verified
 
+- 74 focused backend tests and 19 frontend tests cover capability hints, bounded query-planning routing, translation route metadata, model fallback, and local Ollama URL validation without live model calls.
 - 288 non-integration backend tests and 18 frontend tests pass; page-aware parsing, hybrid ranking, vector-cache reuse, citation-integrity checks, deterministic model-offline fallback, token accounting, and BM25 fallback are covered without calling a live model.
 - The production frontend build succeeds; the four-case retrieval regression fixture improves Top-1 from BM25 3/4 to hybrid 4/4 and is explicitly not presented as a competition benchmark.
 - TypeScript checks are clean. Local transactional validation created four PDF features, retrieved two relevant chunks, and rolled the test record back without invoking a model.

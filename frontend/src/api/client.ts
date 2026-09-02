@@ -12,6 +12,8 @@ import type {
   RecommendationResponse,
   RecommendationFeedback,
   ModelConfig,
+  ModelCapabilityReport,
+  LLMProvider,
   ModelTestRequest,
   ModelTestResponse,
   HealthResponse,
@@ -139,7 +141,7 @@ export const recommendationsApi = {
 
 export const translateApi = {
   translate: (text: string, targetLang: string = 'zh') =>
-    api.post<{ translated: string }>('/papers/translate', { text, target_lang: targetLang }),
+    api.post<{ translated: string; cached?: boolean; provider?: string; model?: string; total_tokens?: number; fallback_used?: boolean }>('/papers/translate', { text, target_lang: targetLang }),
 }
 
 // =============================================================================
@@ -148,6 +150,11 @@ export const translateApi = {
 
 export const modelApi = {
   getConfig: () => api.get<ModelConfig>('/model/config'),
+
+  getCapabilities: (provider: LLMProvider, modelName: string, task?: string) =>
+    api.get<ModelCapabilityReport>('/model/capabilities', {
+      params: { provider, model_name: modelName, task },
+    }),
 
   saveConfig: (config: ModelConfig) =>
     api.post('/model/config', config),

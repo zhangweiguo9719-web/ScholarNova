@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import asyncio
+
 import pytest
 
 from app.services.inference.model_router import (
     AllModelsUnavailableError,
+    RoutedLLMGateway,
     chat_with_fallback,
 )
 
@@ -161,3 +164,72 @@ async def test_fallback_is_not_used_for_vision_task(monkeypatch) -> None:
         )
 
     assert len(caught.value.attempts) == 1
+
+
+@pytest.mark.asyncio
+async def test_gateway_adapter_preserves_chat_contract_and_usage(monkeypatch) -> None:
+    RoutedGateway.profiles = []
+    RoutedGateway.fail_providers = set()
+    monkeypatch.setattr(
+        "app.services.inference.model_router.get_model_for_task",
+        lambda task: {
+            "provider": "qwen", "model": "qwen-plus", "api_key": "key",
+            "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+        },
+    )
+    monkeypatch.setattr(
+        "app.services.inference.model_router.get_fallback_model_config",
+        lambda: {"enabled": False},
+    )
+    gateway = RoutedLLMGateway("query_planning", gateway_factory=RoutedGateway)
+
+    content = await gateway.chat([{"role": "user", "content": "plan"}])
+
+    assert content == "answer from qwen"
+    assert gateway.last_usage["total_tokens"] == 15
+    assert gateway.usage["requests"] == 1
+
+
+@pytest.mark.asyncio
+async def test_query_planning_timeout_leaves_time_for_fallback(monkeypatch) -> None:
+    class TimeoutGateway(RoutedGateway):
+        async def chat(self, messages, **kwargs) -> str:
+            del messages, kwargs
+            if self.profile["provider"] == "zhipu":
+                await asyncio.sleep(1)
+            return f"answer from {self.profile['provider']}"
+
+    TimeoutGateway.profiles = []
+    monkeypatch.setattr(
+        "app.services.inference.model_router.get_model_for_task",
+        lambda task: {
+            "provider": "zhipu", "model": "glm-5.2", "api_key": "primary",
+            "base_url": "https://open.bigmodel.cn/api/paas/v4",
+        },
+    )
+    monkeypatch.setattr(
+        "app.services.inference.model_router.get_fallback_model_config",
+        lambda: {
+            "enabled": True, "provider": "qwen", "model": "qwen-plus",
+            "api_key": "fallback", "base_url": "https://example.com/v1",
+        },
+    )
+    monkeypatch.setattr(
+        "app.services.inference.model_router._route_timeout",
+        lambda task: 0.01,
+    )
+
+    result = await chat_with_fallback(
+        task="query_planning",
+        messages=[{"role": "user", "content": "plan"}],
+        temperature=0.2,
+        max_tokens=100,
+        gateway_factory=TimeoutGateway,
+    )
+
+    assert result.content == "answer from qwen"
+    assert result.fallback_used is True
+    assert [attempt.status for attempt in result.attempts] == [
+        "unavailable",
+        "completed",
+    ]

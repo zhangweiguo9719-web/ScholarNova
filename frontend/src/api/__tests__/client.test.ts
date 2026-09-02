@@ -112,6 +112,17 @@ describe('API Client', () => {
       expect(mockedAxios.get).toHaveBeenCalledWith('/model/config')
     })
 
+    it('should inspect task capability without a paid model call', async () => {
+      const mockedAxios = vi.mocked(axios.create())
+      mockedAxios.get.mockResolvedValue({ data: { status: 'supported' } })
+
+      await modelApi.getCapabilities('mimo', 'mimo-v2.5', 'vision')
+
+      expect(mockedAxios.get).toHaveBeenCalledWith('/model/capabilities', {
+        params: { provider: 'mimo', model_name: 'mimo-v2.5', task: 'vision' },
+      })
+    })
+
     it('should call POST /model/config', async () => {
       const mockedAxios = vi.mocked(axios.create())
       mockedAxios.post.mockResolvedValue({ data: { success: true } })

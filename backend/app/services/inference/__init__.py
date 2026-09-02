@@ -8,6 +8,7 @@ from app.services.inference.answer_verifier import (
 from app.services.inference.model_router import (
     AllModelsUnavailableError,
     ModelAttempt,
+    RoutedLLMGateway,
     RoutedChatResult,
     chat_with_fallback,
 )
@@ -18,6 +19,7 @@ __all__ = [
     "verify_answer_citations",
     "AllModelsUnavailableError",
     "ModelAttempt",
+    "RoutedLLMGateway",
     "RoutedChatResult",
     "chat_with_fallback",
 ]

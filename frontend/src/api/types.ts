@@ -91,6 +91,18 @@ export interface ModelTestRequest {
   base_url?: string
 }
 
+export interface ModelCapabilityReport {
+  provider: string
+  model_name: string
+  task?: string | null
+  status: 'supported' | 'unsupported' | 'unknown'
+  requirements: string[]
+  capabilities: Record<string, boolean | null>
+  labels: Record<string, { zh: string; en: string }>
+  reason_zh: string
+  reason_en: string
+}
+
 // =============================================================================
 // 响应类型
 // =============================================================================

@@ -189,18 +189,18 @@ async def _execute_search_task(run_id: str, request: SearchRequest) -> None:
         run_id: 搜索运行 ID
         request: 搜索请求
     """
+    from app.config import settings
     from app.database import async_session_factory
-    from app.services.llm.gateway import LLMGateway
+    from app.services.inference import RoutedLLMGateway
     from app.services.search.deduplicator import Deduplicator
     from app.services.search.query_planner import QueryPlanner
     from app.services.search.ranker import Ranker
     from app.services.search.retriever import Retriever, SourceStatus
     from app.services.sources.arxiv import ArxivSource
     from app.services.sources.crossref import CrossRefSource
-    from app.services.sources.openalex import OpenAlexSource
     from app.services.sources.local_library import LocalLibrarySource
+    from app.services.sources.openalex import OpenAlexSource
     from app.services.sources.semantic_scholar import SemanticScholarSource
-    from app.config import settings
 
     start_time = time.time()
 
@@ -225,7 +225,7 @@ async def _execute_search_task(run_id: str, request: SearchRequest) -> None:
             await db.commit()
 
             # 初始化服务
-            llm_gateway = LLMGateway()
+            llm_gateway = RoutedLLMGateway(task="query_planning")
             planner = QueryPlanner(llm_gateway=llm_gateway)
             all_constraints = _collect_constraints(request)
 

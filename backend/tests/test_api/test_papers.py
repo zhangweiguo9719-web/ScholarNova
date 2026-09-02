@@ -3,6 +3,7 @@
 """
 
 import uuid
+from types import SimpleNamespace
 
 import pytest
 from httpx import AsyncClient
@@ -30,6 +31,47 @@ class TestGetPaper:
         response = await client.get(f"/api/v1/papers/{fake_id}")
         data = response.json()
         assert "detail" in data
+
+
+class TestTranslatePaperText:
+    """Academic translation uses the shared text-model route."""
+
+    async def test_translation_reports_route_and_usage(
+        self,
+        client: AsyncClient,
+        monkeypatch,
+    ):
+        from app.api.v1.papers import _translation_cache
+
+        _translation_cache.clear()
+
+        async def fake_routed_chat(**kwargs):
+            assert kwargs["task"] == "translation"
+            return SimpleNamespace(
+                content="可追溯的学术检索",
+                profile={"provider": "qwen", "model": "qwen-plus"},
+                usage={"total_tokens": 42},
+                fallback_used=True,
+            )
+
+        monkeypatch.setattr(
+            "app.services.inference.chat_with_fallback",
+            fake_routed_chat,
+        )
+        response = await client.post(
+            "/api/v1/papers/translate",
+            json={"text": "Traceable academic retrieval", "target_lang": "zh"},
+        )
+
+        assert response.status_code == 200
+        assert response.json() == {
+            "translated": "可追溯的学术检索",
+            "cached": False,
+            "provider": "qwen",
+            "model": "qwen-plus",
+            "total_tokens": 42,
+            "fallback_used": True,
+        }
 
 
 class TestGetEvidence:

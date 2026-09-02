@@ -11,6 +11,7 @@ from app.core.rate_limiter import check_rate_limit
 from app.core.ssrf import validate_base_url
 from app.schemas.search import (
     EmbeddingModelConfig,
+    LLMProviderName,
     ModelConfig,
     ModelTestRequest,
     ModelTestResponse,
@@ -18,6 +19,18 @@ from app.schemas.search import (
 )
 
 router = APIRouter()
+
+
+@router.get("/capabilities")
+async def get_model_capabilities(
+    provider: LLMProviderName,
+    model_name: str,
+    task: str | None = None,
+) -> dict:
+    """Inspect model/task compatibility without sending a provider request."""
+    from app.services.inference.capabilities import assess_model_for_task
+
+    return assess_model_for_task(provider, model_name, task)
 
 
 def _read_saved_config() -> dict:
