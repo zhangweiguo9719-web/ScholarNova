@@ -74,6 +74,7 @@ Developers who want to build the application themselves can use the [Windows des
 - Clearly distinguishes full-text analysis from abstract-only fallback and shows the exact retrieval status instead of implying that unavailable source material was read.
 - Figure pages are sent through the task-specific vision profile. Configure a multimodal model under **Settings → Task models → Vision**; if it rejects image input, ScholarNova transparently falls back to parsed full text, tables, and captions and reports that no page images were read.
 - Completed paper analyses show provider-reported total Token usage, with prompt and completion counts also available in the API response.
+- Each task model now has an opt-in real capability probe in Settings. Structured tasks must return parseable JSON, vision tasks must identify an embedded test image, and image generation requires an explicit cost confirmation. The latest latency and provider-reported input/output/total Token counts stay on the local machine; opening or saving configuration never triggers a model call.
 - Provides a keyboard-accessible, drag-resizable paper detail panel and remembers its width.
 - Produces AI summaries, contributions, limitations, methods, and evidence-oriented analysis; analysis is temporarily retained per paper within the current search run.
 - Enriches visible results with clearly labelled OpenAlex journal metrics and accepts user-authorized JCR, historical CAS, or SJR CSV/JSON imports without guessing commercial quartiles.

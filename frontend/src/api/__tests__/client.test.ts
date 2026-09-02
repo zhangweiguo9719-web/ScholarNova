@@ -123,6 +123,34 @@ describe('API Client', () => {
       })
     })
 
+    it('should load a locally saved capability probe without calling the model', async () => {
+      const mockedAxios = vi.mocked(axios.create())
+      mockedAxios.get.mockResolvedValue({ data: null })
+
+      await modelApi.getCapabilityProbe('qwen', 'qwen-plus', 'query_planning')
+
+      expect(mockedAxios.get).toHaveBeenCalledWith('/model/capabilities/probe', {
+        params: { provider: 'qwen', model_name: 'qwen-plus', task: 'query_planning' },
+      })
+    })
+
+    it('should run a real capability probe only through an explicit POST', async () => {
+      const mockedAxios = vi.mocked(axios.create())
+      mockedAxios.post.mockResolvedValue({ data: { status: 'passed' } })
+
+      await modelApi.probeCapability({
+        provider: 'qwen',
+        model_name: 'qwen-plus',
+        task: 'query_planning',
+      })
+
+      expect(mockedAxios.post).toHaveBeenCalledWith('/model/capabilities/probe', {
+        provider: 'qwen',
+        model_name: 'qwen-plus',
+        task: 'query_planning',
+      })
+    })
+
     it('should call POST /model/config', async () => {
       const mockedAxios = vi.mocked(axios.create())
       mockedAxios.post.mockResolvedValue({ data: { success: true } })

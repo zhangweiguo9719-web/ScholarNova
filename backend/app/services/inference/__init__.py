@@ -12,6 +12,11 @@ from app.services.inference.model_router import (
     RoutedChatResult,
     chat_with_fallback,
 )
+from app.services.inference.capability_probe import (
+    latest_probe_report,
+    run_capability_probe,
+    save_probe_report,
+)
 
 __all__ = [
     "CitationVerification",
@@ -22,4 +27,7 @@ __all__ = [
     "RoutedLLMGateway",
     "RoutedChatResult",
     "chat_with_fallback",
+    "latest_probe_report",
+    "run_capability_probe",
+    "save_probe_report",
 ]

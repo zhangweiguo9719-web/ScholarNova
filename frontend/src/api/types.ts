@@ -103,6 +103,32 @@ export interface ModelCapabilityReport {
   reason_en: string
 }
 
+export type ModelProbeTask =
+  | 'analysis'
+  | 'query_planning'
+  | 'translation'
+  | 'vision'
+  | 'recommendation'
+  | 'assistant'
+  | 'diagram'
+
+export interface ModelCapabilityProbeResult {
+  success: boolean
+  status: 'passed' | 'failed'
+  provider: string
+  model_name: string
+  task: ModelProbeTask
+  capability: string
+  tested_at: string
+  latency_ms: number
+  prompt_tokens: number
+  completion_tokens: number
+  total_tokens: number
+  detail_zh: string
+  detail_en: string
+  error?: string | null
+}
+
 // =============================================================================
 // 响应类型
 // =============================================================================

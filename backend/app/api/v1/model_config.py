@@ -3,6 +3,7 @@
 """
 
 import asyncio
+import logging
 import time
 
 from fastapi import APIRouter, HTTPException, Request
@@ -12,6 +13,8 @@ from app.core.ssrf import validate_base_url
 from app.schemas.search import (
     EmbeddingModelConfig,
     LLMProviderName,
+    ModelCapabilityProbeRequest,
+    ModelCapabilityProbeResponse,
     ModelConfig,
     ModelTestRequest,
     ModelTestResponse,
@@ -19,6 +22,7 @@ from app.schemas.search import (
 )
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 @router.get("/capabilities")
@@ -48,6 +52,108 @@ def _read_saved_config() -> dict:
     except (OSError, ValueError):
         return {}
     return {}
+
+
+def _resolve_probe_profile(request: ModelCapabilityProbeRequest) -> dict:
+    """Resolve one isolated probe profile without leaking credentials across providers."""
+    from app.config import PROVIDER_DEFAULTS, settings
+
+    saved = _read_saved_config()
+    saved_provider = str(saved.get("provider") or settings.DEFAULT_LLM_PROVIDER)
+    saved_tasks = saved.get("tasks") if isinstance(saved.get("tasks"), dict) else {}
+    task_config = saved_tasks.get(request.task)
+    if not isinstance(task_config, dict):
+        task_config = {}
+
+    matching_task = str(task_config.get("provider") or saved_provider) == request.provider
+    api_key = request.api_key
+    base_url = request.base_url
+    if matching_task:
+        api_key = api_key or task_config.get("api_key")
+        base_url = base_url or task_config.get("base_url")
+
+    if request.provider == saved_provider:
+        api_key = api_key or saved.get("api_key") or settings.OPENAI_API_KEY
+        base_url = base_url or saved.get("base_url") or settings.OPENAI_API_BASE
+
+    saved_fallback = saved.get("fallback")
+    if not isinstance(saved_fallback, dict):
+        saved_fallback = {}
+    if request.provider == saved_fallback.get("provider"):
+        api_key = api_key or saved_fallback.get("api_key")
+        base_url = base_url or saved_fallback.get("base_url")
+
+    if request.provider == "sensenova":
+        api_key = api_key or settings.SENSENOVA_API_KEY
+        base_url = base_url or settings.SENSENOVA_API_BASE
+
+    provider_base_url = PROVIDER_DEFAULTS.get(request.provider, (None, None))[0]
+    return {
+        "provider": request.provider,
+        "model": request.model_name,
+        "api_key": api_key,
+        "base_url": base_url or provider_base_url,
+    }
+
+
+def _redact_probe_error(error: str | None, api_key: str | None) -> str | None:
+    if not error:
+        return None
+    safe = str(error)
+    if api_key:
+        safe = safe.replace(api_key, "[REDACTED]")
+    return safe[:800]
+
+
+@router.get(
+    "/capabilities/probe",
+    response_model=ModelCapabilityProbeResponse | None,
+)
+async def get_saved_capability_probe(
+    provider: LLMProviderName,
+    model_name: str,
+    task: str,
+) -> ModelCapabilityProbeResponse | None:
+    """Return the most recent local result; this never calls a provider."""
+    from app.services.inference.capability_probe import latest_probe_report
+
+    return latest_probe_report(provider, model_name, task)
+
+
+@router.post(
+    "/capabilities/probe",
+    response_model=ModelCapabilityProbeResponse,
+)
+async def probe_model_capability(
+    request: ModelCapabilityProbeRequest,
+    http_request: Request,
+) -> ModelCapabilityProbeResponse:
+    """Run one user-triggered, task-specific real model request."""
+    limited = check_rate_limit(http_request, endpoint_type="analysis")
+    if limited:
+        return limited
+
+    profile = _resolve_probe_profile(request)
+    if profile.get("base_url"):
+        is_valid, error = validate_base_url(profile["base_url"])
+        if not is_valid:
+            raise HTTPException(status_code=400, detail=f"API 地址不安全: {error}")
+
+    from app.services.inference.capability_probe import (
+        run_capability_probe,
+        save_probe_report,
+    )
+
+    report = await run_capability_probe(profile, request.task)
+    report["error"] = _redact_probe_error(
+        report.get("error"),
+        str(profile.get("api_key") or "") or None,
+    )
+    try:
+        save_probe_report(report)
+    except OSError as exc:
+        logger.warning("Unable to save local capability probe report: %s", exc)
+    return ModelCapabilityProbeResponse(**report)
 
 
 @router.get("/config")
@@ -90,8 +196,7 @@ async def get_model_config() -> dict:
         "model_name": saved_fallback.get("model_name") or "qwen-plus",
         "api_key": None,
         "api_key_configured": bool(saved_fallback.get("api_key")),
-        "base_url": saved_fallback.get("base_url")
-        or fallback_default_urls.get(fallback_provider),
+        "base_url": saved_fallback.get("base_url") or fallback_default_urls.get(fallback_provider),
     }
 
     saved_embedding = saved.get("embedding")
@@ -141,6 +246,7 @@ async def save_model_config(
 
     # 更新全局多模型配置
     from app.config import MODEL_PROFILES, runtime_path, settings
+
     existing_config = _read_saved_config()
     existing_provider = existing_config.get("provider")
     existing_tasks = existing_config.get("tasks")
@@ -257,6 +363,7 @@ async def save_model_config(
             json.dump(config_data, f, ensure_ascii=False, indent=2)
     except Exception as e:
         import logging
+
         logging.getLogger(__name__).warning(f"保存配置文件失败: {e}")
 
     return SuccessResponse(
@@ -361,10 +468,7 @@ async def test_model_connection(
         api_key = request.api_key
         if not api_key and request.provider == settings.DEFAULT_LLM_PROVIDER:
             api_key = settings.OPENAI_API_KEY
-        elif (
-            not api_key
-            and saved_fallback.get("provider") == request.provider
-        ):
+        elif not api_key and saved_fallback.get("provider") == request.provider:
             api_key = saved_fallback.get("api_key")
         gateway = LLMGateway.from_profile(
             {

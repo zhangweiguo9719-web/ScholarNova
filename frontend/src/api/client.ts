@@ -13,6 +13,8 @@ import type {
   RecommendationFeedback,
   ModelConfig,
   ModelCapabilityReport,
+  ModelCapabilityProbeResult,
+  ModelProbeTask,
   LLMProvider,
   ModelTestRequest,
   ModelTestResponse,
@@ -155,6 +157,14 @@ export const modelApi = {
     api.get<ModelCapabilityReport>('/model/capabilities', {
       params: { provider, model_name: modelName, task },
     }),
+
+  getCapabilityProbe: (provider: LLMProvider, modelName: string, task: ModelProbeTask) =>
+    api.get<ModelCapabilityProbeResult | null>('/model/capabilities/probe', {
+      params: { provider, model_name: modelName, task },
+    }),
+
+  probeCapability: (request: ModelTestRequest & { task: ModelProbeTask }) =>
+    api.post<ModelCapabilityProbeResult>('/model/capabilities/probe', request),
 
   saveConfig: (config: ModelConfig) =>
     api.post('/model/config', config),

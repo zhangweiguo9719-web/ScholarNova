@@ -6,6 +6,8 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 
 ### Added
 
+- Opt-in real task capability probes for text, structured JSON, vision, and image generation, with locally persisted latency and provider-reported Token counts.
+- Refresh-safe capability-probe history that excludes API keys, model response bodies, and generated-image URLs.
 - Primary/fallback routing for paper text analysis, knowledge polishing, research-direction analysis, route text generation, and recommendation planning.
 - Provider, model, fallback-state, and Token metadata on knowledge-analysis and recommendation responses.
 - Evidence-bounded deterministic knowledge and recommendation results when both configured text models are unavailable.
@@ -31,6 +33,7 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 
 ### Security
 
+- Real capability probes inherit saved credentials only from the matching provider and never reuse a primary model key across providers.
 - Embedding credentials are isolated from chat credentials, stored only by the local backend, and never returned to browser storage.
 - Zotero access is pinned to `127.0.0.1:23119`; users cannot supply an arbitrary integration URL.
 - The integration never writes to Zotero, never accesses `zotero.sqlite` directly, and does not upload a user's library.
@@ -66,6 +69,7 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 
 ### Verified
 
+- 315 non-integration backend tests and 21 frontend tests pass; TypeScript checks and the production build are clean. A manual Zhipu GLM-5.2 structured-output probe passed in 13.718 seconds using 32 provider-reported Tokens.
 - 310 non-integration backend tests and 19 frontend tests pass; TypeScript checks and the production build are clean. The FTI-3D regression suite verifies text routing, vision isolation, Token accounting, deterministic fallback, and non-fabricating recommendation fallback without a live model call.
 - 74 focused backend tests and 19 frontend tests cover capability hints, bounded query-planning routing, translation route metadata, model fallback, and local Ollama URL validation without live model calls.
 - 288 non-integration backend tests and 18 frontend tests pass; page-aware parsing, hybrid ranking, vector-cache reuse, citation-integrity checks, deterministic model-offline fallback, token accounting, and BM25 fallback are covered without calling a live model.

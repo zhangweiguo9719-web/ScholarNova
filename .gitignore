@@ -101,6 +101,7 @@ temp/
 
 # Config files with secrets
 backend/model_config.json
+backend/model_capability_probes.json
 backend/network_config.json
 backend/generated/
 backend/debug_output.txt

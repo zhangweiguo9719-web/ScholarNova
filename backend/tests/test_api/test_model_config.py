@@ -34,9 +34,7 @@ def test_task_profiles_inherit_default_credentials_after_restart(monkeypatch):
             },
         },
     }
-    runtime_path("model_config.json").write_text(
-        json.dumps(config), encoding="utf-8"
-    )
+    runtime_path("model_config.json").write_text(json.dumps(config), encoding="utf-8")
     monkeypatch.setitem(MODEL_PROFILES, "analysis", {})
     monkeypatch.setitem(
         MODEL_PROFILES,
@@ -353,6 +351,134 @@ class TestModelConnection:
         assert response.status_code == 200
         assert response.json()["status"] == "unsupported"
 
+    async def test_real_capability_probe_uses_matching_saved_task_key(
+        self,
+        client: AsyncClient,
+        monkeypatch,
+    ):
+        """A real task probe may reuse only the matching task credential."""
+        from app.config import runtime_path
+
+        runtime_path("model_config.json").write_text(
+            json.dumps(
+                {
+                    "provider": "zhipu",
+                    "model_name": "glm-5.2",
+                    "api_key": "primary-secret",
+                    "tasks": {
+                        "translation": {
+                            "provider": "qwen",
+                            "model_name": "qwen-plus",
+                            "api_key": "task-secret",
+                            "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+                        }
+                    },
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        async def fake_probe(profile, task):
+            assert profile["provider"] == "qwen"
+            assert profile["api_key"] == "task-secret"
+            assert task == "translation"
+            return {
+                "success": True,
+                "status": "passed",
+                "provider": "qwen",
+                "model_name": "qwen-plus",
+                "task": "translation",
+                "capability": "text",
+                "tested_at": "2026-09-02T00:00:00+00:00",
+                "latency_ms": 12,
+                "prompt_tokens": 7,
+                "completion_tokens": 3,
+                "total_tokens": 10,
+                "detail_zh": "通过",
+                "detail_en": "Passed",
+                "error": None,
+            }
+
+        monkeypatch.setattr(
+            "app.services.inference.capability_probe.run_capability_probe",
+            fake_probe,
+        )
+        monkeypatch.setattr(
+            "app.services.inference.capability_probe.save_probe_report",
+            lambda _report: None,
+        )
+        response = await client.post(
+            "/api/v1/model/capabilities/probe",
+            json={
+                "provider": "qwen",
+                "model_name": "qwen-plus",
+                "task": "translation",
+            },
+        )
+
+        assert response.status_code == 200
+        assert response.json()["total_tokens"] == 10
+
+    async def test_real_capability_probe_never_reuses_cross_provider_key(
+        self,
+        client: AsyncClient,
+        monkeypatch,
+    ):
+        from app.config import runtime_path, settings
+
+        runtime_path("model_config.json").write_text(
+            json.dumps(
+                {
+                    "provider": "zhipu",
+                    "model_name": "glm-5.2",
+                    "api_key": "zhipu-secret",
+                }
+            ),
+            encoding="utf-8",
+        )
+        monkeypatch.setattr(settings, "DEFAULT_LLM_PROVIDER", "zhipu")
+        monkeypatch.setattr(settings, "OPENAI_API_KEY", "zhipu-env-secret")
+
+        async def fake_probe(profile, task):
+            assert profile["provider"] == "qwen"
+            assert profile["api_key"] is None
+            return {
+                "success": False,
+                "status": "failed",
+                "provider": "qwen",
+                "model_name": "qwen-plus",
+                "task": task,
+                "capability": "text",
+                "tested_at": "2026-09-02T00:00:00+00:00",
+                "latency_ms": 1,
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0,
+                "detail_zh": "失败",
+                "detail_en": "Failed",
+                "error": "missing key",
+            }
+
+        monkeypatch.setattr(
+            "app.services.inference.capability_probe.run_capability_probe",
+            fake_probe,
+        )
+        monkeypatch.setattr(
+            "app.services.inference.capability_probe.save_probe_report",
+            lambda _report: None,
+        )
+        response = await client.post(
+            "/api/v1/model/capabilities/probe",
+            json={
+                "provider": "qwen",
+                "model_name": "qwen-plus",
+                "task": "assistant",
+            },
+        )
+
+        assert response.status_code == 200
+        assert response.json()["success"] is False
+
     async def test_embedding_connection_reports_dimensions(
         self,
         client: AsyncClient,
@@ -360,9 +486,7 @@ class TestModelConnection:
     ):
         from app.services.retrieval.embeddings import EmbeddingBatch
 
-        embed = AsyncMock(
-            return_value=EmbeddingBatch(vectors=[[0.1, 0.2, 0.3]], input_tokens=5)
-        )
+        embed = AsyncMock(return_value=EmbeddingBatch(vectors=[[0.1, 0.2, 0.3]], input_tokens=5))
         monkeypatch.setattr(
             "app.services.retrieval.embeddings.EmbeddingGateway.embed",
             embed,
@@ -478,9 +602,7 @@ class TestModelConnection:
         )
         assert response.status_code == 422
 
-    async def test_test_connection_timeout_has_actionable_error(
-        self, client: AsyncClient
-    ):
+    async def test_test_connection_timeout_has_actionable_error(self, client: AsyncClient):
         """探针超时不应再返回空错误。"""
         with patch(
             "app.services.llm.gateway.LLMGateway.test_connection",

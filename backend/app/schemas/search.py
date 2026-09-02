@@ -189,6 +189,42 @@ class ModelTestResponse(BaseModel):
     error: Optional[str] = Field(None, description="错误信息")
 
 
+ModelProbeTask = Literal[
+    "analysis",
+    "query_planning",
+    "translation",
+    "vision",
+    "recommendation",
+    "assistant",
+    "diagram",
+]
+
+
+class ModelCapabilityProbeRequest(ModelTestRequest):
+    """用户主动触发的真实任务能力探针。"""
+
+    task: ModelProbeTask = Field(..., description="要验证的 ScholarNova 任务")
+
+
+class ModelCapabilityProbeResponse(BaseModel):
+    """不包含凭据和生成内容的本机能力探针结果。"""
+
+    success: bool
+    status: Literal["passed", "failed"]
+    provider: str
+    model_name: str
+    task: str
+    capability: str
+    tested_at: datetime
+    latency_ms: float
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+    total_tokens: int = 0
+    detail_zh: str
+    detail_en: str
+    error: Optional[str] = None
+
+
 class RecommendationRequest(BaseModel):
     """推荐请求"""
 

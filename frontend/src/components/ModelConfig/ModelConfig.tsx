@@ -3,7 +3,7 @@ import { Save, TestTube, Loader2, Check, X, Globe, Cpu, ChevronDown, ChevronUp, 
 import clsx from 'clsx'
 import { modelApi } from '@/api/client'
 import { useLocaleStore } from '@/stores/localeStore'
-import type { LLMProvider, ModelCapabilityReport, ModelConfig as ModelConfigType, ModelTestResponse } from '@/api/types'
+import type { LLMProvider, ModelCapabilityProbeResult, ModelCapabilityReport, ModelConfig as ModelConfigType, ModelProbeTask, ModelTestResponse } from '@/api/types'
 import './ModelConfig.css'
 
 const providers: { value: LLMProvider; label: string; models: string[]; baseUrl?: string }[] = [
@@ -28,14 +28,14 @@ const embeddingProviders: { value: LLMProvider; label: string; models: string[];
 ]
 
 // 任务类型定义
-const taskTypes = [
-  { key: 'analysis', icon: '📊', zhLabel: '论文分析', enLabel: 'Paper Analysis', desc: '论文深度分析、研究点提炼' },
-  { key: 'query_planning', icon: '🔍', zhLabel: '查询规划', enLabel: 'Query Planning', desc: '自然语言查询解析和子查询生成' },
-  { key: 'translation', icon: '🌐', zhLabel: '翻译', enLabel: 'Translation', desc: '摘要中英文翻译' },
-  { key: 'vision', icon: '👁️', zhLabel: '图表/架构分析', enLabel: 'Vision', desc: '论文图表、架构图识别分析' },
-  { key: 'recommendation', icon: '📄', zhLabel: '论文推荐', enLabel: 'Recommendation', desc: '基于知识库推荐新论文' },
-  { key: 'assistant', icon: '🤖', zhLabel: '科研问答智能体', enLabel: 'Research Assistant', desc: '知识库与 Zotero 的可追溯问答' },
-  { key: 'diagram', icon: '🎨', zhLabel: '图表生成', enLabel: 'Diagram Generation', desc: '研究架构图/流程图生成' },
+const taskTypes: Array<{ key: ModelProbeTask; icon: string; zhLabel: string; enLabel: string; zhDesc: string; enDesc: string }> = [
+  { key: 'analysis', icon: '📊', zhLabel: '论文分析', enLabel: 'Paper Analysis', zhDesc: '论文深度分析、研究点提炼', enDesc: 'Deep paper analysis and insight extraction' },
+  { key: 'query_planning', icon: '🔍', zhLabel: '查询规划', enLabel: 'Query Planning', zhDesc: '自然语言查询解析和子查询生成', enDesc: 'Natural-language parsing and subquery generation' },
+  { key: 'translation', icon: '🌐', zhLabel: '翻译', enLabel: 'Translation', zhDesc: '摘要中英文翻译', enDesc: 'Chinese and English abstract translation' },
+  { key: 'vision', icon: '👁️', zhLabel: '图表/架构分析', enLabel: 'Vision', zhDesc: '论文图表、架构图识别分析', enDesc: 'Paper figure and architecture understanding' },
+  { key: 'recommendation', icon: '📄', zhLabel: '论文推荐', enLabel: 'Recommendation', zhDesc: '基于知识库推荐新论文', enDesc: 'Knowledge-grounded paper recommendations' },
+  { key: 'assistant', icon: '🤖', zhLabel: '科研问答智能体', enLabel: 'Research Assistant', zhDesc: '知识库与 Zotero 的可追溯问答', enDesc: 'Traceable answers from Knowledge and Zotero' },
+  { key: 'diagram', icon: '🎨', zhLabel: '图表生成', enLabel: 'Diagram Generation', zhDesc: '研究架构图/流程图生成', enDesc: 'Research architecture and flowchart generation' },
 ]
 
 interface ModelConfigProps {
@@ -54,10 +54,10 @@ interface ModelConfigProps {
   onEmbeddingTest: () => void
 }
 
-function TaskModelRow({ taskKey, icon, zhLabel, desc, currentConfig, defaultProvider, defaultModel, providerOptions, onChange }: {
-  taskKey: string; icon: string; zhLabel: string; desc: string;
+function TaskModelRow({ taskKey, icon, zhLabel, enLabel, desc, currentConfig, defaultProvider, defaultModel, defaultApiKey, defaultBaseUrl, providerOptions, onChange }: {
+  taskKey: ModelProbeTask; icon: string; zhLabel: string; enLabel: string; desc: string;
   currentConfig: { provider?: string; model_name?: string; api_key?: string; base_url?: string; api_key_configured?: boolean } | undefined;
-  defaultProvider: string; defaultModel: string;
+  defaultProvider: string; defaultModel: string; defaultApiKey?: string; defaultBaseUrl?: string;
   providerOptions: typeof providers; onChange: (taskKey: string, cfg: any) => void;
 }) {
   const { locale } = useLocaleStore()
@@ -65,29 +65,74 @@ function TaskModelRow({ taskKey, icon, zhLabel, desc, currentConfig, defaultProv
   const [expanded, setExpanded] = useState(false)
   const [capability, setCapability] = useState<ModelCapabilityReport | null>(null)
   const [checkingCapability, setCheckingCapability] = useState(false)
+  const [probeResult, setProbeResult] = useState<ModelCapabilityProbeResult | null>(null)
+  const [probing, setProbing] = useState(false)
 
   const taskProvider = currentConfig?.provider || defaultProvider
   const taskModel = currentConfig?.model_name || defaultModel
   const taskApiKey = currentConfig?.api_key || ''
   const taskBaseUrl = currentConfig?.base_url || ''
   const p = providerOptions.find((pp) => pp.value === taskProvider)
+  const sameAsDefault = taskProvider === defaultProvider
+  const effectiveApiKey = taskApiKey || (sameAsDefault ? defaultApiKey : '')
+  const effectiveBaseUrl = taskBaseUrl || (sameAsDefault ? defaultBaseUrl : '') || p?.baseUrl || ''
 
   useEffect(() => {
     if (!expanded || !taskModel) return
     let active = true
     setCheckingCapability(true)
-    modelApi.getCapabilities(taskProvider as LLMProvider, taskModel, taskKey)
-      .then(({ data }) => {
-        if (active) setCapability(data)
-      })
-      .catch(() => {
-        if (active) setCapability(null)
-      })
-      .finally(() => {
+    setProbeResult(null)
+    Promise.allSettled([
+      modelApi.getCapabilities(taskProvider as LLMProvider, taskModel, taskKey),
+      modelApi.getCapabilityProbe(taskProvider as LLMProvider, taskModel, taskKey),
+    ]).then(([staticResult, savedProbe]) => {
+      if (!active) return
+      setCapability(staticResult.status === 'fulfilled' ? staticResult.value.data : null)
+      setProbeResult(savedProbe.status === 'fulfilled' ? savedProbe.value.data : null)
+    }).finally(() => {
         if (active) setCheckingCapability(false)
       })
     return () => { active = false }
   }, [expanded, taskKey, taskModel, taskProvider])
+
+  const runProbe = async () => {
+    if (!taskModel || probing) return
+    if (taskKey === 'diagram' && !window.confirm(
+      isZh
+        ? '该测试会真实调用一次出图模型，可能产生费用。确定继续吗？'
+        : 'This sends one real image-generation request and may incur a charge. Continue?'
+    )) return
+    setProbing(true)
+    try {
+      const { data } = await modelApi.probeCapability({
+        provider: taskProvider as LLMProvider,
+        model_name: taskModel,
+        api_key: effectiveApiKey || undefined,
+        base_url: effectiveBaseUrl || undefined,
+        task: taskKey,
+      })
+      setProbeResult(data)
+    } catch (error: any) {
+      setProbeResult({
+        success: false,
+        status: 'failed',
+        provider: taskProvider,
+        model_name: taskModel,
+        task: taskKey,
+        capability: capability?.requirements[0] || 'unknown',
+        tested_at: new Date().toISOString(),
+        latency_ms: 0,
+        prompt_tokens: 0,
+        completion_tokens: 0,
+        total_tokens: 0,
+        detail_zh: '真实能力测试未完成。',
+        detail_en: 'The real capability probe did not complete.',
+        error: error?.response?.data?.detail || error?.message || (isZh ? '请求失败' : 'Request failed'),
+      })
+    } finally {
+      setProbing(false)
+    }
+  }
 
   return (
     <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
@@ -95,7 +140,7 @@ function TaskModelRow({ taskKey, icon, zhLabel, desc, currentConfig, defaultProv
         className="w-full flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-left">
         <span className="text-base">{icon}</span>
         <div className="flex-1 min-w-0">
-          <div className="text-sm font-medium text-gray-800 dark:text-gray-200">{zhLabel}</div>
+          <div className="text-sm font-medium text-gray-800 dark:text-gray-200">{isZh ? zhLabel : enLabel}</div>
           <div className="text-xs text-gray-400 dark:text-gray-500 truncate">{desc}</div>
         </div>
         <span className="text-xs text-gray-400 dark:text-gray-500 flex-shrink-0">
@@ -163,7 +208,49 @@ function TaskModelRow({ taskKey, icon, zhLabel, desc, currentConfig, defaultProv
                 ))}
               </div>
             )}
+            <div className="mt-2 flex flex-wrap items-center justify-between gap-2 border-t border-current/10 pt-2">
+              <span className="opacity-80">
+                {isZh ? '以上为静态判断，不调用 API。' : 'The assessment above is static and makes no API call.'}
+              </span>
+              <button
+                type="button"
+                onClick={runProbe}
+                disabled={probing || !taskModel}
+                className="config-btn config-btn-secondary !px-3 !py-1.5"
+              >
+                {probing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <TestTube className="h-3.5 w-3.5" />}
+                {probing
+                  ? (isZh ? '正在真实测试…' : 'Running real probe…')
+                  : (isZh ? '真实测试此任务' : 'Run real task probe')}
+              </button>
+            </div>
           </div>
+          {probeResult && (
+            <div className={clsx(
+              'rounded-lg border px-3 py-2 text-xs',
+              probeResult.success
+                ? 'border-emerald-500/20 bg-emerald-500/5 text-emerald-700 dark:text-emerald-300'
+                : 'border-red-500/20 bg-red-500/5 text-red-700 dark:text-red-300',
+            )}>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="font-medium">
+                  {probeResult.success ? '✓ ' : '× '}
+                  {isZh ? probeResult.detail_zh : probeResult.detail_en}
+                </span>
+                <span className="opacity-75">{new Date(probeResult.tested_at).toLocaleString()}</span>
+              </div>
+              <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 opacity-85">
+                <span>{isZh ? '耗时' : 'Latency'} {(probeResult.latency_ms / 1000).toFixed(1)}s</span>
+                <span>Token {probeResult.total_tokens}</span>
+                <span>{isZh ? '输入' : 'Input'} {probeResult.prompt_tokens}</span>
+                <span>{isZh ? '输出' : 'Output'} {probeResult.completion_tokens}</span>
+              </div>
+              {probeResult.error && <p className="mt-1.5 break-words opacity-90">{probeResult.error}</p>}
+              {taskKey === 'diagram' && (
+                <p className="mt-1.5 opacity-75">{isZh ? '出图测试可能由服务商单独计费。' : 'Image-generation probes may be billed separately by the provider.'}</p>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -282,7 +369,9 @@ export default function ModelConfig({ config, testResult, isTesting, isSaving, o
           <button onClick={() => setShowTaskModels(!showTaskModels)}
             className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors text-sm font-medium">
             <Cpu className="w-4 h-4" />
-            {showTaskModels ? '收起任务模型配置' : '按任务类型配置不同模型'}
+            {showTaskModels
+              ? (isZh ? '收起任务模型配置' : 'Hide task model routing')
+              : (isZh ? '按任务类型配置不同模型' : 'Configure models by task')}
             {showTaskModels ? <ChevronUp className="w-4 h-4 ml-auto" /> : <ChevronDown className="w-4 h-4 ml-auto" />}
           </button>
         </div>
@@ -290,12 +379,16 @@ export default function ModelConfig({ config, testResult, isTesting, isSaving, o
         {showTaskModels && (
           <div className="mt-3 space-y-2">
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              为不同任务指定不同模型。留空则使用上方的默认模型。
+              {isZh
+                ? '为不同任务指定不同模型。留空则使用上方的默认模型。'
+                : 'Assign a model to each task. Blank fields inherit the default model above.'}
             </p>
             {taskTypes.map((task) => (
               <TaskModelRow key={task.key} taskKey={task.key} icon={task.icon} zhLabel={task.zhLabel}
-                desc={task.desc} currentConfig={config.tasks?.[task.key]}
+                enLabel={task.enLabel}
+                desc={isZh ? task.zhDesc : task.enDesc} currentConfig={config.tasks?.[task.key]}
                 defaultProvider={config.provider || 'mimo'} defaultModel={config.model_name || 'mimo-v2.5-pro'}
+                defaultApiKey={config.api_key} defaultBaseUrl={config.base_url}
                 providerOptions={providers} onChange={handleTaskChange} />
             ))}
           </div>
