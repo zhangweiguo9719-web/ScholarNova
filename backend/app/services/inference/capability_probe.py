@@ -27,9 +27,23 @@ TASK_CAPABILITY = {
 }
 
 _TEST_IMAGE = (
-    "data:image/png;base64,"
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADUlEQVR42mP8"
-    "z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+    "data:image/jpeg;base64,"
+    "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQE"
+    "BQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/"
+    "2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU"
+    "FBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCABAAEADASIAAhEBAxEB/8QA"
+    "HwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUF"
+    "BAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkK"
+    "FhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1"
+    "dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXG"
+    "x8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEB"
+    "AQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAEC"
+    "AxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRom"
+    "JygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOE"
+    "hYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU"
+    "1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD50ooor8MP"
+    "9UwooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKK"
+    "ACiiigAooooAKKKKACiiigD/2Q=="
 )
 
 
@@ -115,6 +129,9 @@ async def run_capability_probe(
                 else "The model responded but did not return the required parseable JSON."
             )
         elif capability == "vision":
+            image_url = {"url": _TEST_IMAGE}
+            if str(profile.get("provider") or "") != "zhipu":
+                image_url["detail"] = "low"
             response = await asyncio.wait_for(
                 gateway.chat(
                     messages=[
@@ -127,7 +144,7 @@ async def run_capability_probe(
                                 },
                                 {
                                     "type": "image_url",
-                                    "image_url": {"url": _TEST_IMAGE, "detail": "low"},
+                                    "image_url": image_url,
                                 },
                             ],
                         }

@@ -21,6 +21,8 @@ from urllib.parse import quote
 
 import httpx
 
+from app.services.sources.semantic_scholar import SemanticScholarSource
+
 logger = logging.getLogger(__name__)
 
 # 下载限制
@@ -30,7 +32,6 @@ DOWNLOAD_TIMEOUT = 30  # 秒
 # Unpaywall API 基础 URL
 UNPAYWALL_API = "https://api.unpaywall.org/v2"
 OPENALEX_API = "https://api.openalex.org/works"
-SEMANTIC_SCHOLAR_API = "https://api.semanticscholar.org/graph/v1/paper"
 CROSSREF_API = "https://api.crossref.org/works"
 USER_AGENT = "ScholarNova/1.1.1 (+https://github.com/zhangweiguo9719-web/ScholarNova)"
 
@@ -423,17 +424,14 @@ class PDFFetcher:
         self, doi: str, cache_key: str
     ) -> FetchResult:
         """Resolve an open-access PDF reported by Semantic Scholar."""
-        url = f"{SEMANTIC_SCHOLAR_API}/DOI:{quote(doi, safe='')}"
-        headers = {"User-Agent": USER_AGENT}
-        if self.semantic_scholar_api_key:
-            headers["x-api-key"] = self.semantic_scholar_api_key
         try:
-            async with httpx.AsyncClient(timeout=15, headers=headers) as client:
-                resp = await client.get(url, params={"fields": "openAccessPdf"})
-                if resp.status_code == 404:
-                    return FetchResult(False, source="semantic_scholar", error="DOI not found")
-                resp.raise_for_status()
-                pdf_url = (resp.json().get("openAccessPdf") or {}).get("url")
+            async with SemanticScholarSource(
+                api_key=self.semantic_scholar_api_key,
+                timeout=15,
+                max_retries=2,
+            ) as source:
+                paper = await source.get_paper(f"DOI:{doi}")
+                pdf_url = paper.pdf_url if paper else None
             return await self._download_candidates(
                 [pdf_url] if pdf_url else [], "semantic_scholar", cache_key
             )

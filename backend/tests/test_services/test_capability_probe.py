@@ -82,7 +82,24 @@ async def test_vision_probe_actually_sends_an_image_part():
     content = _FakeFactory.gateway.messages[0]["content"]
     assert report["status"] == "passed"
     assert content[1]["type"] == "image_url"
-    assert content[1]["image_url"]["url"].startswith("data:image/png;base64,")
+    assert content[1]["image_url"]["url"].startswith("data:image/jpeg;base64,")
+    assert content[1]["image_url"]["detail"] == "low"
+
+
+@pytest.mark.asyncio
+async def test_zhipu_vision_probe_uses_provider_compatible_image_shape():
+    _FakeFactory.gateway = _FakeGateway("red")
+
+    report = await run_capability_probe(
+        {"provider": "zhipu", "model": "glm-4.6v-flash"},
+        "vision",
+        gateway_factory=_FakeFactory,
+    )
+
+    image_url = _FakeFactory.gateway.messages[0]["content"][1]["image_url"]
+    assert report["status"] == "passed"
+    assert image_url["url"].startswith("data:image/jpeg;base64,")
+    assert "detail" not in image_url
 
 
 def test_probe_history_is_local_redacted_and_queryable(tmp_path, monkeypatch):

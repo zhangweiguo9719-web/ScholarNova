@@ -70,6 +70,17 @@ def isolate_semantic_scholar_cache(monkeypatch, tmp_path):
         "_S2_CACHE_DIR",
         tmp_path / "semantic-scholar-cache",
     )
+    monkeypatch.setattr(semantic_scholar_module, "_S2_RATE_DIR", tmp_path)
+    monkeypatch.setattr(
+        semantic_scholar_module,
+        "_S2_RATE_LOCK_FILE",
+        tmp_path / "semantic-scholar-rate.lock",
+    )
+    monkeypatch.setattr(
+        semantic_scholar_module,
+        "_S2_RATE_STATE_FILE",
+        tmp_path / "semantic-scholar-rate.json",
+    )
 
 
 def _make_mock_response(json_data, status_code=200):
@@ -282,6 +293,44 @@ class TestSemanticScholarSource:
 
         result = await source.health_check()
         assert result["status"] == "error"
+
+    async def test_429_publishes_shared_retry_after(self, monkeypatch):
+        source = SemanticScholarSource()
+        monkeypatch.setattr(source, "_retry_delay", lambda _response, _attempt: 3.0)
+        response = _make_mock_response({}, status_code=429)
+
+        before = semantic_scholar_module.time.time()
+        await source._after_response(response)
+
+        state = source._read_rate_state()
+        assert state["last_status"] == 429
+        assert state["blocked_until"] >= before + 3.0
+
+    async def test_success_publishes_quota_snapshot(self):
+        source = SemanticScholarSource()
+        response = _make_mock_response({}, status_code=200)
+
+        await source._after_response(response)
+
+        snapshot = source.quota_snapshot()
+        assert snapshot["last_status"] == 200
+        assert snapshot["last_success_age_seconds"] is not None
+        assert snapshot["last_success_age_seconds"] < 1
+        assert snapshot["cooldown_remaining_seconds"] == 0
+
+    async def test_before_request_honors_shared_cooldown(self, monkeypatch):
+        source = SemanticScholarSource()
+        source._write_rate_state({
+            "last_request_at": 0,
+            "blocked_until": semantic_scholar_module.time.time() + 2.0,
+        })
+        sleep = AsyncMock()
+        monkeypatch.setattr(semantic_scholar_module.asyncio, "sleep", sleep)
+
+        await source._before_request()
+
+        assert sleep.await_count == 1
+        assert sleep.await_args.args[0] > 1.5
 
     def test_parse_paper_with_missing_fields(self):
         source = SemanticScholarSource()

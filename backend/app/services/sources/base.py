@@ -140,6 +140,7 @@ class BaseSource(ABC):
             try:
                 await self._before_request()
                 response = await client.request(method, url, **kwargs)
+                await self._after_response(response)
 
                 if response.status_code == 429 or 500 <= response.status_code < 600:
                     delay = self._retry_delay(response, attempt)
@@ -208,6 +209,10 @@ class BaseSource(ABC):
 
     async def _before_request(self) -> None:
         """数据源可覆盖此钩子，在每一次真实 HTTP 请求前执行配额控制。"""
+        return None
+
+    async def _after_response(self, response: httpx.Response) -> None:
+        """数据源可覆盖此钩子，将服务端限流状态同步给其他请求者。"""
         return None
 
     # ------------------------------------------------------------------

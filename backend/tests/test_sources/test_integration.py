@@ -10,6 +10,7 @@ import asyncio
 
 import pytest
 
+from app.config import settings
 from app.services.sources.arxiv import ArxivSource
 from app.services.sources.crossref import CrossRefSource
 from app.services.sources.openalex import OpenAlexSource
@@ -31,7 +32,7 @@ class TestSemanticScholarIntegration:
 
     @pytest.mark.asyncio
     async def test_search(self):
-        async with SemanticScholarSource(timeout=15) as source:
+        async with SemanticScholarSource(api_key=settings.SEMANTIC_SCHOLAR_API_KEY, timeout=15) as source:
             papers = await source.search("attention mechanism", max_results=5)
             assert len(papers) > 0
             paper = papers[0]
@@ -41,7 +42,7 @@ class TestSemanticScholarIntegration:
 
     @pytest.mark.asyncio
     async def test_get_paper(self):
-        async with SemanticScholarSource(timeout=15) as source:
+        async with SemanticScholarSource(api_key=settings.SEMANTIC_SCHOLAR_API_KEY, timeout=15) as source:
             paper = await source.get_paper("204e3073870fae3d05bcbc2f6a8e263d9b72e776")
             assert paper is not None
             assert paper.title
@@ -49,7 +50,7 @@ class TestSemanticScholarIntegration:
 
     @pytest.mark.asyncio
     async def test_get_pdf_url(self):
-        async with SemanticScholarSource(timeout=15) as source:
+        async with SemanticScholarSource(api_key=settings.SEMANTIC_SCHOLAR_API_KEY, timeout=15) as source:
             url = await source.get_pdf_url("204e3073870fae3d05bcbc2f6a8e263d9b72e776")
             # 此论文有 OA PDF
             assert url is not None
@@ -57,7 +58,7 @@ class TestSemanticScholarIntegration:
 
     @pytest.mark.asyncio
     async def test_health_check(self):
-        async with SemanticScholarSource(timeout=15) as source:
+        async with SemanticScholarSource(api_key=settings.SEMANTIC_SCHOLAR_API_KEY, timeout=15) as source:
             result = await source.health_check()
             assert result["status"] == "ok"
             assert result["source"] == "semantic_scholar"
@@ -65,7 +66,7 @@ class TestSemanticScholarIntegration:
     @pytest.mark.asyncio
     async def test_paper_fields(self):
         """验证返回的论文包含所有必要字段"""
-        async with SemanticScholarSource(timeout=15) as source:
+        async with SemanticScholarSource(api_key=settings.SEMANTIC_SCHOLAR_API_KEY, timeout=15) as source:
             papers = await source.search("BERT NLP", max_results=3)
             assert len(papers) > 0
             paper = papers[0]

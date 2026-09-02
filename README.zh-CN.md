@@ -52,6 +52,7 @@ ScholarNova 面向复杂科研问题，将自然语言查询转化为检索计�
 
 - 复杂学术查询理解、约束识别、子查询分解与有界迭代检索。
 - Semantic Scholar、OpenAlex、Crossref、arXiv 多源搜索。
+- Semantic Scholar 搜索、健康检测和全文补全共用跨进程 1.25 秒节奏与 429 冷却；近期成功状态由本机快照复用，避免“检测数据源”反而继续消耗限额。
 - 通过 Zotero Local API 只读连接本机文献库，显式导入后可与在线学术源一起检索。
 - 提供可追溯科研问答智能体：默认用零额外成本的中英文 BM25 排序知识库、已解析 PDF 与本机 Zotero；用户也可单独配置 Embedding 模型，启用 BM25 + 向量语义 + RRF 混合检索。
 - 设置页会按任务检查已知模型能力，区分文本、结构化输出、视觉理解、图像生成和 Embedding；该检查不调用付费模型，无法识别的自定义模型会提示先测试，不会被误判为已支持。
@@ -65,6 +66,7 @@ ScholarNova 面向复杂科研问题，将自然语言查询转化为检索计�
 - 论文分析完成后会展示模型供应商返回的总 Token，用于竞赛成本记录；API 响应同时提供输入和输出 Token。
 - 论文详情侧栏支持向左拖动扩宽、键盘方向键调整，并记住上次宽度。
 - 同一次检索中按论文临时保存 AI 分析，切换论文不会丢失，开始新检索时才清空。
+- 搜索属于当前页面会话：离开搜索页即清除结果、关键词和临时分析，返回时不会恢复旧搜索；服务端仍可复用论文响应缓存以保护学术 API 配额。
 - 引用百分位、年均引用、OpenAlex H-index/两年篇均被引/DOAJ；可导入自己有权使用的 JCR、历史中科院或 SJR CSV/JSON，系统不会伪造分区。
 - 学校图书馆采用“复制检索词 + 打开门户”的合规衔接，仍需校园网、学校 VPN 或统一身份认证，不绕过订阅授权。
 - 个人研究知识库、主题分类、研究路线与 SenseNova U1 框架图。
@@ -86,7 +88,7 @@ ScholarNova 会显示检测到的 Zotero 版本。Zotero 9 已可支持当前只
 
 ### 可追溯科研问答智能体（`main` 源码版）
 
-进入“智能体”页面后，可以选择使用 ScholarNova 本地材料和实时本机 Zotero。导入或分析过的授权 PDF 会把摘要、章节、表格和图注保存为版本化检索片段，并尽可能保留章节与页码。默认模式使用不消耗模型 Token 的中英文 BM25；在“设置 → 语义检索增强”中明确启用独立 Embedding 模型后，系统会对最多 256 个均衡候选执行向量排序，再通过 RRF 与 BM25 融合。向量按提供商、模型和内容哈希缓存在本机数据库，重复材料不会再次计费；Embedding 超时、限流、配置错误或服务离线时会自动退回 BM25，不影响基础问答。
+进入“智能体”页面后，可以为不同研究方向创建文件夹和独立对话。删除文件夹会把其中对话移到“未分类”，不会连带删除研究内容；记录仅保存在本机，并设置数量上限避免无限增长。每个对话可以选择使用 ScholarNova 本地材料和实时本机 Zotero。导入或分析过的授权 PDF 会把摘要、章节、表格和图注保存为版本化检索片段，并尽可能保留章节与页码。默认模式使用不消耗模型 Token 的中英文 BM25；在“设置 → 语义检索增强”中明确启用独立 Embedding 模型后，系统会对最多 256 个均衡候选执行向量排序，再通过 RRF 与 BM25 融合。向量按提供商、模型和内容哈希缓存在本机数据库，重复材料不会再次计费；Embedding 超时、限流、配置错误或服务离线时会自动退回 BM25，不影响基础问答。
 
 本机优先方案是 Ollama + `nomic-embed-text`，无需云端 Key；也可以配置 OpenAI `text-embedding-3-small`、智谱 `embedding-3`、阿里云百炼 `text-embedding-v4` 或其他 OpenAI 兼容 Embedding 接口。Embedding Key 不继承聊天模型 Key，保存后前端只能看到“已配置”，不能读回明文。请先点击“测试语义模型”，确认向量维度后再保存。智能体页面会显示 `BM25` 或 `BM25 + Embedding RRF`，并将本次新产生的 Embedding Token 纳入总 Token；缓存命中不增加 Token。
 
@@ -276,6 +278,7 @@ npm run dev
 
 - [比赛指标报告](outputs/competition-benchmark-report-2026-07-02.md)
 - [v1.1.1 全文、视觉分析与桌面版优化测试报告](docs/reports/v1.1.1-fulltext-vision-desktop-report.zh-CN.md)
+- [FTI-4 会话、Semantic Scholar 限流与默认模型治理报告](docs/reports/fti-4-session-and-rate-governance.zh-CN.md)
 - [v1.1.0 优化与测试报告](docs/reports/v1.1.0-optimization-test-report.zh-CN.md)
 - [三分钟中文演示稿](docs/demo/three-minute-product-video-script.md)
 

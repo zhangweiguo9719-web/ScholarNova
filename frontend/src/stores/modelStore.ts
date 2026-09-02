@@ -17,19 +17,19 @@ interface ModelState {
 }
 
 const defaultConfig: ModelConfig = {
-  provider: 'mimo',
-  model_name: 'mimo-v2.5-pro',
+  provider: 'zhipu',
+  model_name: 'glm-5.2',
   api_key: '',
-  base_url: 'https://token-plan-cn.xiaomimimo.com/v1',
+  base_url: 'https://open.bigmodel.cn/api/paas/v4',
   temperature: 0.7,
   max_tokens: 4096,
   tasks: {
-    analysis: { provider: 'mimo', model_name: 'mimo-v2.5-pro' },       // 文字分析
-    query_planning: { provider: 'mimo', model_name: 'mimo-v2.5-pro' }, // 查询规划
-    translation: { provider: 'mimo', model_name: 'mimo-v2.5-pro' },    // 翻译
-    vision: { provider: 'mimo', model_name: 'mimo-v2.5' },             // 视觉/多模态
-    recommendation: { provider: 'mimo', model_name: 'mimo-v2.5-pro' }, // 推荐
-    assistant: { provider: 'mimo', model_name: 'mimo-v2.5-pro' },      // 科研问答智能体
+    analysis: { provider: 'zhipu', model_name: 'glm-5.2' },       // 文字分析
+    query_planning: { provider: 'zhipu', model_name: 'glm-5.2' }, // 查询规划
+    translation: { provider: 'zhipu', model_name: 'glm-5.2' },    // 翻译
+    vision: { provider: 'zhipu', model_name: 'glm-4.6v-flash' },   // 论文图片与图表理解
+    recommendation: { provider: 'zhipu', model_name: 'glm-5.2' }, // 推荐
+    assistant: { provider: 'zhipu', model_name: 'glm-5.2' },      // 科研问答智能体
     diagram: { provider: 'sensenova', model_name: 'sensenova-u1-fast', api_key: '', base_url: 'https://token.sensenova.cn/v1' }, // 仅出图
   },
   fallback: {

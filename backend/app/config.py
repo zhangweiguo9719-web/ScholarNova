@@ -187,7 +187,7 @@ MODEL_PROFILES = {
     "analysis": {"provider": None, "model": None, "api_key": None, "base_url": None},
     "query_planning": {"provider": None, "model": None, "api_key": None, "base_url": None},
     "translation": {"provider": None, "model": None, "api_key": None, "base_url": None},
-    "vision": {"provider": "mimo", "model": "mimo-v2.5", "api_key": None, "base_url": None},
+    "vision": {"provider": None, "model": None, "api_key": None, "base_url": None},
     "recommendation": {"provider": None, "model": None, "api_key": None, "base_url": None},
     "assistant": {"provider": None, "model": None, "api_key": None, "base_url": None},
     "diagram": {

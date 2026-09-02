@@ -65,7 +65,9 @@ def infer_model_capabilities(
     elif provider == "mimo":
         capabilities["vision"] = _contains(model, "omni") or model == "mimo-v2.5"
     elif provider == "zhipu":
-        capabilities["vision"] = _contains(model, "glm-4v", "glm-4.5v", "vision", "-vl")
+        capabilities["vision"] = _contains(
+            model, "glm-4v", "glm-4.5v", "glm-4.6v", "vision", "-vl"
+        )
     elif provider in {"qwen", "siliconflow"}:
         capabilities["vision"] = _contains(model, "-vl", "qwen-vl", "omni")
     elif provider == "ollama":

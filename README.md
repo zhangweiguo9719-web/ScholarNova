@@ -63,6 +63,7 @@ Developers who want to build the application themselves can use the [Windows des
 
 - Understands and decomposes multi-constraint academic queries.
 - Searches Semantic Scholar, OpenAlex, Crossref, and arXiv.
+- Governs all Semantic Scholar search, health, and PDF-resolution calls through one cross-process 1.25-second cadence and shared 429 cooldown; recent successful health is reused without spending another request.
 - Connects to the local Zotero library in read-only mode and searches explicitly imported metadata alongside online sources.
 - Includes a traceable research assistant with zero-cost multilingual BM25 by default and optional BM25 + embedding + RRF hybrid retrieval across knowledge chunks, parsed PDFs, and live local Zotero records.
 - Shows task-aware model capability hints for text, structured output, vision, image generation, and embeddings without making a paid provider call; unknown custom models are labelled for testing rather than falsely claimed as compatible.
@@ -77,6 +78,7 @@ Developers who want to build the application themselves can use the [Windows des
 - Each task model now has an opt-in real capability probe in Settings. Structured tasks must return parseable JSON, vision tasks must identify an embedded test image, and image generation requires an explicit cost confirmation. The latest latency and provider-reported input/output/total Token counts stay on the local machine; opening or saving configuration never triggers a model call.
 - Provides a keyboard-accessible, drag-resizable paper detail panel and remembers its width.
 - Produces AI summaries, contributions, limitations, methods, and evidence-oriented analysis; analysis is temporarily retained per paper within the current search run.
+- Treats search as page-scoped state: leaving Search clears the query, results, selection, and temporary analyses, while server-side response caching can still protect scholarly API quotas.
 - Enriches visible results with clearly labelled OpenAlex journal metrics and accepts user-authorized JCR, historical CAS, or SJR CSV/JSON imports without guessing commercial quartiles.
 - Opens an institutional library handoff with the query copied; institutional authentication is still required and is never bypassed.
 - Saves discoveries into a knowledge base and generates research routes and framework diagrams.
@@ -98,7 +100,7 @@ ScholarNova displays the detected Zotero version. Zotero 9 is sufficient for the
 
 ### Traceable research assistant (`main` source build)
 
-Open **Assistant** to ask questions over user-controlled ScholarNova knowledge, parsed authorized PDFs, and the live local Zotero library. BM25 remains the default and makes no model call. To add semantic recall, open **Settings → Semantic retrieval**, explicitly configure a separate embedding profile, test it, and save. Supported profiles include local Ollama (`nomic-embed-text`), OpenAI (`text-embedding-3-small`), Zhipu (`embedding-3`), Qwen (`text-embedding-v4`), and custom OpenAI-compatible endpoints.
+Open **Assistant** to create research folders and isolated conversations over user-controlled ScholarNova knowledge, parsed authorized PDFs, and the live local Zotero library. Deleting a folder safely moves its conversations to **Unfiled**. Local conversation counts are bounded to prevent unlimited browser storage growth. BM25 remains the default and makes no model call. To add semantic recall, open **Settings → Semantic retrieval**, explicitly configure a separate embedding profile, test it, and save. Supported profiles include local Ollama (`nomic-embed-text`), OpenAI (`text-embedding-3-small`), Zhipu (`embedding-3`), Qwen (`text-embedding-v4`), and custom OpenAI-compatible endpoints.
 
 The hybrid path embeds up to 256 source-balanced candidates, fuses vector and BM25 ranks with RRF, and caches vectors locally by provider, model, and content hash. Repeated material does not consume embedding tokens again. A timeout, rate limit, invalid profile, or offline embedding service falls back to BM25 without blocking the answer. Embedding credentials are independent from chat credentials and are never returned to the browser. The trace reports the retrieval mode, embedding tokens, chat tokens, cited records, and page-aware source locations. If no local material is found, the answer model is not called. Conversation history remains local and the assistant never writes to Zotero automatically.
 
@@ -303,7 +305,7 @@ binary paper-ID gold labels and score F1=`0.283713`; the remaining 39 require a
 textual relevance judge and are reported separately instead of being forced
 into the binary metric.
 
-See [the benchmark report](outputs/competition-benchmark-report-2026-07-02.md), [the v1.1.0 optimization report](docs/reports/v1.1.0-optimization-test-report.zh-CN.md), [the v1.1.1 full-text, vision, and desktop test report](docs/reports/v1.1.1-fulltext-vision-desktop-report.zh-CN.md), and the committed [prediction artifact](outputs/benchmarks/predictions/asta-s2-validation18-v3-2026-07-02.json).
+See [the benchmark report](outputs/competition-benchmark-report-2026-07-02.md), [the v1.1.0 optimization report](docs/reports/v1.1.0-optimization-test-report.zh-CN.md), [the v1.1.1 full-text, vision, and desktop test report](docs/reports/v1.1.1-fulltext-vision-desktop-report.zh-CN.md), [the FTI-4 session and rate-governance report](docs/reports/fti-4-session-and-rate-governance.zh-CN.md), and the committed [prediction artifact](outputs/benchmarks/predictions/asta-s2-validation18-v3-2026-07-02.json).
 
 ## Verification
 

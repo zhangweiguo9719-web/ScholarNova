@@ -20,6 +20,8 @@ from datetime import date
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Union
 
+import httpx
+
 from app.schemas.paper import Paper
 from app.services.sources.base import BaseSource, make_paper_uuid
 
@@ -79,6 +81,61 @@ class SemanticScholarSource(BaseSource):
 
     async def _before_request(self) -> None:
         """Reserve one account-wide request slot across backend and benchmark processes."""
+        await self._acquire_rate_lock()
+        try:
+            state = self._read_rate_state()
+            now = time.time()
+            wait = max(
+                _S2_MIN_INTERVAL_SECONDS - (now - float(state.get("last_request_at", 0.0))),
+                float(state.get("blocked_until", 0.0)) - now,
+            )
+            if wait > 0:
+                await asyncio.sleep(wait)
+            state.update({"last_request_at": time.time(), "pid": os.getpid()})
+            self._write_rate_state(state)
+        finally:
+            self._release_rate_lock()
+
+    async def _after_response(self, response: httpx.Response) -> None:
+        """Share a server-requested cooldown across every local S2 caller."""
+        if response.status_code != 429 and not 200 <= response.status_code < 400:
+            return
+        await self._acquire_rate_lock()
+        try:
+            state = self._read_rate_state()
+            if response.status_code == 429:
+                retry_after = max(1.0, self._retry_delay(response, 0))
+                state["blocked_until"] = max(
+                    float(state.get("blocked_until", 0.0)),
+                    time.time() + retry_after,
+                )
+            else:
+                state["last_success_at"] = time.time()
+                state["blocked_until"] = 0.0
+            state["last_status"] = response.status_code
+            self._write_rate_state(state)
+        finally:
+            self._release_rate_lock()
+
+    @classmethod
+    def quota_snapshot(cls) -> dict:
+        """Return non-sensitive local quota diagnostics without consuming API quota."""
+        state = cls._read_rate_state()
+        now = time.time()
+        return {
+            "last_status": state.get("last_status"),
+            "last_success_age_seconds": (
+                max(0.0, now - float(state["last_success_at"]))
+                if state.get("last_success_at")
+                else None
+            ),
+            "cooldown_remaining_seconds": max(
+                0.0,
+                float(state.get("blocked_until", 0.0)) - now,
+            ),
+        }
+
+    async def _acquire_rate_lock(self) -> None:
         _S2_RATE_DIR.mkdir(parents=True, exist_ok=True)
         deadline = time.monotonic() + max(30.0, float(self.timeout))
         while True:
@@ -104,24 +161,23 @@ class SemanticScholarSource(BaseSource):
                     raise TimeoutError("Semantic Scholar 全局配额锁等待超时")
                 await asyncio.sleep(0.05)
 
+    @staticmethod
+    def _release_rate_lock() -> None:
+        _S2_RATE_LOCK_FILE.unlink(missing_ok=True)
+
+    @staticmethod
+    def _read_rate_state() -> dict:
         try:
-            last_request_at = 0.0
-            try:
-                state = json.loads(_S2_RATE_STATE_FILE.read_text(encoding="utf-8"))
-                last_request_at = float(state.get("last_request_at", 0.0))
-            except (FileNotFoundError, ValueError, TypeError, json.JSONDecodeError):
-                pass
-            wait = _S2_MIN_INTERVAL_SECONDS - (time.time() - last_request_at)
-            if wait > 0:
-                await asyncio.sleep(wait)
-            state_tmp = _S2_RATE_STATE_FILE.with_suffix(".tmp")
-            state_tmp.write_text(
-                json.dumps({"last_request_at": time.time(), "pid": os.getpid()}),
-                encoding="utf-8",
-            )
-            state_tmp.replace(_S2_RATE_STATE_FILE)
-        finally:
-            _S2_RATE_LOCK_FILE.unlink(missing_ok=True)
+            value = json.loads(_S2_RATE_STATE_FILE.read_text(encoding="utf-8"))
+            return value if isinstance(value, dict) else {}
+        except (FileNotFoundError, ValueError, TypeError, json.JSONDecodeError):
+            return {}
+
+    @staticmethod
+    def _write_rate_state(state: dict) -> None:
+        state_tmp = _S2_RATE_STATE_FILE.with_suffix(".tmp")
+        state_tmp.write_text(json.dumps(state), encoding="utf-8")
+        state_tmp.replace(_S2_RATE_STATE_FILE)
 
     @staticmethod
     def _cache_lock(key: str) -> asyncio.Lock:

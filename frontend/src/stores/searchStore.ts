@@ -1,15 +1,6 @@
-/**
- * 搜索状态管理 - 持久化搜索结果 + 搜索历史
- */
+/** 搜索页临时状态：只在当前页面会话内保留，不写入浏览器存储。 */
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
 import type { SearchRunDetail, PaperDetail, AnalysisResult, EvidenceSpan } from '@/api/types'
-
-export interface SearchHistoryItem {
-  query: string
-  timestamp: number
-  resultCount: number
-}
 
 interface SearchState {
   searchRun: SearchRunDetail | null
@@ -21,7 +12,6 @@ interface SearchState {
   analysisLoading: boolean
   evidenceSpans: EvidenceSpan[]
   evidenceLoading: boolean
-  history: SearchHistoryItem[]
 
   setSearchRun: (run: SearchRunDetail | null) => void
   setIsLoading: (loading: boolean) => void
@@ -32,20 +22,14 @@ interface SearchState {
   setAnalysisLoading: (loading: boolean) => void
   setEvidenceSpans: (spans: EvidenceSpan[]) => void
   setEvidenceLoading: (loading: boolean) => void
-  addToHistory: (query: string, resultCount: number) => void
-  removeFromHistory: (query: string) => void
-  clearHistory: () => void
   clearSearch: () => void
   clearDetail: () => void
 }
 
-export const useSearchStore = create<SearchState>()(
-  persist(
-    (set, get) => ({
+export const useSearchStore = create<SearchState>()((set) => ({
       searchRun: null, isLoading: false, error: null, query: '',
       selectedPaper: null, analysis: null, analysisLoading: false,
       evidenceSpans: [], evidenceLoading: false,
-      history: [],
 
       setSearchRun: (searchRun) => set({ searchRun }),
       setIsLoading: (isLoading) => set({ isLoading }),
@@ -57,37 +41,12 @@ export const useSearchStore = create<SearchState>()(
       setEvidenceSpans: (evidenceSpans) => set({ evidenceSpans }),
       setEvidenceLoading: (evidenceLoading) => set({ evidenceLoading }),
 
-      addToHistory: (query, resultCount) => {
-        const existing = get().history
-        const filtered = existing.filter((h) => h.query !== query)
-        const newHistory = [
-          { query, timestamp: Date.now(), resultCount },
-          ...filtered,
-        ].slice(0, 20) // 最多保留20条
-        set({ history: newHistory })
-      },
-
-      removeFromHistory: (query) => {
-        set({ history: get().history.filter((h) => h.query !== query) })
-      },
-
-      clearHistory: () => set({ history: [] }),
-
       clearSearch: () => set({
-        searchRun: null, isLoading: false, error: null,
-        selectedPaper: null, analysis: null, evidenceSpans: [],
+        searchRun: null, isLoading: false, error: null, query: '',
+        selectedPaper: null, analysis: null, analysisLoading: false,
+        evidenceSpans: [], evidenceLoading: false,
       }),
       clearDetail: () => set({
         selectedPaper: null, analysis: null, evidenceSpans: [],
       }),
-    }),
-    {
-      name: 'scholar-search-state',
-      partialize: (s) => ({
-        searchRun: s.searchRun,
-        query: s.query,
-        history: s.history,
-      }),
-    }
-  )
-)
+    }))

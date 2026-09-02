@@ -12,7 +12,7 @@ const providers: { value: LLMProvider; label: string; models: string[]; baseUrl?
   { value: 'ollama', label: 'Ollama (Local)', models: ['qwen2.5:14b', 'llama3:8b'], baseUrl: 'http://localhost:11434' },
   { value: 'mimo', label: 'Xiaomi MiMo', models: ['mimo-v2.5-pro', 'mimo-v2.5', 'mimo-v2-pro', 'mimo-v2-omni'], baseUrl: 'https://token-plan-cn.xiaomimimo.com/v1' },
   { value: 'deepseek', label: 'DeepSeek', models: ['deepseek-chat', 'deepseek-coder'], baseUrl: 'https://api.deepseek.com/v1' },
-  { value: 'zhipu', label: 'ZhiPu (GLM)', models: ['glm-5.2', 'glm-5.1', 'glm-5-turbo', 'glm-4.7-flash', 'glm-4.5-flash'], baseUrl: 'https://open.bigmodel.cn/api/paas/v4' },
+  { value: 'zhipu', label: 'ZhiPu (GLM)', models: ['glm-5.2', 'glm-5.1', 'glm-5-turbo', 'glm-4.7-flash', 'glm-4.6v-flash', 'glm-4.6v', 'glm-4.5-flash'], baseUrl: 'https://open.bigmodel.cn/api/paas/v4' },
   { value: 'qwen', label: 'Alibaba Qwen', models: ['qwen-max', 'qwen-plus', 'qwen-turbo'], baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1' },
   { value: 'siliconflow', label: 'SiliconFlow (硅基流动)', models: ['Qwen/Qwen3-8B', 'Qwen/Qwen3-30B-A3B-Instruct-2507', 'Qwen/Qwen3.5-9B', 'Qwen/Qwen3-VL-8B-Instruct'], baseUrl: 'https://api.siliconflow.cn/v1' },
   { value: 'moonshot', label: 'Moonshot (Kimi)', models: ['moonshot-v1-128k', 'moonshot-v1-32k'], baseUrl: 'https://api.moonshot.cn/v1' },
@@ -389,7 +389,7 @@ export default function ModelConfig({ config, testResult, isTesting, isSaving, o
               <TaskModelRow key={task.key} taskKey={task.key} icon={task.icon} zhLabel={task.zhLabel}
                 enLabel={task.enLabel}
                 desc={isZh ? task.zhDesc : task.enDesc} currentConfig={config.tasks?.[task.key]}
-                defaultProvider={config.provider || 'mimo'} defaultModel={config.model_name || 'mimo-v2.5-pro'}
+                defaultProvider={config.provider || 'zhipu'} defaultModel={config.model_name || 'glm-5.2'}
                 defaultApiKey={config.api_key} defaultBaseUrl={config.base_url}
                 providerOptions={providers} onChange={handleTaskChange} />
             ))}

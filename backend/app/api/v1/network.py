@@ -12,8 +12,9 @@ import httpx
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from app.config import runtime_path
+from app.config import runtime_path, settings
 from app.core.ssrf import validate_url
+from app.services.sources.semantic_scholar import SemanticScholarSource
 
 
 router = APIRouter()
@@ -106,6 +107,35 @@ async def _check_url(
         }
 
 
+async def _check_semantic_scholar() -> tuple[str, bool, dict[str, Any]]:
+    """Use the authenticated shared limiter so diagnostics never steal burst quota."""
+    started = time.monotonic()
+    snapshot = SemanticScholarSource.quota_snapshot()
+    success_age = snapshot.get("last_success_age_seconds")
+    if success_age is not None and success_age < 300:
+        return "semantic_scholar", True, {
+            "status_code": 200,
+            "latency_ms": 0.0,
+            "authenticated": bool(settings.SEMANTIC_SCHOLAR_API_KEY),
+            "quota_policy": "shared_1_request_per_second",
+            "cached_health": True,
+            "last_success_age_seconds": round(success_age, 1),
+        }
+    async with SemanticScholarSource(
+        api_key=settings.SEMANTIC_SCHOLAR_API_KEY,
+        timeout=8,
+        max_retries=0,
+    ) as source:
+        result = await source.health_check()
+        message = source.last_error or result.get("message", "")
+        rate_limited = "429" in message
+        return "semantic_scholar", result.get("status") == "ok" or rate_limited, {
+            "status_code": 429 if rate_limited else (200 if result.get("status") == "ok" else None),
+            "latency_ms": round((time.monotonic() - started) * 1000, 1),
+            "authenticated": bool(settings.SEMANTIC_SCHOLAR_API_KEY),
+            "quota_policy": "shared_1_request_per_second",
+            "message": message,
+        }
 @router.get("/config", response_model=NetworkConfigResponse)
 async def get_network_config() -> NetworkConfigResponse:
     return _public_config()
@@ -149,12 +179,7 @@ async def detect_network() -> dict[str, Any]:
                 "https://scholar.google.com/scholar?q=academic+search",
                 reachable_statuses={200},
             ),
-            _check_url(
-                client,
-                "semantic_scholar",
-                "https://api.semanticscholar.org/graph/v1/paper/search?query=test&limit=1",
-                reachable_statuses={200, 429},
-            ),
+            _check_semantic_scholar(),
             _check_url(client, "crossref", "https://api.crossref.org/works?rows=1"),
             _check_url(client, "openalex", "https://api.openalex.org/works?per-page=1"),
             _check_url(client, "library", library_url),

@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.schemas.search import HealthResponse
+from app.services.sources.semantic_scholar import SemanticScholarSource
 
 router = APIRouter()
 _data_source_cache: tuple[float, dict[str, str]] = (0.0, {})
@@ -50,6 +51,27 @@ async def _probe_data_source(client, name: str, url: str) -> tuple[str, str]:
         return name, "available" if response.status_code == 200 else "degraded"
     except Exception:
         return name, "unavailable"
+
+
+async def _probe_semantic_scholar() -> tuple[str, str]:
+    """Probe S2 through the same authenticated, account-wide rate limiter as search."""
+    from app.config import settings
+
+    snapshot = SemanticScholarSource.quota_snapshot()
+    success_age = snapshot.get("last_success_age_seconds")
+    if success_age is not None and success_age < 300:
+        return "semantic_scholar", "available"
+    async with SemanticScholarSource(
+        api_key=settings.SEMANTIC_SCHOLAR_API_KEY,
+        timeout=8,
+        max_retries=0,
+    ) as source:
+        result = await source.health_check()
+        if result.get("status") == "ok":
+            return "semantic_scholar", "available"
+        if "429" in (source.last_error or result.get("message", "")):
+            return "semantic_scholar", "rate_limited"
+        return "semantic_scholar", "unavailable"
 
 
 @router.get("/health/live")
@@ -104,11 +126,7 @@ async def health_check(
             timeout = httpx.Timeout(8.0, connect=5.0)
             async with httpx.AsyncClient(timeout=timeout) as client:
                 probes = await asyncio.gather(
-                    _probe_data_source(
-                        client,
-                        "semantic_scholar",
-                        "https://api.semanticscholar.org/graph/v1/paper/search?query=test&limit=1",
-                    ),
+                    _probe_semantic_scholar(),
                     _probe_data_source(
                         client,
                         "openalex",

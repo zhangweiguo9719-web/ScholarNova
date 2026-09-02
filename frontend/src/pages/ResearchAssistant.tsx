@@ -6,25 +6,23 @@ import {
   Database,
   Eraser,
   ExternalLink,
+  Folder,
+  FolderPlus,
   Library,
   Loader2,
+  MessageSquarePlus,
   Send,
   ShieldCheck,
   Sparkles,
   AlertTriangle,
+  Trash2,
 } from 'lucide-react'
 import { agentApi, zoteroApi } from '@/api/client'
 import type { AgentChatResponse, AgentMessage } from '@/api/types'
+import { useAssistantStore, type AssistantMessage } from '@/stores/assistantStore'
 import { useLocaleStore } from '@/stores/localeStore'
 
 const STORAGE_KEY = 'scholarnova-research-assistant-v1'
-
-interface ChatEntry {
-  id: string
-  role: 'user' | 'assistant'
-  content: string
-  result?: AgentChatResponse
-}
 
 function newId() {
   return typeof crypto !== 'undefined' && crypto.randomUUID
@@ -32,20 +30,28 @@ function newId() {
     : `${Date.now()}-${Math.random()}`
 }
 
-function loadConversation(): ChatEntry[] {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
-    return Array.isArray(parsed) ? parsed.slice(-16) : []
-  } catch {
-    return []
-  }
-}
-
 export default function ResearchAssistant() {
   const { locale } = useLocaleStore()
   const isChinese = locale === 'zh'
-  const [messages, setMessages] = useState<ChatEntry[]>(loadConversation)
+  const {
+    folders,
+    conversations,
+    activeConversationId,
+    createFolder,
+    deleteFolder,
+    createConversation,
+    deleteConversation,
+    setActiveConversation,
+    moveConversation,
+    appendMessage,
+    replaceMessages,
+    clearConversation: clearStoredConversation,
+  } = useAssistantStore()
+  const activeConversation = conversations.find((item) => item.id === activeConversationId) || conversations[0]
+  const messages = activeConversation?.messages || []
   const [question, setQuestion] = useState('')
+  const [showFolderInput, setShowFolderInput] = useState(false)
+  const [folderName, setFolderName] = useState('')
   const [useKnowledge, setUseKnowledge] = useState(true)
   const [useZotero, setUseZotero] = useState(true)
   const [zoteroConnected, setZoteroConnected] = useState<boolean | null>(null)
@@ -68,6 +74,15 @@ export default function ResearchAssistant() {
     placeholder: '例如：现有材料对联邦学习中的隐私风险形成了哪些共识？',
     send: '发送',
     clear: '清空对话',
+    folders: '研究文件夹',
+    unfiled: '未分类',
+    newFolder: '新建文件夹',
+    newChat: '新对话',
+    folderPlaceholder: '例如：交通预测',
+    moveTo: '所属文件夹',
+    deleteFolder: '删除文件夹（对话移至未分类）',
+    deleteChat: '删除当前对话',
+    contextNotice: '每个对话使用独立上下文',
     tools: '工具执行',
     sources: '引用材料',
     noSource: '本次没有可引用材料',
@@ -107,6 +122,15 @@ export default function ResearchAssistant() {
     placeholder: 'For example: What consensus do my sources show about privacy risks in federated learning?',
     send: 'Send',
     clear: 'Clear conversation',
+    folders: 'Research folders',
+    unfiled: 'Unfiled',
+    newFolder: 'New folder',
+    newChat: 'New chat',
+    folderPlaceholder: 'For example: Traffic forecasting',
+    moveTo: 'Folder',
+    deleteFolder: 'Delete folder (chats move to Unfiled)',
+    deleteChat: 'Delete current chat',
+    contextNotice: 'Each chat has isolated context',
     tools: 'Tool activity',
     sources: 'Sources',
     noSource: 'No citable local material was found',
@@ -134,11 +158,23 @@ export default function ResearchAssistant() {
   }, [isChinese])
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(messages.slice(-16)))
     if (messages.length > 0) {
       bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
     }
   }, [messages])
+
+  useEffect(() => {
+    if (!activeConversation || activeConversation.messages.length > 0) return
+    try {
+      const legacy = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
+      if (Array.isArray(legacy) && legacy.length > 0) {
+        replaceMessages(activeConversation.id, legacy.slice(-40) as AssistantMessage[])
+      }
+      localStorage.removeItem(STORAGE_KEY)
+    } catch {
+      localStorage.removeItem(STORAGE_KEY)
+    }
+  }, [activeConversation?.id, replaceMessages])
 
   useEffect(() => {
     let active = true
@@ -150,10 +186,11 @@ export default function ResearchAssistant() {
 
   const submit = async () => {
     const cleanQuestion = question.trim()
-    if (!cleanQuestion || sending) return
+    if (!cleanQuestion || sending || !activeConversation) return
+    const conversationId = activeConversation.id
     const history: AgentMessage[] = messages.slice(-6).map(({ role, content }) => ({ role, content }))
-    const userEntry: ChatEntry = { id: newId(), role: 'user', content: cleanQuestion }
-    setMessages((current) => [...current, userEntry])
+    const userEntry: AssistantMessage = { id: newId(), role: 'user', content: cleanQuestion }
+    appendMessage(conversationId, userEntry)
     setQuestion('')
     setError('')
     setSending(true)
@@ -164,15 +201,12 @@ export default function ResearchAssistant() {
         use_knowledge: useKnowledge,
         use_zotero: useZotero,
       })
-      setMessages((current) => [
-        ...current,
-        {
-          id: newId(),
-          role: 'assistant',
-          content: response.data.answer,
-          result: response.data,
-        },
-      ])
+      appendMessage(conversationId, {
+        id: newId(),
+        role: 'assistant',
+        content: response.data.answer,
+        result: response.data,
+      })
     } catch (requestError: any) {
       setError(
         requestError.response?.data?.detail
@@ -184,9 +218,18 @@ export default function ResearchAssistant() {
   }
 
   const clearConversation = () => {
-    setMessages([])
+    if (activeConversation) clearStoredConversation(activeConversation.id)
     setError('')
     requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }))
+  }
+
+  const submitFolder = () => {
+    const name = folderName.trim()
+    if (!name) return
+    const folderId = createFolder(name)
+    createConversation(folderId)
+    setFolderName('')
+    setShowFolderInput(false)
   }
 
   return (
@@ -211,8 +254,66 @@ export default function ResearchAssistant() {
         </section>
 
         <section className="card mt-5 overflow-hidden">
-          <div className="flex min-h-[480px] flex-col">
-            <div className="custom-scrollbar flex-1 space-y-5 overflow-y-auto px-4 py-6 sm:px-7">
+          <div className="flex min-h-[560px] flex-col md:flex-row">
+            <aside className="border-b border-[var(--ui-border)] bg-[var(--ui-surface-raised)] p-3 md:w-64 md:shrink-0 md:border-b-0 md:border-r">
+              <div className="flex items-center justify-between gap-2 px-1 pb-3">
+                <div>
+                  <p className="text-xs font-bold text-[var(--ui-text)]">{copy.folders}</p>
+                  <p className="mt-0.5 text-[10px] text-[var(--ui-muted)]">{copy.contextNotice}</p>
+                </div>
+                <div className="flex gap-1">
+                  <button title={copy.newFolder} onClick={() => setShowFolderInput((value) => !value)} className="rounded-lg p-2 text-[var(--ui-text-soft)] hover:bg-[var(--ui-accent-soft)] hover:text-[var(--ui-accent)]"><FolderPlus className="h-4 w-4" /></button>
+                  <button title={copy.newChat} onClick={() => createConversation(activeConversation?.folderId || null)} className="rounded-lg p-2 text-[var(--ui-text-soft)] hover:bg-[var(--ui-accent-soft)] hover:text-[var(--ui-accent)]"><MessageSquarePlus className="h-4 w-4" /></button>
+                </div>
+              </div>
+
+              {showFolderInput && (
+                <div className="mb-3 flex gap-1.5">
+                  <input autoFocus value={folderName} maxLength={40} placeholder={copy.folderPlaceholder} onChange={(event) => setFolderName(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') submitFolder() }} className="min-w-0 flex-1 rounded-lg border border-[var(--ui-border)] bg-[var(--ui-surface-solid)] px-2.5 py-2 text-xs text-[var(--ui-text)] outline-none focus:border-[var(--ui-border-strong)]" />
+                  <button onClick={submitFolder} disabled={!folderName.trim()} className="rounded-lg bg-[var(--ui-brand)] px-2.5 text-xs font-bold text-white disabled:opacity-40 dark:text-[#101722]">+</button>
+                </div>
+              )}
+
+              <div className="custom-scrollbar max-h-48 space-y-3 overflow-y-auto pr-1 md:max-h-[470px]">
+                {[{ id: null, name: copy.unfiled }, ...folders].map((folder) => {
+                  const chats = conversations.filter((conversation) => conversation.folderId === folder.id)
+                  return (
+                    <div key={folder.id || 'unfiled'}>
+                      <div className="mb-1 flex items-center gap-1.5 px-2 text-[10px] font-semibold uppercase tracking-wide text-[var(--ui-muted)]">
+                        <Folder className="h-3.5 w-3.5" />
+                        <span className="min-w-0 flex-1 truncate">{folder.name}</span>
+                        {folder.id && <button title={copy.deleteFolder} onClick={() => deleteFolder(folder.id!)} className="rounded p-1 hover:bg-red-500/10 hover:text-red-500"><Trash2 className="h-3 w-3" /></button>}
+                      </div>
+                      <div className="space-y-1">
+                        {chats.map((conversation) => (
+                          <button key={conversation.id} onClick={() => setActiveConversation(conversation.id)} className={`group flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs transition ${conversation.id === activeConversation?.id ? 'bg-[var(--ui-accent-soft)] font-semibold text-[var(--ui-text)]' : 'text-[var(--ui-text-soft)] hover:bg-[var(--ui-surface-soft)] hover:text-[var(--ui-text)]'}`}>
+                            <Bot className="h-3.5 w-3.5 shrink-0" />
+                            <span className="truncate">{conversation.title === '新对话' ? copy.newChat : conversation.title}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </aside>
+
+            <div className="flex min-w-0 flex-1 flex-col">
+              {activeConversation && (
+                <div className="flex flex-wrap items-center gap-2 border-b border-[var(--ui-border)] bg-[var(--ui-surface)] px-4 py-3">
+                  <p className="min-w-0 flex-1 truncate text-sm font-semibold text-[var(--ui-text)]">{activeConversation.title === '新对话' ? copy.newChat : activeConversation.title}</p>
+                  <label className="flex items-center gap-2 text-[11px] text-[var(--ui-muted)]">
+                    {copy.moveTo}
+                    <select value={activeConversation.folderId || ''} onChange={(event) => moveConversation(activeConversation.id, event.target.value || null)} className="rounded-lg border border-[var(--ui-border)] bg-[var(--ui-surface-solid)] px-2 py-1.5 text-xs text-[var(--ui-text)] outline-none">
+                      <option value="">{copy.unfiled}</option>
+                      {folders.map((folder) => <option key={folder.id} value={folder.id}>{folder.name}</option>)}
+                    </select>
+                  </label>
+                  <button title={copy.deleteChat} onClick={() => deleteConversation(activeConversation.id)} className="rounded-lg p-2 text-[var(--ui-muted)] hover:bg-red-500/10 hover:text-red-500"><Trash2 className="h-4 w-4" /></button>
+                </div>
+              )}
+
+              <div className="custom-scrollbar max-h-[560px] flex-1 space-y-5 overflow-y-auto px-4 py-6 sm:px-7">
               {messages.length === 0 && (
                 <div className="mx-auto flex max-w-2xl flex-col items-center py-12 text-center">
                   <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--ui-accent-soft)] text-[var(--ui-accent)]"><Bot className="h-7 w-7" /></div>
@@ -242,9 +343,9 @@ export default function ResearchAssistant() {
                 </div>
               )}
               <div ref={bottomRef} />
-            </div>
+              </div>
 
-            <div className="border-t border-[var(--ui-border)] bg-[var(--ui-surface-raised)] p-4 sm:p-5">
+              <div className="border-t border-[var(--ui-border)] bg-[var(--ui-surface-raised)] p-4 sm:p-5">
               {error && <div className="mb-3 flex items-start gap-2 rounded-xl border border-red-500/20 bg-red-500/5 px-3 py-2 text-xs text-red-600 dark:text-red-400"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />{error}</div>}
               <div className="flex items-end gap-3">
                 <textarea
@@ -269,6 +370,7 @@ export default function ResearchAssistant() {
               <div className="mt-3 flex items-center justify-between gap-3 text-[11px] text-[var(--ui-muted)]">
                 <span className="inline-flex items-center gap-1"><ShieldCheck className="h-3.5 w-3.5" />{copy.safety}</span>
                 {messages.length > 0 && <button onClick={clearConversation} className="inline-flex shrink-0 items-center gap-1 hover:text-[var(--ui-text)]"><Eraser className="h-3.5 w-3.5" />{copy.clear}</button>}
+              </div>
               </div>
             </div>
           </div>

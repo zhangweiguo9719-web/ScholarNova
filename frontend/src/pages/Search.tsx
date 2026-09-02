@@ -22,11 +22,11 @@ export default function Search() {
   const { t, locale } = useLocaleStore()
 
   const {
-    searchRun, isLoading, error, query, history,
+    searchRun, isLoading, error, query,
     selectedPaper, analysis, analysisLoading, evidenceSpans, evidenceLoading,
     setSearchRun, setIsLoading, setError, setQuery,
     setSelectedPaper, setAnalysis, setAnalysisLoading,
-    setEvidenceSpans, addToHistory,
+    setEvidenceSpans, clearSearch,
   } = useSearchStore()
 
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -43,8 +43,13 @@ export default function Search() {
   const [isResizing, setIsResizing] = useState(false)
 
   useEffect(() => {
-    return () => { if (pollTimerRef.current) clearTimeout(pollTimerRef.current) }
-  }, [])
+    window.localStorage.removeItem('scholar-search-state')
+    return () => {
+      if (pollTimerRef.current) clearTimeout(pollTimerRef.current)
+      analysisCacheRef.current.clear()
+      clearSearch()
+    }
+  }, [clearSearch])
 
   useEffect(() => {
     if (!isLoading || searchStartedAtRef.current == null) return
@@ -100,7 +105,6 @@ export default function Search() {
         performSearch(queryParam)
       }
     }
-    // 不清空搜索状态——切换页面回来时保留结果
   }, [queryParam])
 
   const performSearch = async (searchQuery: string) => {
@@ -133,9 +137,7 @@ export default function Search() {
         setSearchRun(response.data)
         if (response.data.status === 'completed' || response.data.status === 'failed') {
           setIsLoading(false)
-          if (response.data.status === 'completed') {
-            addToHistory(response.data.original_query, response.data.results?.length || 0)
-          } else {
+          if (response.data.status !== 'completed') {
             setError('搜索失败，请换个关键词试试')
           }
           return
@@ -347,7 +349,7 @@ export default function Search() {
               </div>
             )}
 
-            {/* 没有 URL 查询时：显示空状态 + 搜索历史 */}
+            {/* 没有 URL 查询时：显示空状态。搜索内容只保留在当前页面会话。 */}
             {!queryParam && (
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <BookOpen className="w-16 h-16 text-gray-200 dark:text-gray-700 mb-4" />
@@ -359,34 +361,6 @@ export default function Search() {
                     ? '输入研究问题或主题，AI 会规划优化的子查询并搜索多个学术数据库'
                     : 'Enter a research question or topic above. The AI will plan optimized sub-queries and search across multiple academic databases.'}
                 </p>
-
-                {/* 搜索历史 */}
-                {history.length > 0 && (
-                  <div className="w-full max-w-md">
-                    <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
-                      {locale === 'zh' ? '📚 搜索历史' : '📚 Search History'}
-                    </h4>
-                    <div className="space-y-1">
-                      {history.slice(0, 10).map((item, i) => (
-                        <button
-                          key={i}
-                          onClick={() => handleSearch(item.query)}
-                          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left
-                            bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800
-                            transition-colors group"
-                        >
-                          <SearchIcon className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                          <span className="flex-1 text-sm text-gray-700 dark:text-gray-300 truncate">
-                            {item.query}
-                          </span>
-                          <span className="text-xs text-gray-400 dark:text-gray-500 flex-shrink-0">
-                            {item.resultCount} {locale === 'zh' ? '篇' : 'papers'}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
             )}
 

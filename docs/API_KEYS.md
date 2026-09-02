@@ -95,6 +95,8 @@ OPENALEX_EMAIL=you@example.com
 CROSSREF_EMAIL=you@example.com
 ```
 
+Semantic Scholar Key 的入门限额通常是跨端点累计 1 request/second。ScholarNova 使用跨进程 1.25 秒节奏、`Retry-After` 共享冷却和近期健康快照来减少 429；请勿同时用其他脚本高频共享同一个 Key。429 表示上游要求减速，不等同于 Key 无效。批量任务应优先依赖结果缓存和其他开放学术源，而不是提高并发。
+
 ### 配置位置
 
 Docker 部署编辑项目根目录 `.env`；本地后端开发编辑 `backend/.env`。也可以在网页“设置”中选择 Provider、模型和 Base URL。

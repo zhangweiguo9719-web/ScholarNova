@@ -444,12 +444,18 @@ Abstract: {paper_info['abstract']}
         used_visual_pages = len(visual_pages)
         user_content: object = prompt
         if visual_pages:
+            image_detail = (
+                {}
+                if visual_gateway is not None
+                and getattr(visual_gateway, "provider", "") == "zhipu"
+                else {"detail": "low"}
+            )
             user_content = [
                 {"type": "text", "text": prompt},
                 *(
                     {
                         "type": "image_url",
-                        "image_url": {"url": image_url, "detail": "low"},
+                        "image_url": {"url": image_url, **image_detail},
                     }
                     for image_url in visual_pages
                 ),

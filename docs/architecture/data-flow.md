@@ -150,7 +150,7 @@ async def parallel_search(sub_queries):
 
 | 数据源 | API 端点 | 限制 |
 |--------|----------|------|
-| Semantic Scholar | /graph/v1/paper/search | 100 req/5min |
+| Semantic Scholar | /graph/v1/paper/search | Key 入门限额通常为跨端点累计 1 req/sec；以账号实际额度为准 |
 | OpenAlex | /works | 100K req/day |
 | Crossref | /works | 50 req/sec |
 | arXiv | /api/query | 3 req/sec |
