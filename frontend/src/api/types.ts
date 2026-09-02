@@ -58,6 +58,10 @@ export interface TaskModelConfig {
   api_key_configured?: boolean
 }
 
+export interface FallbackModelConfig extends TaskModelConfig {
+  enabled: boolean
+}
+
 export interface EmbeddingModelConfig {
   enabled: boolean
   provider: LLMProvider
@@ -76,6 +80,7 @@ export interface ModelConfig {
   temperature?: number
   max_tokens?: number
   tasks?: Record<string, TaskModelConfig>
+  fallback?: FallbackModelConfig
   embedding?: EmbeddingModelConfig
 }
 
@@ -382,6 +387,18 @@ export interface AgentToolStep {
   detail: string
 }
 
+export interface AgentModelAttempt {
+  role: 'primary' | 'fallback'
+  provider: string
+  model: string
+  status: 'completed' | 'unavailable'
+  prompt_tokens: number
+  completion_tokens: number
+  total_tokens: number
+  requests: number
+  error_type: string | null
+}
+
 export interface AgentChatResponse {
   answer: string
   citations: AgentCitation[]
@@ -400,6 +417,9 @@ export interface AgentChatResponse {
   uncited_claim_count: number
   invalid_citation_ids: string[]
   fallback_used: boolean
+  model_fallback_used: boolean
+  model_route: 'primary' | 'fallback' | 'deterministic' | 'none'
+  model_attempts: AgentModelAttempt[]
   grounded: boolean
   created_at: string
 }

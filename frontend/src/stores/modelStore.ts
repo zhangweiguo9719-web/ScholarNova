@@ -32,6 +32,13 @@ const defaultConfig: ModelConfig = {
     assistant: { provider: 'mimo', model_name: 'mimo-v2.5-pro' },      // 科研问答智能体
     diagram: { provider: 'sensenova', model_name: 'sensenova-u1-fast', api_key: '', base_url: 'https://token.sensenova.cn/v1' }, // 仅出图
   },
+  fallback: {
+    enabled: false,
+    provider: 'qwen',
+    model_name: 'qwen-plus',
+    api_key: '',
+    base_url: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+  },
   embedding: {
     enabled: false,
     provider: 'ollama',
@@ -51,6 +58,9 @@ function withoutSecrets(config: ModelConfig): ModelConfig {
         { ...taskConfig, api_key: '' },
       ])
     ),
+    fallback: config.fallback
+      ? { ...config.fallback, api_key: '' }
+      : defaultConfig.fallback,
     embedding: config.embedding
       ? { ...config.embedding, api_key: '' }
       : defaultConfig.embedding,
@@ -86,7 +96,7 @@ export const useModelStore = create<ModelState>()(
     }),
     {
       name: 'scholar-agent-model-config',
-      version: 3,
+      version: 4,
       migrate: (persistedState: unknown) => {
         const state = persistedState as Partial<ModelState>
         return {

@@ -132,6 +132,12 @@ class TaskModelConfig(BaseModel):
     base_url: Optional[str] = Field(None, description="自定义 API 地址")
 
 
+class FallbackModelConfig(TaskModelConfig):
+    """显式启用的全局文本备用模型。"""
+
+    enabled: bool = Field(False, description="主文本模型失败时是否尝试备用模型")
+
+
 class EmbeddingModelConfig(BaseModel):
     """独立的可选语义检索模型配置。"""
 
@@ -155,6 +161,10 @@ class ModelConfig(BaseModel):
 
     # 按任务类型配置（可选，覆盖主配置）
     tasks: Optional[Dict[str, TaskModelConfig]] = Field(None, description="按任务类型配置模型")
+    fallback: Optional[FallbackModelConfig] = Field(
+        None,
+        description="可选文本备用模型；仅在主模型调用失败时使用",
+    )
     embedding: Optional[EmbeddingModelConfig] = Field(
         None,
         description="可选语义检索配置；不继承聊天模型凭据",

@@ -47,6 +47,27 @@ class UncitedGateway(FakeGateway):
         return "现有材料指出需要进行可追溯检索。[S1]\n仍需要跨领域实验验证。"
 
 
+class PrimaryFailingQwenGateway:
+    def __init__(self, *args, **kwargs) -> None:
+        self.provider = kwargs.get("provider") or "zhipu"
+        self._usage = {
+            "prompt_tokens": 10,
+            "completion_tokens": 5,
+            "total_tokens": 15,
+            "requests": 1,
+        }
+
+    @property
+    def usage(self):
+        return dict(self._usage)
+
+    async def chat(self, messages, **kwargs) -> str:
+        del messages, kwargs
+        if self.provider != "qwen":
+            raise RuntimeError("primary offline")
+        return "备用模型仍严格依据本地证据回答。[S1]"
+
+
 @pytest.mark.asyncio
 async def test_agent_answers_from_knowledge_with_citations(
     client,
@@ -88,6 +109,8 @@ async def test_agent_answers_from_knowledge_with_citations(
     assert data["verification_status"] == "verified"
     assert data["citation_coverage"] == 1.0
     assert data["inference_mode"] == "model"
+    assert data["model_route"] == "primary"
+    assert data["model_fallback_used"] is False
     assert {step["tool"] for step in data["tool_steps"]} == {
         "answer_generation",
         "answer_verification",
@@ -138,6 +161,66 @@ async def test_agent_returns_traceable_evidence_when_model_is_offline(
         if step["tool"] == "answer_generation"
     )
     assert generation["status"] == "unavailable"
+
+
+@pytest.mark.asyncio
+async def test_agent_uses_explicit_qwen_fallback_and_reports_both_attempts(
+    client,
+    db_session,
+    monkeypatch,
+) -> None:
+    db_session.add(
+        KnowledgeBase(
+            title="多模型科研问答",
+            category="科研智能体",
+            content="备用模型只能在主模型失败后接管，并继续使用同一组证据。",
+        )
+    )
+    await db_session.flush()
+    primary = {
+        "provider": "zhipu",
+        "model": "glm-5.2",
+        "api_key": "primary",
+        "base_url": "https://open.bigmodel.cn/api/paas/v4",
+    }
+    monkeypatch.setattr("app.api.v1.agent.LLMGateway", PrimaryFailingQwenGateway)
+    monkeypatch.setattr("app.api.v1.agent.get_model_for_task", lambda task: primary)
+    monkeypatch.setattr(
+        "app.services.inference.model_router.get_model_for_task",
+        lambda task: primary,
+    )
+    monkeypatch.setattr(
+        "app.services.inference.model_router.get_fallback_model_config",
+        lambda: {
+            "enabled": True,
+            "provider": "qwen",
+            "model": "qwen-plus",
+            "api_key": "fallback",
+            "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+        },
+    )
+    monkeypatch.setattr(
+        "app.api.v1.agent.ZoteroLocalClient.search_items",
+        AsyncMock(return_value=[]),
+    )
+
+    response = await client.post(
+        "/api/v1/agent/chat",
+        json={"question": "主模型失败后如何保持回答可追溯？"},
+    )
+
+    data = response.json()
+    assert response.status_code == 200
+    assert data["provider"] == "qwen"
+    assert data["model"] == "qwen-plus"
+    assert data["model_route"] == "fallback"
+    assert data["model_fallback_used"] is True
+    assert data["fallback_used"] is False
+    assert [attempt["status"] for attempt in data["model_attempts"]] == [
+        "unavailable",
+        "completed",
+    ]
+    assert data["total_tokens"] == 30
 
 
 @pytest.mark.asyncio

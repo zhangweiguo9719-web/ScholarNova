@@ -65,6 +65,35 @@ def test_task_profiles_inherit_default_credentials_after_restart(monkeypatch):
     assert settings.OPENAI_API_KEY == "test-main-key"
 
 
+def test_cross_provider_task_never_inherits_primary_credentials(monkeypatch):
+    """千问等独立任务不能误用主供应商的 Key 或地址。"""
+    from app.config import MODEL_PROFILES, get_model_for_task, settings
+
+    monkeypatch.setattr(settings, "DEFAULT_LLM_PROVIDER", "mimo")
+    monkeypatch.setattr(settings, "OPENAI_API_KEY", "mimo-secret")
+    monkeypatch.setattr(
+        settings,
+        "OPENAI_API_BASE",
+        "https://token-plan-cn.xiaomimimo.com/v1",
+    )
+    monkeypatch.setitem(
+        MODEL_PROFILES,
+        "translation",
+        {
+            "provider": "qwen",
+            "model": "qwen-plus",
+            "api_key": None,
+            "base_url": None,
+        },
+    )
+
+    profile = get_model_for_task("translation")
+
+    assert profile["provider"] == "qwen"
+    assert profile["api_key"] is None
+    assert profile["base_url"] == "https://dashscope.aliyuncs.com/compatible-mode/v1"
+
+
 class TestSaveModelConfig:
     """POST /api/v1/model/config 测试套件"""
 
@@ -102,6 +131,13 @@ class TestSaveModelConfig:
                             "api_key": "diagram-secret",
                         }
                     },
+                    "fallback": {
+                        "enabled": True,
+                        "provider": "qwen",
+                        "model_name": "qwen-plus",
+                        "api_key": "fallback-secret",
+                        "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+                    },
                     "embedding": {
                         "enabled": True,
                         "provider": "openai",
@@ -123,6 +159,10 @@ class TestSaveModelConfig:
         assert data["api_key_configured"] is True
         assert data["tasks"]["diagram"]["api_key"] is None
         assert data["tasks"]["diagram"]["api_key_configured"] is True
+        assert data["fallback"]["enabled"] is True
+        assert data["fallback"]["provider"] == "qwen"
+        assert data["fallback"]["api_key"] is None
+        assert data["fallback"]["api_key_configured"] is True
         assert data["embedding"]["enabled"] is True
         assert data["embedding"]["api_key"] is None
         assert data["embedding"]["api_key_configured"] is True
@@ -146,6 +186,13 @@ class TestSaveModelConfig:
                             "api_key": "diagram-secret",
                             "base_url": "https://token.sensenova.cn/v1",
                         }
+                    },
+                    "fallback": {
+                        "enabled": True,
+                        "provider": "qwen",
+                        "model_name": "qwen-plus",
+                        "api_key": "fallback-secret",
+                        "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
                     },
                     "embedding": {
                         "enabled": True,
@@ -174,6 +221,13 @@ class TestSaveModelConfig:
                         "base_url": "https://token.sensenova.cn/v1",
                     }
                 },
+                "fallback": {
+                    "enabled": True,
+                    "provider": "qwen",
+                    "model_name": "qwen-plus",
+                    "api_key": "",
+                    "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+                },
                 "embedding": {
                     "enabled": True,
                     "provider": "openai",
@@ -188,6 +242,7 @@ class TestSaveModelConfig:
         assert response.status_code == 200
         assert saved["api_key"] == "local-secret"
         assert saved["tasks"]["diagram"]["api_key"] == "diagram-secret"
+        assert saved["fallback"]["api_key"] == "fallback-secret"
         assert saved["embedding"]["api_key"] == "embedding-secret"
 
     async def test_save_config_anthropic(self, client: AsyncClient):
@@ -312,6 +367,37 @@ class TestModelConnection:
         assert data["success"] is True
         assert data["model_info"]["dimensions"] == 3
         assert data["model_info"]["input_tokens"] == 5
+
+    async def test_cross_provider_probe_does_not_reuse_primary_key(
+        self,
+        client: AsyncClient,
+        monkeypatch,
+    ):
+        from app.config import settings
+
+        monkeypatch.setattr(settings, "DEFAULT_LLM_PROVIDER", "zhipu")
+        monkeypatch.setattr(settings, "OPENAI_API_KEY", "zhipu-secret")
+
+        async def inspect_profile(gateway):
+            assert gateway.provider == "qwen"
+            assert gateway._api_key is None
+            return {"success": False, "error": "missing qwen key"}
+
+        monkeypatch.setattr(
+            "app.services.llm.gateway.LLMGateway.test_connection",
+            inspect_profile,
+        )
+        response = await client.post(
+            "/api/v1/model/test",
+            json={
+                "provider": "qwen",
+                "model_name": "qwen-plus",
+                "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+            },
+        )
+
+        assert response.status_code == 200
+        assert response.json()["success"] is False
 
     async def test_embedding_connection_accepts_debug_localhost(
         self,

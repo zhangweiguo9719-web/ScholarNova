@@ -202,6 +202,18 @@ DEFAULT_MODEL_CONFIG = {
     "max_tokens": 4096,
 }
 
+PROVIDER_DEFAULTS = {
+    "openai": ("https://api.openai.com/v1", "gpt-4o-mini"),
+    "anthropic": ("https://api.anthropic.com", "claude-3-5-sonnet-20241022"),
+    "ollama": ("http://localhost:11434", "qwen2.5:14b"),
+    "mimo": ("https://token-plan-cn.xiaomimimo.com/v1", "mimo-v2.5-pro"),
+    "deepseek": ("https://api.deepseek.com/v1", "deepseek-chat"),
+    "zhipu": ("https://open.bigmodel.cn/api/paas/v4", "glm-5.2"),
+    "qwen": ("https://dashscope.aliyuncs.com/compatible-mode/v1", "qwen-plus"),
+    "moonshot": ("https://api.moonshot.cn/v1", "moonshot-v1-32k"),
+    "sensenova": ("https://token.sensenova.cn/v1", "sensenova-6.7-flash-lite"),
+}
+
 
 def load_saved_model_config():
     """从本地文件加载保存的多模型配置"""
@@ -231,6 +243,7 @@ def load_saved_model_config():
                 # 更新全局设置
                 if api_key:
                     settings.OPENAI_API_KEY = api_key
+                settings.DEFAULT_LLM_PROVIDER = provider
                 if base_url:
                     settings.OPENAI_API_BASE = base_url
                 if model_name:
@@ -264,6 +277,7 @@ def load_saved_model_config():
 
                 if default_api_key:
                     settings.OPENAI_API_KEY = default_api_key
+                settings.DEFAULT_LLM_PROVIDER = default_provider
                 if default_base_url:
                     settings.OPENAI_API_BASE = default_base_url
                 if default_model:
@@ -278,25 +292,78 @@ def load_saved_model_config():
 def get_model_for_task(task: str) -> dict:
     """获取指定任务的模型配置，回退到默认配置"""
     profile = MODEL_PROFILES.get(task, {})
+    provider = profile.get("provider") or settings.DEFAULT_LLM_PROVIDER or "openai"
+    same_as_default = provider == settings.DEFAULT_LLM_PROVIDER
+    provider_base_url, provider_model = PROVIDER_DEFAULTS.get(
+        provider,
+        (None, None),
+    )
 
     # 处理 API Key：如果值是 "ENV" 或空，从 settings 读取
     api_key = profile.get("api_key")
     if not api_key or api_key == "ENV":
-        if profile.get("provider") == "sensenova":
+        if provider == "sensenova":
             api_key = settings.SENSENOVA_API_KEY
-        else:
+        elif same_as_default:
             api_key = settings.OPENAI_API_KEY
+        else:
+            api_key = None
 
     base_url = profile.get("base_url")
     if not base_url:
-        base_url = settings.OPENAI_API_BASE
+        base_url = settings.OPENAI_API_BASE if same_as_default else provider_base_url
 
     return {
-        "provider": profile.get("provider") or "openai",
+        "provider": provider,
         "api_key": api_key,
         "base_url": base_url,
-        "model": profile.get("model") or settings.OPENAI_DEFAULT_MODEL,
+        "model": profile.get("model") or (
+            settings.OPENAI_DEFAULT_MODEL if same_as_default else provider_model
+        ),
     }
+
+
+def get_fallback_model_config() -> dict:
+    """Return the explicitly enabled text-model fallback without key inheritance."""
+    import json
+
+    defaults = {
+        "enabled": False,
+        "provider": "qwen",
+        "model": "qwen-plus",
+        "api_key": None,
+        "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+    }
+    default_urls = {
+        "openai": "https://api.openai.com/v1",
+        "anthropic": "https://api.anthropic.com",
+        "ollama": "http://localhost:11434",
+        "mimo": "https://token-plan-cn.xiaomimimo.com/v1",
+        "deepseek": "https://api.deepseek.com/v1",
+        "zhipu": "https://open.bigmodel.cn/api/paas/v4",
+        "qwen": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+        "moonshot": "https://api.moonshot.cn/v1",
+        "sensenova": "https://token.sensenova.cn/v1",
+    }
+    config_path = runtime_path("model_config.json")
+    try:
+        if not config_path.exists():
+            return defaults
+        with config_path.open("r", encoding="utf-8") as file:
+            saved = json.load(file)
+        fallback = saved.get("fallback")
+        if not isinstance(fallback, dict):
+            return defaults
+        provider = str(fallback.get("provider") or defaults["provider"])
+        return {
+            "enabled": bool(fallback.get("enabled")),
+            "provider": provider,
+            "model": fallback.get("model_name") or defaults["model"],
+            "api_key": fallback.get("api_key"),
+            "base_url": fallback.get("base_url") or default_urls.get(provider),
+        }
+    except (OSError, TypeError, ValueError):
+        return defaults
 
 
 def get_embedding_config() -> dict:

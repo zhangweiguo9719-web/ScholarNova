@@ -38,6 +38,7 @@ class LLMGateway:
             provider: LLM 提供商名称
             task: 任务类型（analysis/query_planning/translation/vision/recommendation）
         """
+        self._explicit_profile = False
         if task:
             from app.config import get_model_for_task
             profile = get_model_for_task(task)
@@ -64,6 +65,21 @@ class LLMGateway:
             self._api_key = settings.SENSENOVA_API_KEY
             self._base_url = settings.SENSENOVA_API_BASE
             self._model_name = self._model_name or settings.SENSENOVA_DEFAULT_MODEL
+
+    @classmethod
+    def from_profile(cls, profile: dict[str, Any]) -> "LLMGateway":
+        """Build a gateway from one isolated profile without credential inheritance."""
+        gateway = cls(provider=str(profile.get("provider") or "openai"))
+        gateway._explicit_profile = True
+        gateway._api_key = profile.get("api_key")
+        gateway._base_url = (
+            str(profile["base_url"]).rstrip("/")
+            if profile.get("base_url")
+            else None
+        )
+        gateway._model_name = profile.get("model") or profile.get("model_name")
+        gateway._client = None
+        return gateway
 
     def configure(self, api_key: str = None, base_url: str = None, model_name: str = None):
         """运行时覆盖配置"""
@@ -320,8 +336,23 @@ class LLMGateway:
         """调用 OpenAI Chat Completion API（含所有 OpenAI 兼容提供商）"""
         import openai
 
-        api_key = self._api_key or settings.OPENAI_API_KEY
-        base_url = self._base_url or settings.OPENAI_API_BASE
+        api_key = (
+            self._api_key
+            if self._explicit_profile
+            else self._api_key or settings.OPENAI_API_KEY
+        )
+        base_url = (
+            self._base_url
+            if self._explicit_profile
+            else self._base_url or settings.OPENAI_API_BASE
+        )
+        if self._explicit_profile and not api_key:
+            if self.provider == "custom":
+                api_key = "not-required"
+            else:
+                raise ValueError(
+                    f"API key is not configured for provider: {self.provider}"
+                )
 
         if self._client is None:
             self._client = openai.AsyncOpenAI(
@@ -368,7 +399,7 @@ class LLMGateway:
 
         if self._client is None:
             self._client = anthropic.AsyncAnthropic(
-                api_key=settings.ANTHROPIC_API_KEY,
+                api_key=self._api_key or settings.ANTHROPIC_API_KEY,
             )
 
         # Anthropic 的 system 消息是独立参数，需要从 messages 中提取
@@ -381,7 +412,7 @@ class LLMGateway:
                 user_messages.append(msg)
 
         call_kwargs = dict(
-            model=model or settings.ANTHROPIC_DEFAULT_MODEL,
+            model=model or self._model_name or settings.ANTHROPIC_DEFAULT_MODEL,
             messages=user_messages,
             temperature=temperature,
             max_tokens=max_tokens,
@@ -416,7 +447,7 @@ class LLMGateway:
         import httpx
 
         payload = {
-            "model": model or settings.OLLAMA_DEFAULT_MODEL,
+            "model": model or self._model_name or settings.OLLAMA_DEFAULT_MODEL,
             "messages": messages,
             "stream": False,
             "options": {
@@ -426,8 +457,9 @@ class LLMGateway:
         }
 
         async with httpx.AsyncClient() as client:
+            base_url = (self._base_url or settings.OLLAMA_BASE_URL).rstrip("/")
             response = await client.post(
-                f"{settings.OLLAMA_BASE_URL}/api/chat",
+                f"{base_url}/api/chat",
                 json=payload,
                 timeout=120,
             )
@@ -542,6 +574,8 @@ class LLMGateway:
 
     def _get_default_model(self) -> str:
         """获取当前 provider 的默认模型名"""
+        if self._model_name:
+            return self._model_name
         if self.provider == "openai":
             return settings.OPENAI_DEFAULT_MODEL
         elif self.provider == "anthropic":

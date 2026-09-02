@@ -22,6 +22,8 @@ export default function Settings() {
   } = useModelStore()
   const [embeddingTestResult, setEmbeddingTestResult] = useState<import('@/api/types').ModelTestResponse | null>(null)
   const [isEmbeddingTesting, setIsEmbeddingTesting] = useState(false)
+  const [fallbackTestResult, setFallbackTestResult] = useState<import('@/api/types').ModelTestResponse | null>(null)
+  const [isFallbackTesting, setIsFallbackTesting] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -91,6 +93,30 @@ export default function Settings() {
     }
   }
 
+  const handleFallbackTest = async () => {
+    if (!config.fallback?.provider || !config.fallback.model_name) return
+    setIsFallbackTesting(true)
+    setFallbackTestResult(null)
+    try {
+      const response = await modelApi.testConnection({
+        provider: config.fallback.provider,
+        model_name: config.fallback.model_name,
+        api_key: config.fallback.api_key,
+        base_url: config.fallback.base_url,
+      })
+      setFallbackTestResult(response.data)
+    } catch (err: any) {
+      setFallbackTestResult({
+        success: false,
+        latency_ms: null,
+        model_info: null,
+        error: err.response?.data?.detail || t('settings.connectionFailed'),
+      })
+    } finally {
+      setIsFallbackTesting(false)
+    }
+  }
+
   return (
     <div className="min-h-[calc(100vh-3.5rem)] bg-gray-50 dark:bg-gray-950 px-4 py-8">
       <div className="max-w-2xl mx-auto">
@@ -109,6 +135,9 @@ export default function Settings() {
           onConfigChange={setConfig}
           onTest={handleTest}
           onSave={handleSave}
+          fallbackTestResult={fallbackTestResult}
+          isFallbackTesting={isFallbackTesting}
+          onFallbackTest={handleFallbackTest}
           embeddingTestResult={embeddingTestResult}
           isEmbeddingTesting={isEmbeddingTesting}
           onEmbeddingTest={handleEmbeddingTest}

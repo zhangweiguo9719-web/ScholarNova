@@ -45,6 +45,9 @@ interface ModelConfigProps {
   onConfigChange: (partial: Partial<ModelConfigType>) => void
   onTest: () => void
   onSave: () => void
+  fallbackTestResult: ModelTestResponse | null
+  isFallbackTesting: boolean
+  onFallbackTest: () => void
   embeddingTestResult: ModelTestResponse | null
   isEmbeddingTesting: boolean
   onEmbeddingTest: () => void
@@ -121,11 +124,19 @@ function TaskModelRow({ taskKey, icon, zhLabel, desc, currentConfig, defaultProv
   )
 }
 
-export default function ModelConfig({ config, testResult, isTesting, isSaving, onConfigChange, onTest, onSave, embeddingTestResult, isEmbeddingTesting, onEmbeddingTest }: ModelConfigProps) {
+export default function ModelConfig({ config, testResult, isTesting, isSaving, onConfigChange, onTest, onSave, fallbackTestResult, isFallbackTesting, onFallbackTest, embeddingTestResult, isEmbeddingTesting, onEmbeddingTest }: ModelConfigProps) {
   const { t, locale } = useLocaleStore()
   const isZh = locale === 'zh'
   const selectedProvider = providers.find((p) => p.value === config.provider)
   const [showTaskModels, setShowTaskModels] = useState(false)
+  const fallback = config.fallback || {
+    enabled: false,
+    provider: 'qwen' as LLMProvider,
+    model_name: 'qwen-plus',
+    api_key: '',
+    base_url: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+  }
+  const selectedFallbackProvider = providers.find((p) => p.value === fallback.provider)
   const embedding = config.embedding || {
     enabled: false,
     provider: 'ollama' as LLMProvider,
@@ -243,6 +254,84 @@ export default function ModelConfig({ config, testResult, isTesting, isSaving, o
             ))}
           </div>
         )}
+
+        <div className="mt-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex gap-3">
+              <div className="mt-0.5 rounded-lg bg-amber-500/10 p-2 text-amber-600 dark:text-amber-400"><Cpu className="h-4 w-4" /></div>
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  {isZh ? '备用文本模型（可选）' : 'Fallback text model (optional)'}
+                </h3>
+                <p className="mt-1 text-xs leading-5 text-gray-500 dark:text-gray-400">
+                  {isZh
+                    ? '当前用于科研问答：仅当主模型最终失败时尝试一次，不参与视觉与出图。每次尝试都会独立记录 Token。'
+                    : 'Currently used by the research assistant: tried once only after the primary model fails, never for vision or image generation. Tokens are tracked per attempt.'}
+                </p>
+              </div>
+            </div>
+            <label className="relative inline-flex cursor-pointer items-center">
+              <input type="checkbox" className="peer sr-only" checked={fallback.enabled}
+                onChange={(event) => onConfigChange({ fallback: { ...fallback, enabled: event.target.checked } })} />
+              <span className="h-6 w-11 rounded-full bg-gray-300 after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:transition peer-checked:bg-amber-500 peer-checked:after:translate-x-5 dark:bg-gray-700" />
+            </label>
+          </div>
+
+          {fallback.enabled && (
+            <div className="mt-4 space-y-3 border-t border-amber-500/15 pt-4">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="config-label">{isZh ? '备用提供商' : 'Fallback provider'}</label>
+                  <select className="config-select" value={fallback.provider} onChange={(event) => {
+                    const next = providers.find((provider) => provider.value === event.target.value) || providers[0]
+                    onConfigChange({ fallback: { enabled: true, provider: next.value, model_name: next.models[0] || '', api_key: '', api_key_configured: false, base_url: next.baseUrl || '' } })
+                  }}>
+                    {providers.map((provider) => <option key={provider.value} value={provider.value}>{provider.label}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="config-label">{isZh ? '备用模型' : 'Fallback model'}</label>
+                  <input className="config-input" value={fallback.model_name || ''}
+                    onChange={(event) => onConfigChange({ fallback: { ...fallback, model_name: event.target.value } })}
+                    placeholder={selectedFallbackProvider?.models[0] || 'model name'} />
+                </div>
+              </div>
+              {fallback.provider !== 'ollama' && (
+                <div>
+                  <label className="config-label">API Key</label>
+                  <input type="password" className="config-input" value={fallback.api_key || ''}
+                    onChange={(event) => onConfigChange({ fallback: { ...fallback, api_key: event.target.value } })}
+                    placeholder={fallback.api_key_configured ? (isZh ? '已安全保存在本机后端' : 'Saved by the local backend') : (isZh ? '备用模型独立 API Key' : 'Independent fallback API key')} />
+                </div>
+              )}
+              <div>
+                <label className="config-label"><Globe className="mr-1 inline h-4 w-4" />API Base URL</label>
+                <input className="config-input" value={fallback.base_url || ''}
+                  onChange={(event) => onConfigChange({ fallback: { ...fallback, base_url: event.target.value } })}
+                  placeholder={selectedFallbackProvider?.baseUrl || 'https://…/v1'} />
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-500/15 bg-white/50 px-3 py-2 dark:bg-gray-900/20">
+                <p className="text-xs text-amber-700 dark:text-amber-300">
+                  {isZh ? '不会因开启而常态双调用；只有主模型失败后才会产生备用调用。' : 'Enabling this does not duplicate normal calls; fallback is invoked only after primary failure.'}
+                </p>
+                <button type="button" onClick={onFallbackTest} disabled={isFallbackTesting || !fallback.model_name}
+                  className="config-btn config-btn-secondary !px-3 !py-1.5">
+                  {isFallbackTesting ? <Loader2 className="h-4 w-4 animate-spin" /> : <TestTube className="h-4 w-4" />}
+                  {isZh ? '测试备用模型' : 'Test fallback'}
+                </button>
+              </div>
+              {fallbackTestResult && (
+                <div className={clsx('config-test-result', fallbackTestResult.success ? 'config-test-success' : 'config-test-fail')}>
+                  <div className="flex items-center gap-2">
+                    {fallbackTestResult.success ? <Check className="h-4 w-4 text-green-600" /> : <X className="h-4 w-4 text-red-600" />}
+                    <span className="text-sm font-medium">{fallbackTestResult.success ? (isZh ? '备用模型连接成功' : 'Fallback connected') : fallbackTestResult.error}</span>
+                  </div>
+                  {fallbackTestResult.latency_ms != null && <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">Latency: {fallbackTestResult.latency_ms.toFixed(0)}ms</p>}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50/70 p-4 dark:border-gray-700 dark:bg-gray-800/30">
           <div className="flex items-start justify-between gap-4">

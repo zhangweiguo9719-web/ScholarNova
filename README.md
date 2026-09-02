@@ -102,6 +102,8 @@ The hybrid path embeds up to 256 source-balanced candidates, fuses vector and BM
 
 After generation, a zero-token deterministic verifier reports factual-segment citation coverage, unknown source IDs, and uncited segments as verified, partial, or failed. This is an integrity check, not a claim of semantic entailment. If the answer model is offline or times out, ScholarNova returns a bounded list of retrieved evidence with valid `[S1]` markers instead of failing the whole request, and labels the response as a deterministic evidence fallback.
 
+An optional fallback can be configured for research-assistant answers under **Settings → Fallback text model**—for example, Zhipu or MiMo as primary and Alibaba Qwen as fallback. Normal assistant requests call only the primary route. The fallback is tried once only after bounded primary retries fail, and it never applies to vision or SenseNova image generation. The assistant reports the selected provider, primary/fallback route, each attempt, and aggregate provider-reported tokens. If both routes fail, the deterministic evidence fallback remains available. Credentials and endpoints are isolated by provider, so an empty Qwen key never reuses a MiMo or Zhipu credential. The router contract already supports other text-task names, but those task integrations are not presented as complete yet.
+
 ### Journal data and institutional access
 
 Open **Settings → Journal quartiles** to import a CSV or JSON file that you are licensed to use. A minimal CSV is:

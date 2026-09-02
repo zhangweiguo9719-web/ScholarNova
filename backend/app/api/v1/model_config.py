@@ -56,6 +56,31 @@ async def get_model_config() -> dict:
         safe_task["api_key"] = None
         safe_tasks[task_name] = safe_task
 
+    saved_fallback = saved.get("fallback")
+    if not isinstance(saved_fallback, dict):
+        saved_fallback = {}
+    fallback_provider = saved_fallback.get("provider") or "qwen"
+    fallback_default_urls = {
+        "openai": "https://api.openai.com/v1",
+        "anthropic": "https://api.anthropic.com",
+        "ollama": "http://localhost:11434",
+        "mimo": "https://token-plan-cn.xiaomimimo.com/v1",
+        "deepseek": "https://api.deepseek.com/v1",
+        "zhipu": "https://open.bigmodel.cn/api/paas/v4",
+        "qwen": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+        "moonshot": "https://api.moonshot.cn/v1",
+        "sensenova": "https://token.sensenova.cn/v1",
+    }
+    safe_fallback = {
+        "enabled": bool(saved_fallback.get("enabled")),
+        "provider": fallback_provider,
+        "model_name": saved_fallback.get("model_name") or "qwen-plus",
+        "api_key": None,
+        "api_key_configured": bool(saved_fallback.get("api_key")),
+        "base_url": saved_fallback.get("base_url")
+        or fallback_default_urls.get(fallback_provider),
+    }
+
     saved_embedding = saved.get("embedding")
     if not isinstance(saved_embedding, dict):
         saved_embedding = {}
@@ -85,6 +110,7 @@ async def get_model_config() -> dict:
         "temperature": saved.get("temperature", 0.7),
         "max_tokens": saved.get("max_tokens", 4096),
         "tasks": safe_tasks,
+        "fallback": safe_fallback,
         "embedding": safe_embedding,
     }
 
@@ -115,6 +141,34 @@ async def save_model_config(
     )
     config_data = config.model_dump()
     config_data["api_key"] = api_key
+
+    existing_fallback = existing_config.get("fallback")
+    if not isinstance(existing_fallback, dict):
+        existing_fallback = {}
+    if config.fallback is None:
+        if existing_fallback:
+            config_data["fallback"] = existing_fallback
+        else:
+            config_data.pop("fallback", None)
+    else:
+        fallback_data = config.fallback.model_dump()
+        fallback_provider = fallback_data.get("provider") or "qwen"
+        previous_fallback_provider = existing_fallback.get("provider")
+        fallback_data["api_key"] = fallback_data.get("api_key") or (
+            existing_fallback.get("api_key")
+            if previous_fallback_provider == fallback_provider
+            else None
+        )
+        if fallback_data.get("enabled") and not fallback_data.get("model_name"):
+            raise HTTPException(status_code=400, detail="备用模型名称不能为空")
+        if fallback_data.get("enabled") and fallback_data.get("base_url"):
+            is_valid, error = validate_base_url(fallback_data["base_url"])
+            if not is_valid:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"备用模型 API 地址不安全: {error}",
+                )
+        config_data["fallback"] = fallback_data
 
     existing_embedding = existing_config.get("embedding")
     if not isinstance(existing_embedding, dict):
@@ -177,6 +231,7 @@ async def save_model_config(
     # 更新全局设置
     if api_key:
         settings.OPENAI_API_KEY = api_key
+    settings.DEFAULT_LLM_PROVIDER = provider
     if base_url:
         settings.OPENAI_API_BASE = base_url
     if model_name:
@@ -283,14 +338,28 @@ async def test_model_connection(
     start_time = time.time()
 
     try:
-        # 创建 LLM 客户端
-        gateway = LLMGateway(provider=request.provider)
+        # 连接测试也使用隔离配置，避免把当前主供应商的 Key
+        # 误发给正在测试的另一个供应商。
+        from app.config import settings
 
-        # 用用户提供的配置覆盖默认设置
-        gateway.configure(
-            api_key=request.api_key,
-            base_url=request.base_url,
-            model_name=request.model_name,
+        saved_fallback = _read_saved_config().get("fallback")
+        if not isinstance(saved_fallback, dict):
+            saved_fallback = {}
+        api_key = request.api_key
+        if not api_key and request.provider == settings.DEFAULT_LLM_PROVIDER:
+            api_key = settings.OPENAI_API_KEY
+        elif (
+            not api_key
+            and saved_fallback.get("provider") == request.provider
+        ):
+            api_key = saved_fallback.get("api_key")
+        gateway = LLMGateway.from_profile(
+            {
+                "provider": request.provider,
+                "api_key": api_key,
+                "base_url": request.base_url,
+                "model": request.model_name,
+            }
         )
 
         # 发送测试请求

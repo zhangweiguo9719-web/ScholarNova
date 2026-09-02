@@ -32,6 +32,48 @@ class TestLLMGateway:
         with pytest.raises(ValueError, match="Unsupported provider"):
             await gateway.chat(messages=[{"role": "user", "content": "hello"}])
 
+    async def test_qwen_profile_uses_openai_compatible_route(self):
+        """千问配置应使用独立凭据走 OpenAI 兼容协议。"""
+        gateway = LLMGateway.from_profile(
+            {
+                "provider": "qwen",
+                "model": "qwen-plus",
+                "api_key": "qwen-key",
+                "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+            }
+        )
+        gateway._chat_openai = AsyncMock(return_value="Qwen ready")
+
+        result = await gateway.chat(
+            messages=[{"role": "user", "content": "hello"}],
+            max_tokens=20,
+        )
+
+        assert result == "Qwen ready"
+        assert gateway.provider == "qwen"
+        assert gateway._api_key == "qwen-key"
+        assert gateway._model_name == "qwen-plus"
+        gateway._chat_openai.assert_awaited_once()
+
+    async def test_explicit_qwen_profile_never_inherits_another_provider_key(self):
+        """隔离配置缺少 Key 时应本地失败，而不是读取全局 OpenAI Key。"""
+        gateway = LLMGateway.from_profile(
+            {
+                "provider": "qwen",
+                "model": "qwen-plus",
+                "api_key": None,
+                "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+            }
+        )
+
+        with pytest.raises(ValueError, match="qwen"):
+            await gateway._chat_openai_once(
+                messages=[{"role": "user", "content": "hello"}],
+                model="qwen-plus",
+                temperature=0.2,
+                max_tokens=20,
+            )
+
     async def test_chat_openai_success(self):
         """OpenAI 调用成功应返回响应文本"""
         mock_response = MagicMock()

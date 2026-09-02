@@ -17,7 +17,12 @@ from app.database import get_db
 from app.models.knowledge import KnowledgeBase
 from app.models.paper import PaperChunk, PaperEntity
 from app.services.features.knowledge import ensure_knowledge_features
-from app.services.inference import build_retrieval_fallback, verify_answer_citations
+from app.services.inference import (
+    AllModelsUnavailableError,
+    build_retrieval_fallback,
+    chat_with_fallback,
+    verify_answer_citations,
+)
 from app.services.integrations.zotero import ZoteroLocalClient
 from app.services.llm.gateway import LLMGateway
 from app.services.retrieval.adapters import from_knowledge, from_paper, from_zotero
@@ -58,6 +63,18 @@ class AgentToolStep(BaseModel):
     detail: str
 
 
+class AgentModelAttempt(BaseModel):
+    role: Literal["primary", "fallback"]
+    provider: str
+    model: str
+    status: Literal["completed", "unavailable"]
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+    total_tokens: int = 0
+    requests: int = 0
+    error_type: str | None = None
+
+
 class AgentChatResponse(BaseModel):
     answer: str
     citations: list[AgentCitation]
@@ -78,6 +95,9 @@ class AgentChatResponse(BaseModel):
     uncited_claim_count: int = 0
     invalid_citation_ids: list[str] = Field(default_factory=list)
     fallback_used: bool = False
+    model_fallback_used: bool = False
+    model_route: Literal["primary", "fallback", "deterministic", "none"] = "none"
+    model_attempts: list[AgentModelAttempt] = Field(default_factory=list)
     grounded: bool = True
     created_at: datetime
 
@@ -395,7 +415,6 @@ async def chat_with_research_agent(
         )
 
     model_config = get_model_for_task("assistant")
-    gateway = LLMGateway(task="assistant")
     source_text = "\n\n".join(contexts)
     messages: list[dict[str, str]] = [
         {
@@ -422,32 +441,44 @@ async def chat_with_research_agent(
     )
     inference_mode: Literal["model", "deterministic_fallback"] = "model"
     fallback_used = False
+    model_fallback_used = False
+    model_route: Literal["primary", "fallback", "deterministic"] = "primary"
+    model_attempts: list[dict[str, Any]] = []
     try:
-        request_options: dict[str, Any] = {}
-        if model_config.get("provider") == "zhipu":
-            # Preserve the answer budget for visible grounded output instead
-            # of letting GLM reasoning consume it before the final response.
-            request_options["extra_body"] = {"thinking": {"type": "disabled"}}
-        answer = await gateway.chat(
+        routed = await chat_with_fallback(
+            task="assistant",
             messages=messages,
             temperature=0.2,
             max_tokens=1800,
-            **request_options,
+            gateway_factory=LLMGateway,
         )
-        usage = gateway.last_usage
+        answer = routed.content
+        usage = routed.usage
+        model_config = routed.profile
+        model_fallback_used = routed.fallback_used
+        model_route = "fallback" if routed.fallback_used else "primary"
+        model_attempts = [attempt.to_dict() for attempt in routed.attempts]
         steps.append(
             AgentToolStep(
                 tool="answer_generation",
                 status="completed",
                 count=1,
-                detail=f"使用 {model_config.get('provider')}/{model_config.get('model')} 生成回答",
+                detail=(
+                    f"主模型不可用，已由备用模型 {model_config.get('provider')}/"
+                    f"{model_config.get('model')} 生成回答"
+                    if routed.fallback_used
+                    else f"使用主模型 {model_config.get('provider')}/"
+                    f"{model_config.get('model')} 生成回答"
+                ),
             )
         )
-    except Exception:
+    except AllModelsUnavailableError as exc:
         answer = build_retrieval_fallback(request.question, evidence_items)
         inference_mode = "deterministic_fallback"
         fallback_used = True
-        usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+        model_route = "deterministic"
+        usage = exc.usage
+        model_attempts = [attempt.to_dict() for attempt in exc.attempts]
         steps.append(
             AgentToolStep(
                 tool="answer_generation",
@@ -486,6 +517,9 @@ async def chat_with_research_agent(
         uncited_claim_count=verification.uncited_claim_count,
         invalid_citation_ids=list(verification.invalid_citation_ids),
         fallback_used=fallback_used,
+        model_fallback_used=model_fallback_used,
+        model_route=model_route,
+        model_attempts=model_attempts,
         grounded=verification.status == "verified",
         created_at=datetime.now(),
     )

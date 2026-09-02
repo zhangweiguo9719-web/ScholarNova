@@ -77,6 +77,7 @@ export default function ResearchAssistant() {
     partial: '引用覆盖不完整',
     verificationFailed: '引用校验失败',
     fallback: '模型离线 · 证据回退',
+    modelFallback: '主模型异常 · 备用模型接管',
     coverage: '引用覆盖',
     uncited: '未引用事实句',
     productHelp: '产品使用指南',
@@ -115,6 +116,7 @@ export default function ResearchAssistant() {
     partial: 'Partial citation coverage',
     verificationFailed: 'Citation checks failed',
     fallback: 'Model offline · evidence fallback',
+    modelFallback: 'Primary unavailable · fallback model used',
     coverage: 'Citation coverage',
     uncited: 'Uncited factual segments',
     productHelp: 'Product guide',
@@ -289,6 +291,8 @@ function AgentTrace({ result, copy, isChinese }: { result: AgentChatResponse; co
   const verificationStatus = result.verification_status || (result.grounded ? 'verified' : 'not_applicable')
   const statusLabel = result.fallback_used
     ? copy.fallback
+    : result.model_fallback_used
+      ? copy.modelFallback
     : verificationStatus === 'verified'
       ? copy.verified
       : verificationStatus === 'partial'
@@ -309,6 +313,11 @@ function AgentTrace({ result, copy, isChinese }: { result: AgentChatResponse; co
           {isProductHelp ? copy.productHelp : statusLabel}
         </span>
         {result.model && <span>{copy.model}: {result.provider}/{result.model}</span>}
+        {result.model_attempts?.length > 1 && (
+          <span title={result.model_attempts.map((attempt) => `${attempt.role}: ${attempt.provider}/${attempt.model} · ${attempt.status} · ${attempt.total_tokens} Token`).join('\n')}>
+            {isChinese ? `模型尝试 ${result.model_attempts.length} 次` : `${result.model_attempts.length} model attempts`}
+          </span>
+        )}
         {!isProductHelp && <span>{copy.retrieval}: {result.retrieval_mode === 'hybrid' ? 'BM25 + Embedding RRF' : 'BM25'}</span>}
         {result.retrieval_tokens > 0 && <span>{copy.embeddingTokens}: {result.retrieval_tokens}</span>}
         {!isProductHelp && verificationStatus !== 'not_applicable' && <span>{copy.coverage}: {Math.round((result.citation_coverage || 0) * 100)}%</span>}
