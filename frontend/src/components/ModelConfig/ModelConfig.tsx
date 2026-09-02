@@ -14,6 +14,7 @@ const providers: { value: LLMProvider; label: string; models: string[]; baseUrl?
   { value: 'deepseek', label: 'DeepSeek', models: ['deepseek-chat', 'deepseek-coder'], baseUrl: 'https://api.deepseek.com/v1' },
   { value: 'zhipu', label: 'ZhiPu (GLM)', models: ['glm-5.2', 'glm-5.1', 'glm-5-turbo', 'glm-4.7-flash', 'glm-4.5-flash'], baseUrl: 'https://open.bigmodel.cn/api/paas/v4' },
   { value: 'qwen', label: 'Alibaba Qwen', models: ['qwen-max', 'qwen-plus', 'qwen-turbo'], baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1' },
+  { value: 'siliconflow', label: 'SiliconFlow (硅基流动)', models: ['Qwen/Qwen3-8B', 'Qwen/Qwen3-30B-A3B-Instruct-2507', 'Qwen/Qwen3.5-9B', 'Qwen/Qwen3-VL-8B-Instruct'], baseUrl: 'https://api.siliconflow.cn/v1' },
   { value: 'moonshot', label: 'Moonshot (Kimi)', models: ['moonshot-v1-128k', 'moonshot-v1-32k'], baseUrl: 'https://api.moonshot.cn/v1' },
   { value: 'sensenova', label: 'SenseNova (商汤)', models: ['sensenova-u1-fast', 'sensenova-6.7-flash-lite', 'sensenova-6.5-pro'], baseUrl: 'https://token.sensenova.cn/v1' },
   { value: 'custom', label: 'Custom (OpenAI Compatible)', models: [] },
@@ -24,6 +25,7 @@ const embeddingProviders: { value: LLMProvider; label: string; models: string[];
   { value: 'openai', label: 'OpenAI', models: ['text-embedding-3-small', 'text-embedding-3-large'], baseUrl: 'https://api.openai.com/v1' },
   { value: 'zhipu', label: '智谱 BigModel', models: ['embedding-3'], baseUrl: 'https://open.bigmodel.cn/api/paas/v4' },
   { value: 'qwen', label: '阿里云百炼', models: ['text-embedding-v4'], baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1' },
+  { value: 'siliconflow', label: 'SiliconFlow（硅基流动）', models: ['Qwen/Qwen3-Embedding-0.6B', 'Qwen/Qwen3-Embedding-4B', 'Qwen/Qwen3-Embedding-8B'], baseUrl: 'https://api.siliconflow.cn/v1' },
   { value: 'custom', label: 'OpenAI 兼容接口', models: [], baseUrl: '' },
 ]
 

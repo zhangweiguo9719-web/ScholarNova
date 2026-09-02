@@ -180,6 +180,7 @@ def runtime_path(filename: str) -> Path:
     root.mkdir(parents=True, exist_ok=True)
     return root / filename
 
+
 # 多模型配置（按任务类型分配模型）
 # 未配置的任务回退到全局默认（由 load_saved_model_config 设置）
 MODEL_PROFILES = {
@@ -189,7 +190,12 @@ MODEL_PROFILES = {
     "vision": {"provider": "mimo", "model": "mimo-v2.5", "api_key": None, "base_url": None},
     "recommendation": {"provider": None, "model": None, "api_key": None, "base_url": None},
     "assistant": {"provider": None, "model": None, "api_key": None, "base_url": None},
-    "diagram": {"provider": "sensenova", "model": "sensenova-u1-fast", "api_key": "ENV", "base_url": "https://token.sensenova.cn/v1"},
+    "diagram": {
+        "provider": "sensenova",
+        "model": "sensenova-u1-fast",
+        "api_key": "ENV",
+        "base_url": "https://token.sensenova.cn/v1",
+    },
 }
 
 # 默认配置（所有任务用同一个模型）
@@ -210,6 +216,7 @@ PROVIDER_DEFAULTS = {
     "deepseek": ("https://api.deepseek.com/v1", "deepseek-chat"),
     "zhipu": ("https://open.bigmodel.cn/api/paas/v4", "glm-5.2"),
     "qwen": ("https://dashscope.aliyuncs.com/compatible-mode/v1", "qwen-plus"),
+    "siliconflow": ("https://api.siliconflow.cn/v1", "Qwen/Qwen3-8B"),
     "moonshot": ("https://api.moonshot.cn/v1", "moonshot-v1-32k"),
     "sensenova": ("https://token.sensenova.cn/v1", "sensenova-6.7-flash-lite"),
 }
@@ -218,6 +225,7 @@ PROVIDER_DEFAULTS = {
 def load_saved_model_config():
     """从本地文件加载保存的多模型配置"""
     import json
+
     config_path = runtime_path("model_config.json")
     try:
         if config_path.exists():
@@ -267,12 +275,10 @@ def load_saved_model_config():
                             or task_config.get("model_name")
                             or (default_model if same_provider else existing.get("model"))
                         ),
-                        "api_key": task_config.get("api_key") or (
-                            default_api_key if same_provider else None
-                        ),
-                        "base_url": task_config.get("base_url") or (
-                            default_base_url if same_provider else existing.get("base_url")
-                        ),
+                        "api_key": task_config.get("api_key")
+                        or (default_api_key if same_provider else None),
+                        "base_url": task_config.get("base_url")
+                        or (default_base_url if same_provider else existing.get("base_url")),
                     }
 
                 if default_api_key:
@@ -317,9 +323,8 @@ def get_model_for_task(task: str) -> dict:
         "provider": provider,
         "api_key": api_key,
         "base_url": base_url,
-        "model": profile.get("model") or (
-            settings.OPENAI_DEFAULT_MODEL if same_as_default else provider_model
-        ),
+        "model": profile.get("model")
+        or (settings.OPENAI_DEFAULT_MODEL if same_as_default else provider_model),
     }
 
 
@@ -342,6 +347,7 @@ def get_fallback_model_config() -> dict:
         "deepseek": "https://api.deepseek.com/v1",
         "zhipu": "https://open.bigmodel.cn/api/paas/v4",
         "qwen": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+        "siliconflow": "https://api.siliconflow.cn/v1",
         "moonshot": "https://api.moonshot.cn/v1",
         "sensenova": "https://token.sensenova.cn/v1",
     }
@@ -387,6 +393,7 @@ def get_embedding_config() -> dict:
         "openai": "https://api.openai.com/v1",
         "zhipu": "https://open.bigmodel.cn/api/paas/v4",
         "qwen": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+        "siliconflow": "https://api.siliconflow.cn/v1",
     }
     config_path = runtime_path("model_config.json")
     try:

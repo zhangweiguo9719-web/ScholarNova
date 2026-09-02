@@ -138,7 +138,7 @@ flowchart LR
 | 后端 | Python、FastAPI、Pydantic、AsyncIO、Uvicorn |
 | 数据 | SQLAlchemy、SQLite（本地）、PostgreSQL（服务端）、Redis/内存缓存 |
 | 检索 | Semantic Scholar、OpenAlex、Crossref、arXiv、Zotero Local API；查询分解、并发召回、去重、约束过滤与 MMR 排序 |
-| 文档与 AI | PyMuPDF 全文/图表解析，多模型任务路由，OpenAI-compatible、Anthropic、Ollama、MiMo、SenseNova |
+| 文档与 AI | PyMuPDF 全文/图表解析，多模型任务路由，OpenAI-compatible、Anthropic、Ollama、MiMo、硅基流动 Qwen、SenseNova |
 | 工程化 | pytest、Vitest、Ruff、Docker Compose、GitHub Actions |
 
 ## Docker 源码部署（开发者/高级用户）
@@ -237,7 +237,7 @@ npm run dev
 
 ## API Key 去哪里申请
 
-项目支持 OpenAI、Anthropic、小米 MiMo、DeepSeek、智谱 GLM、阿里云百炼 Qwen、Moonshot Kimi、SenseNova 和自定义 OpenAI 兼容服务。
+项目支持 OpenAI、Anthropic、小米 MiMo、DeepSeek、智谱 GLM、阿里云百炼 Qwen、硅基流动 Qwen、Moonshot Kimi、SenseNova 和自定义 OpenAI 兼容服务。
 
 学术检索支持 Semantic Scholar、OpenAlex、Crossref 和 arXiv。
 

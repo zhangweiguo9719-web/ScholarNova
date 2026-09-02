@@ -6,6 +6,7 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 
 ### Added
 
+- First-class SiliconFlow chat and embedding profiles with Qwen defaults, task capability hints, credential isolation, and real-probe support.
 - Opt-in real task capability probes for text, structured JSON, vision, and image generation, with locally persisted latency and provider-reported Token counts.
 - Refresh-safe capability-probe history that excludes API keys, model response bodies, and generated-image URLs.
 - Primary/fallback routing for paper text analysis, knowledge polishing, research-direction analysis, route text generation, and recommendation planning.
@@ -69,6 +70,7 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 
 ### Verified
 
+- 320 non-integration backend tests and 21 frontend tests pass; TypeScript checks and the production build are clean. A live SiliconFlow `Qwen/Qwen3-8B` structured-output probe passed in 7.374 seconds using 38 provider-reported Tokens.
 - 315 non-integration backend tests and 21 frontend tests pass; TypeScript checks and the production build are clean. A manual Zhipu GLM-5.2 structured-output probe passed in 13.718 seconds using 32 provider-reported Tokens.
 - 310 non-integration backend tests and 19 frontend tests pass; TypeScript checks and the production build are clean. The FTI-3D regression suite verifies text routing, vision isolation, Token accounting, deterministic fallback, and non-fabricating recommendation fallback without a live model call.
 - 74 focused backend tests and 19 frontend tests cover capability hints, bounded query-planning routing, translation route metadata, model fallback, and local Ollama URL validation without live model calls.

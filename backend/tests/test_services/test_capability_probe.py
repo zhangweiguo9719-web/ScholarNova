@@ -15,14 +15,16 @@ class _FakeGateway:
     def __init__(self, response: str = "SCHOLARNOVA_OK"):
         self.response = response
         self.messages = None
+        self.kwargs = None
         self.usage = {
             "prompt_tokens": 7,
             "completion_tokens": 3,
             "total_tokens": 10,
         }
 
-    async def chat(self, *, messages, **_kwargs):
+    async def chat(self, *, messages, **kwargs):
         self.messages = messages
+        self.kwargs = kwargs
         return self.response
 
     async def generate_image(self, **_kwargs):
@@ -50,6 +52,21 @@ async def test_structured_probe_requires_valid_expected_json():
     assert report["status"] == "passed"
     assert report["capability"] == "structured_output"
     assert report["total_tokens"] == 10
+
+
+@pytest.mark.asyncio
+async def test_siliconflow_structured_probe_disables_thinking():
+    _FakeFactory.gateway = _FakeGateway('{"scholarnova_probe": true}')
+
+    report = await run_capability_probe(
+        {"provider": "siliconflow", "model": "Qwen/Qwen3-8B"},
+        "query_planning",
+        gateway_factory=_FakeFactory,
+    )
+
+    assert report["status"] == "passed"
+    assert _FakeFactory.gateway.kwargs["extra_body"] == {"enable_thinking": False}
+    assert _FakeFactory.gateway.kwargs["_max_retries"] == 0
 
 
 @pytest.mark.asyncio

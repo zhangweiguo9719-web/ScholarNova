@@ -148,7 +148,7 @@ flowchart LR
 | Backend | Python, FastAPI, Pydantic, AsyncIO, and Uvicorn |
 | Data | SQLAlchemy, local SQLite, server PostgreSQL, and Redis/in-memory caching |
 | Retrieval | Semantic Scholar, OpenAlex, Crossref, arXiv, and Zotero Local API; query planning, concurrent recall, deduplication, constraints, and MMR ranking |
-| Documents and AI | PyMuPDF full-text/figure parsing and task-routed OpenAI-compatible, Anthropic, Ollama, MiMo, and SenseNova models |
+| Documents and AI | PyMuPDF full-text/figure parsing and task-routed OpenAI-compatible, Anthropic, Ollama, MiMo, SiliconFlow Qwen, and SenseNova models |
 | Engineering | pytest, Vitest, Ruff, Docker Compose, and GitHub Actions |
 
 ## Source deployment with Docker Compose (advanced)

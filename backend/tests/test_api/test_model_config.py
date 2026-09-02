@@ -268,6 +268,19 @@ class TestSaveModelConfig:
         )
         assert response.status_code == 200
 
+    async def test_save_config_siliconflow(self, client: AsyncClient):
+        response = await client.post(
+            "/api/v1/model/config",
+            json={
+                "provider": "siliconflow",
+                "model_name": "Qwen/Qwen3-8B",
+                "api_key": "test-only-key",
+                "base_url": "https://api.siliconflow.cn/v1",
+            },
+        )
+
+        assert response.status_code == 200
+
     async def test_save_config_invalid_provider(self, client: AsyncClient):
         """无效的 provider 应返回 422"""
         response = await client.post(

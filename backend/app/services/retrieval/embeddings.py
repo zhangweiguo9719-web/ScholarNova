@@ -29,6 +29,7 @@ class EmbeddingGateway:
         "openai",
         "zhipu",
         "qwen",
+        "siliconflow",
         "custom",
     }
 
@@ -98,10 +99,7 @@ class EmbeddingGateway:
             data = response.json()
         tokens = data.get("prompt_eval_count", 0)
         return EmbeddingBatch(
-            vectors=[
-                [float(value) for value in vector]
-                for vector in data.get("embeddings") or []
-            ],
+            vectors=[[float(value) for value in vector] for vector in data.get("embeddings") or []],
             input_tokens=int(tokens) if isinstance(tokens, Number) else 0,
         )
 

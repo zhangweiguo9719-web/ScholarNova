@@ -20,6 +20,7 @@
 | DeepSeek | [API Keys](https://platform.deepseek.com/api_keys) / [官方文档](https://api-docs.deepseek.com/) | Provider=`deepseek`，Base URL=`https://api.deepseek.com/v1` |
 | 智谱 GLM | [开放平台](https://open.bigmodel.cn/) / [快速开始](https://docs.bigmodel.cn/cn/guide/start/quick-start) | Provider=`zhipu`，Base URL=`https://open.bigmodel.cn/api/paas/v4`；可选 `glm-5.2`、`glm-4.7-flash` 或 `glm-4.5-flash` |
 | 阿里云百炼 Qwen | [百炼控制台](https://bailian.console.aliyun.com/) / [获取 Key](https://help.aliyun.com/zh/model-studio/get-api-key) | Provider=`qwen`，Base URL=`https://dashscope.aliyuncs.com/compatible-mode/v1` |
+| 硅基流动 SiliconFlow | [API Key 控制台](https://cloud.siliconflow.cn/account/ak) / [官方快速开始](https://docs.siliconflow.cn/cn/userguide/quickstart) | Provider=`siliconflow`，Base URL=`https://api.siliconflow.cn/v1`；模型 ID 以控制台实时列表为准 |
 | Moonshot Kimi | [API Keys](https://platform.moonshot.cn/console/api-keys) / [平台文档](https://platform.moonshot.cn/docs/) | Provider=`moonshot`，中国区 Base URL=`https://api.moonshot.cn/v1` |
 | SenseNova | [日日新 Token Plan](https://www.sensenova.cn/token-plan) / [SenseCore 文档](https://console.sensecore.cn/micro/help/en/docs/model-as-a-service/nova/) | Provider=`sensenova`；项目主要将 U1 用于研究框架图 |
 | Ollama | [官方下载](https://ollama.com/download) | Provider=`ollama`，无需云端 Key，默认本地地址 `http://localhost:11434` |
@@ -36,7 +37,18 @@ OPENAI_DEFAULT_MODEL=provider-model-name
 DEFAULT_LLM_PROVIDER=deepseek
 ```
 
-`DEFAULT_LLM_PROVIDER` 应改成实际 Provider，例如 `mimo`、`deepseek`、`zhipu`、`qwen`、`moonshot` 或 `custom`。
+`DEFAULT_LLM_PROVIDER` 应改成实际 Provider，例如 `mimo`、`deepseek`、`zhipu`、`qwen`、`siliconflow`、`moonshot` 或 `custom`。
+
+硅基流动 Qwen 示例（模型会调整，请先在控制台确认）：
+
+```dotenv
+OPENAI_API_KEY=your-siliconflow-key
+OPENAI_API_BASE=https://api.siliconflow.cn/v1
+OPENAI_DEFAULT_MODEL=Qwen/Qwen3-8B
+DEFAULT_LLM_PROVIDER=siliconflow
+```
+
+ScholarNova 对硅基流动使用 OpenAI 兼容接口。Qwen3 的连接测试、结构化探针和任务路由默认关闭思考模式，避免短请求只产生推理 Token 却没有最终答案；若要使用专门的 Thinking 模型，应先执行对应任务的真实能力测试。
 
 智谱示例（密钥只放本机，不要提交）：
 
@@ -107,6 +119,7 @@ ScholarNova is BYOK. Configure at least one LLM provider and, for more stable sc
 - DeepSeek: [platform keys](https://platform.deepseek.com/api_keys)
 - Zhipu: [quickstart](https://docs.bigmodel.cn/cn/guide/start/quick-start), Base URL `https://open.bigmodel.cn/api/paas/v4`; current options include `glm-5.2`, `glm-4.7-flash`, and `glm-4.5-flash`
 - Alibaba Model Studio: [get an API key](https://help.aliyun.com/zh/model-studio/get-api-key)
+- SiliconFlow: [API keys](https://cloud.siliconflow.cn/account/ak) and [official quickstart](https://docs.siliconflow.cn/cn/userguide/quickstart), Base URL `https://api.siliconflow.cn/v1`; use the current model ID shown in the provider console
 - Moonshot Kimi: [API keys](https://platform.moonshot.cn/console/api-keys)
 - SenseNova: [SenseNova service guide](https://console.sensecore.cn/micro/help/en/docs/model-as-a-service/nova/)
 - Semantic Scholar: [API product and key request](https://www.semanticscholar.org/product/api)

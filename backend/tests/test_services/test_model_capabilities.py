@@ -28,3 +28,16 @@ def test_custom_image_capability_remains_unknown() -> None:
     report = assess_model_for_task("custom", "my-model", "diagram")
 
     assert report["status"] == "unknown"
+
+
+def test_siliconflow_qwen_models_are_routed_by_actual_capability() -> None:
+    text = assess_model_for_task("siliconflow", "Qwen/Qwen3-8B", "analysis")
+    vision = assess_model_for_task(
+        "siliconflow",
+        "Qwen/Qwen3-VL-8B-Instruct",
+        "vision",
+    )
+
+    assert text["status"] == "supported"
+    assert text["capabilities"]["vision"] is False
+    assert vision["status"] == "supported"

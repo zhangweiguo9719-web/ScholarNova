@@ -117,6 +117,7 @@ LLMProviderName = Literal[
     "deepseek",
     "zhipu",
     "qwen",
+    "siliconflow",
     "moonshot",
     "sensenova",
     "custom",

@@ -74,10 +74,7 @@ def _read_usage(gateway: Any, *, succeeded: bool) -> dict[str, int]:
         raw = getattr(gateway, "last_usage", None)
     if not isinstance(raw, dict):
         return _empty_usage()
-    return {
-        key: max(0, int(raw.get(key, 0) or 0))
-        for key in _empty_usage()
-    }
+    return {key: max(0, int(raw.get(key, 0) or 0)) for key in _empty_usage()}
 
 
 def _add_usage(total: dict[str, int], usage: dict[str, int]) -> None:
@@ -95,11 +92,7 @@ def _gateway_for_profile(
     from_profile = getattr(factory, "from_profile", None)
     if callable(from_profile):
         return from_profile(profile)
-    gateway = (
-        factory(task=task)
-        if role == "primary"
-        else factory(provider=profile.get("provider"))
-    )
+    gateway = factory(task=task) if role == "primary" else factory(provider=profile.get("provider"))
     configure = getattr(gateway, "configure", None)
     if callable(configure):
         configure(
@@ -113,6 +106,8 @@ def _gateway_for_profile(
 def _request_options(provider: str) -> dict[str, Any]:
     if provider == "zhipu":
         return {"extra_body": {"thinking": {"type": "disabled"}}}
+    if provider == "siliconflow":
+        return {"extra_body": {"enable_thinking": False}}
     return {}
 
 

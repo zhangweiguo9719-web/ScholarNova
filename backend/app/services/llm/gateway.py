@@ -41,6 +41,7 @@ class LLMGateway:
         self._explicit_profile = False
         if task:
             from app.config import get_model_for_task
+
             profile = get_model_for_task(task)
             self.provider = profile["provider"]
             self._api_key = profile["api_key"]
@@ -73,9 +74,7 @@ class LLMGateway:
         gateway._explicit_profile = True
         gateway._api_key = profile.get("api_key")
         gateway._base_url = (
-            str(profile["base_url"]).rstrip("/")
-            if profile.get("base_url")
-            else None
+            str(profile["base_url"]).rstrip("/") if profile.get("base_url") else None
         )
         gateway._model_name = profile.get("model") or profile.get("model_name")
         gateway._client = None
@@ -116,11 +115,7 @@ class LLMGateway:
     @staticmethod
     def _usage_value(usage: Any, *names: str) -> int:
         for name in names:
-            value = (
-                usage.get(name)
-                if isinstance(usage, dict)
-                else getattr(usage, name, None)
-            )
+            value = usage.get(name) if isinstance(usage, dict) else getattr(usage, name, None)
             if isinstance(value, Number):
                 return max(0, int(value))
         return 0
@@ -156,13 +151,21 @@ class LLMGateway:
         发送对话请求并返回响应文本
 
         支持的 provider:
-        - openai / mimo / deepseek / zhipu / qwen / moonshot / custom → OpenAI 兼容协议
+        - openai / mimo / deepseek / zhipu / qwen / siliconflow / moonshot / custom → OpenAI 兼容协议
         - anthropic → Anthropic Messages API
         - ollama → Ollama 本地接口
         """
         # 所有国产模型 + openai + custom 都走 OpenAI 兼容协议
         openai_compatible = {
-            "openai", "mimo", "deepseek", "zhipu", "qwen", "moonshot", "sensenova", "custom",
+            "openai",
+            "mimo",
+            "deepseek",
+            "zhipu",
+            "qwen",
+            "siliconflow",
+            "moonshot",
+            "sensenova",
+            "custom",
         }
         if self.provider in openai_compatible:
             return await self._chat_openai(messages, model, temperature, max_tokens, **kwargs)
@@ -186,12 +189,18 @@ class LLMGateway:
                 # GLM reasoning models can spend a tiny probe's whole token
                 # budget on hidden reasoning and return an empty final answer.
                 request_options["extra_body"] = {"thinking": {"type": "disabled"}}
+            elif self.provider == "siliconflow":
+                # Qwen3 enables reasoning by default on SiliconFlow. A tiny
+                # connection probe should verify connectivity, not spend its
+                # entire budget on hidden reasoning tokens.
+                request_options["extra_body"] = {"enable_thinking": False}
             if self.provider in {
                 "openai",
                 "mimo",
                 "deepseek",
                 "zhipu",
                 "qwen",
+                "siliconflow",
                 "moonshot",
                 "sensenova",
                 "custom",
@@ -270,7 +279,7 @@ class LLMGateway:
                 if not retryable or attempt >= max_retries:
                     break
 
-                delay = min(8.0, float(2 ** attempt))
+                delay = min(8.0, float(2**attempt))
                 logger.warning(
                     "Retrying LLM request after %s (provider=%s model=%s host=%s "
                     "attempt=%s/%s delay=%.1fs)",
@@ -337,22 +346,16 @@ class LLMGateway:
         import openai
 
         api_key = (
-            self._api_key
-            if self._explicit_profile
-            else self._api_key or settings.OPENAI_API_KEY
+            self._api_key if self._explicit_profile else self._api_key or settings.OPENAI_API_KEY
         )
         base_url = (
-            self._base_url
-            if self._explicit_profile
-            else self._base_url or settings.OPENAI_API_BASE
+            self._base_url if self._explicit_profile else self._base_url or settings.OPENAI_API_BASE
         )
         if self._explicit_profile and not api_key:
             if self.provider == "custom":
                 api_key = "not-required"
             else:
-                raise ValueError(
-                    f"API key is not configured for provider: {self.provider}"
-                )
+                raise ValueError(f"API key is not configured for provider: {self.provider}")
 
         if self._client is None:
             self._client = openai.AsyncOpenAI(
@@ -375,9 +378,7 @@ class LLMGateway:
         usage = getattr(response, "usage", None)
         self._record_usage(
             prompt_tokens=self._usage_value(usage, "prompt_tokens", "input_tokens"),
-            completion_tokens=self._usage_value(
-                usage, "completion_tokens", "output_tokens"
-            ),
+            completion_tokens=self._usage_value(usage, "completion_tokens", "output_tokens"),
             total_tokens=self._usage_value(usage, "total_tokens"),
         )
         return response.choices[0].message.content
@@ -425,9 +426,7 @@ class LLMGateway:
         usage = getattr(response, "usage", None)
         self._record_usage(
             prompt_tokens=self._usage_value(usage, "input_tokens", "prompt_tokens"),
-            completion_tokens=self._usage_value(
-                usage, "output_tokens", "completion_tokens"
-            ),
+            completion_tokens=self._usage_value(usage, "output_tokens", "completion_tokens"),
         )
         return response.content[0].text
 
@@ -497,6 +496,7 @@ class LLMGateway:
             包含 status, output/url, message 的字典
         """
         import httpx
+
         api_key = self._api_key or settings.SENSENOVA_API_KEY
         base_url = (self._base_url or settings.SENSENOVA_API_BASE).rstrip("/")
         model = self._model_name or settings.SENSENOVA_DEFAULT_MODEL
@@ -525,7 +525,10 @@ class LLMGateway:
                 response.raise_for_status()
                 data = response.json()
         except httpx.HTTPStatusError as e:
-            return {"status": "failed", "error": f"HTTP {e.response.status_code}: {e.response.text[:300]}"}
+            return {
+                "status": "failed",
+                "error": f"HTTP {e.response.status_code}: {e.response.text[:300]}",
+            }
         except httpx.HTTPError as e:
             return {"status": "failed", "error": f"Network error: {str(e)}"}
         except Exception as e:
@@ -533,20 +536,29 @@ class LLMGateway:
 
         images_urls = [item.get("url") for item in data.get("data", []) if item.get("url")]
         if not images_urls:
-            return {"status": "failed", "error": f"No image in response: {json.dumps(data, ensure_ascii=False)[:300]}"}
+            return {
+                "status": "failed",
+                "error": f"No image in response: {json.dumps(data, ensure_ascii=False)[:300]}",
+            }
 
         image_url = images_urls[-1]
 
         # 可选：下载到本地
         if save_path:
             import os
+
             os.makedirs(os.path.dirname(save_path) or ".", exist_ok=True)
             async with httpx.AsyncClient(timeout=120.0) as client:
                 img_resp = await client.get(image_url)
                 img_resp.raise_for_status()
                 with open(save_path, "wb") as f:
                     f.write(img_resp.content)
-            return {"status": "ok", "output": save_path, "url": image_url, "message": "Image generated successfully"}
+            return {
+                "status": "ok",
+                "output": save_path,
+                "url": image_url,
+                "message": "Image generated successfully",
+            }
 
         return {"status": "ok", "url": image_url, "message": "Image generated successfully"}
 
@@ -555,11 +567,19 @@ class LLMGateway:
         """将分辨率+宽高比转为像素尺寸字符串（SenseNova-U1 有效尺寸）"""
         # SenseNova-U1 API 支持的完整尺寸列表
         buckets = {
-            "2:3": (1664, 2496), "3:2": (2496, 1664), "3:4": (1760, 2368),
-            "4:3": (2368, 1760), "4:5": (1824, 2272), "5:4": (2272, 1824),
-            "1:1": (2048, 2048), "16:9": (2752, 1536), "9:16": (1536, 2752),
-            "21:9": (3072, 1376), "9:21": (1344, 3136),
-            "32:9": (2560, 720), "32:27": (3072, 864),
+            "2:3": (1664, 2496),
+            "3:2": (2496, 1664),
+            "3:4": (1760, 2368),
+            "4:3": (2368, 1760),
+            "4:5": (1824, 2272),
+            "5:4": (2272, 1824),
+            "1:1": (2048, 2048),
+            "16:9": (2752, 1536),
+            "9:16": (1536, 2752),
+            "21:9": (3072, 1376),
+            "9:21": (1344, 3136),
+            "32:9": (2560, 720),
+            "32:27": (3072, 864),
         }
         if aspect_ratio in buckets:
             w, h = buckets[aspect_ratio]

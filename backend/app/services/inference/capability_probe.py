@@ -45,12 +45,15 @@ def _request_options(provider: str) -> dict[str, Any]:
     options: dict[str, Any] = {}
     if provider == "zhipu":
         options["extra_body"] = {"thinking": {"type": "disabled"}}
+    elif provider == "siliconflow":
+        options["extra_body"] = {"enable_thinking": False}
     if provider in {
         "openai",
         "mimo",
         "deepseek",
         "zhipu",
         "qwen",
+        "siliconflow",
         "moonshot",
         "sensenova",
         "custom",

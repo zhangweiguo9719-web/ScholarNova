@@ -55,6 +55,29 @@ class TestLLMGateway:
         assert gateway._model_name == "qwen-plus"
         gateway._chat_openai.assert_awaited_once()
 
+    async def test_siliconflow_qwen_uses_openai_compatible_route(self):
+        """硅基流动 Qwen 应使用其独立 Key 和 OpenAI 兼容地址。"""
+        gateway = LLMGateway.from_profile(
+            {
+                "provider": "siliconflow",
+                "model": "Qwen/Qwen3-8B",
+                "api_key": "siliconflow-key",
+                "base_url": "https://api.siliconflow.cn/v1",
+            }
+        )
+        gateway._chat_openai = AsyncMock(return_value="SiliconFlow Qwen ready")
+
+        result = await gateway.chat(
+            messages=[{"role": "user", "content": "hello"}],
+            max_tokens=20,
+        )
+
+        assert result == "SiliconFlow Qwen ready"
+        assert gateway.provider == "siliconflow"
+        assert gateway._api_key == "siliconflow-key"
+        assert gateway._base_url == "https://api.siliconflow.cn/v1"
+        gateway._chat_openai.assert_awaited_once()
+
     async def test_explicit_qwen_profile_never_inherits_another_provider_key(self):
         """隔离配置缺少 Key 时应本地失败，而不是读取全局 OpenAI Key。"""
         gateway = LLMGateway.from_profile(
@@ -248,9 +271,18 @@ class TestLLMGateway:
         result = await gateway.test_connection()
 
         assert result["success"] is True
-        assert gateway.chat.await_args.kwargs["extra_body"] == {
-            "thinking": {"type": "disabled"}
-        }
+        assert gateway.chat.await_args.kwargs["extra_body"] == {"thinking": {"type": "disabled"}}
+        assert gateway.chat.await_args.kwargs["_max_retries"] == 0
+
+    async def test_siliconflow_connection_probe_disables_thinking_and_retries(self):
+        """SiliconFlow Qwen probes should return visible text without SDK retries."""
+        gateway = LLMGateway(provider="siliconflow")
+        gateway.chat = AsyncMock(return_value="hello")
+
+        result = await gateway.test_connection()
+
+        assert result["success"] is True
+        assert gateway.chat.await_args.kwargs["extra_body"] == {"enable_thinking": False}
         assert gateway.chat.await_args.kwargs["_max_retries"] == 0
 
     async def test_chat_anthropic_success(self):

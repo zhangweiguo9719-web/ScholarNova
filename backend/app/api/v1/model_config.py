@@ -187,6 +187,7 @@ async def get_model_config() -> dict:
         "deepseek": "https://api.deepseek.com/v1",
         "zhipu": "https://open.bigmodel.cn/api/paas/v4",
         "qwen": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+        "siliconflow": "https://api.siliconflow.cn/v1",
         "moonshot": "https://api.moonshot.cn/v1",
         "sensenova": "https://token.sensenova.cn/v1",
     }
@@ -208,6 +209,7 @@ async def get_model_config() -> dict:
         "openai": "https://api.openai.com/v1",
         "zhipu": "https://open.bigmodel.cn/api/paas/v4",
         "qwen": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+        "siliconflow": "https://api.siliconflow.cn/v1",
     }
     safe_embedding = {
         "enabled": bool(saved_embedding.get("enabled")),
