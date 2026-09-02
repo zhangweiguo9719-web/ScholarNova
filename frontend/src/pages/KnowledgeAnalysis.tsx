@@ -32,7 +32,22 @@ export default function KnowledgeAnalysis() {
       if (saved) {
         const parsed = JSON.parse(saved)
         // 只恢复文本结果，不恢复大对象
-        return { analysis: parsed.analysis || '', research_directions: parsed.research_directions || [], architecture_description: parsed.architecture_description || '', suggested_routes: parsed.suggested_routes || [], recommended_papers: parsed.recommended_papers || [], knowledge_count: parsed.knowledge_count || 0, created_at: parsed.created_at || '' }
+        return {
+          analysis: parsed.analysis || '',
+          research_directions: parsed.research_directions || [],
+          architecture_description: parsed.architecture_description || '',
+          suggested_routes: parsed.suggested_routes || [],
+          recommended_papers: parsed.recommended_papers || [],
+          knowledge_count: parsed.knowledge_count || 0,
+          created_at: parsed.created_at || '',
+          provider: parsed.provider || null,
+          model: parsed.model || null,
+          model_completed: parsed.model_completed ?? true,
+          fallback_used: parsed.fallback_used || false,
+          prompt_tokens: parsed.prompt_tokens || 0,
+          completion_tokens: parsed.completion_tokens || 0,
+          total_tokens: parsed.total_tokens || 0,
+        }
       }
     } catch {}
     return null
@@ -293,6 +308,18 @@ export default function KnowledgeAnalysis() {
                   className="text-sm text-primary-600 dark:text-primary-400 hover:underline">
                   {isChinese ? '重新分析' : 'Re-analyze'}
                 </button>
+              </div>
+
+              <div className="mb-4 flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                <span className={clsx('rounded-full px-2.5 py-1', result.model_completed
+                  ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300'
+                  : 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-300')}>
+                  {result.model_completed
+                    ? (result.fallback_used ? (isChinese ? '备用模型已接管' : 'Fallback model used') : (isChinese ? '模型分析完成' : 'Model analysis complete'))
+                    : (isChinese ? '规则兜底结果' : 'Deterministic fallback')}
+                </span>
+                {result.provider && result.model && <span>{result.provider}/{result.model}</span>}
+                <span>Token {result.total_tokens || 0}</span>
               </div>
 
               <AnalysisViz

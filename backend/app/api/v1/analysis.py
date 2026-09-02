@@ -18,6 +18,7 @@ from app.database import get_db
 from app.models.paper import PaperChunk, PaperEntity
 from app.schemas.query import AnalysisRequest, AnalysisResult
 from app.core.rate_limiter import check_rate_limit
+from app.services.inference import AllModelsUnavailableError, chat_with_fallback
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -36,7 +37,7 @@ def _build_fallback_analysis(paper_info: dict, query: str) -> str:
 
     return f"""## 基础分析（模型服务暂时不可用）
 
-> MiMo 服务本次未能在限定时间内完成请求。以下内容仅根据论文元数据和摘要整理，不包含摘要之外的推断。
+> 主模型与备用模型本次均未能完成请求。以下内容仅根据论文元数据和摘要整理，不包含摘要之外的推断。
 
 ### 论文信息
 - **标题：** {title}
@@ -394,19 +395,11 @@ Abstract: {paper_info['abstract']}
             created_at=datetime.utcnow(),
         )
 
-    # 调用 LLM
+    # 视觉页面只交给视觉任务模型；正文文本使用统一主备路由。
     from app.services.llm.gateway import LLMGateway
     from app.config import get_model_for_task
 
-    analysis_config = get_model_for_task("analysis")
-    analysis_gateway = LLMGateway(provider=analysis_config["provider"])
-    analysis_gateway.configure(
-        api_key=analysis_config["api_key"],
-        base_url=analysis_config["base_url"],
-        model_name=analysis_config["model"],
-    )
-
-    visual_gateway = analysis_gateway
+    visual_gateway = None
     if visual_pages:
         vision_config = get_model_for_task("vision")
         visual_gateway = LLMGateway(provider=vision_config["provider"])
@@ -471,33 +464,52 @@ Abstract: {paper_info['abstract']}
             },
             {"role": "user", "content": user_content},
         ]
-        try:
-            response_gateway = visual_gateway
-            response = await visual_gateway.chat(
+        usage = {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0,
+        }
+        if visual_pages and visual_gateway is not None:
+            try:
+                response = await visual_gateway.chat(
+                    messages=messages,
+                    temperature=0.3,
+                    max_tokens=3072,
+                )
+                usage.update(visual_gateway.last_usage)
+            except Exception:
+                logger.info(
+                    "Configured vision model rejected visual input; retrying with parsed text",
+                    extra={"paper_id": paper_id},
+                )
+                for key in usage:
+                    usage[key] += int(visual_gateway.usage.get(key, 0) or 0)
+                used_visual_pages = 0
+                text_only_prompt = prompt.replace(
+                    visual_note,
+                    "当前配置的视觉模型未接受页面图像；本次仅依据正文、"
+                    "图注和表格文本分析",
+                )
+                routed = await chat_with_fallback(
+                    task="analysis",
+                    messages=[messages[0], {"role": "user", "content": text_only_prompt}],
+                    temperature=0.3,
+                    max_tokens=3072,
+                )
+                response = routed.content
+                for key in usage:
+                    usage[key] += routed.usage[key]
+        else:
+            routed = await chat_with_fallback(
+                task="analysis",
                 messages=messages,
                 temperature=0.3,
                 max_tokens=3072,
             )
-        except Exception:
-            if not visual_pages:
-                raise
-            logger.info(
-                "Configured analysis model rejected visual input; retrying with parsed text",
-                extra={"paper_id": paper_id},
-            )
-            used_visual_pages = 0
-            response_gateway = analysis_gateway
-            text_only_prompt = prompt.replace(
-                visual_note,
-                "当前配置的模型未接受页面图像；本次仅依据正文、图注和表格文本分析",
-            )
-            response = await analysis_gateway.chat(
-                messages=[messages[0], {"role": "user", "content": text_only_prompt}],
-                temperature=0.3,
-                max_tokens=3072,
-            )
+            response = routed.content
+            for key in usage:
+                usage[key] += routed.usage[key]
 
-        usage = response_gateway.last_usage
         return AnalysisResult(
             paper_id=paper_id,
             analysis_type=request.analysis_type,
@@ -517,11 +529,16 @@ Abstract: {paper_info['abstract']}
             total_tokens=usage["total_tokens"],
             created_at=datetime.utcnow(),
         )
-    except RuntimeError:
+    except AllModelsUnavailableError as exc:
         logger.exception(
-            "Paper analysis LLM request exhausted retries",
+            "Paper analysis exhausted primary and fallback routes",
             extra={"paper_id": paper_id},
         )
+        failed_usage = locals().get("usage", {})
+        for key in ("prompt_tokens", "completion_tokens", "total_tokens"):
+            failed_usage[key] = int(failed_usage.get(key, 0) or 0) + int(
+                exc.usage.get(key, 0) or 0
+            )
         return AnalysisResult(
             paper_id=paper_id,
             analysis_type=request.analysis_type,
@@ -536,6 +553,9 @@ Abstract: {paper_info['abstract']}
             document_error=document_error or "全文材料已准备，但模型服务未完成本次分析",
             visual_pages_read=0,
             model_completed=False,
+            prompt_tokens=failed_usage.get("prompt_tokens", 0),
+            completion_tokens=failed_usage.get("completion_tokens", 0),
+            total_tokens=failed_usage.get("total_tokens", 0),
             created_at=datetime.utcnow(),
         )
     except Exception as e:

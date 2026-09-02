@@ -25,8 +25,8 @@ ScholarNova 不直接复制其“社交内容采集 + 微调个人写作模型�
 | 数据采集 | `services/sources`、`services/search/retriever.py`、`services/pdf`、`services/integrations/zotero.py` | 多学术 API、并发检索、PDF 获取解析、Zotero 读取 | 统一文档契约、授权馆藏连接器、增量同步 |
 | 特征 | `deduplicator.py`、`constraint_verifier.py`、`evidence`、`knowledge_chunks`、`paper_chunks`、`services/retrieval` | 去重、约束验证、证据跨度、知识/PDF 分块、中英文 BM25、统一检索片段契约 | 可选向量索引、图像区域级 Chunk |
 | 评测优化 | `services/evaluation/benchmark.py`、`tests/evaluation` | F1/Precision/Recall、基准适配、离线回归 | RAG 黄金集、按流水线版本对比、发布阈值 |
-| 推理 | `orchestrator.py`、`ranker.py`、`llm/gateway.py`、`services/inference`、`api/v1/agent.py` | 查询规划、多源召回、混合排序、证据打包、统一模型网关、引用完整性校验与模型离线证据回退 | 可选主备模型路由、语义蕴含校验、阶段耗时持久化 |
-| 监控门禁 | `SearchRun`、质量快照、Token 记录、GitHub Actions | 搜索耗时/API 次数、模型用量、305 项离线测试 | 统一 Trace ID、阶段耗时、线上质量抽样与数据漂移 |
+| 推理 | `orchestrator.py`、`ranker.py`、`llm/gateway.py`、`services/inference`、`api/v1/agent.py` | 查询规划、多源召回、混合排序、证据打包、统一主备文本路由、引用完整性校验与模型离线证据回退 | 语义蕴含校验、阶段耗时持久化 |
+| 监控门禁 | `SearchRun`、质量快照、Token 记录、GitHub Actions | 搜索耗时/API 次数、模型用量、310 项离线测试 | 统一 Trace ID、阶段耗时、线上质量抽样与数据漂移 |
 
 ## 3. 目标数据流
 
@@ -176,6 +176,15 @@ FTI-3C 将路由扩展为可检查、可复用的文本任务底座：
 5. 视觉分析、SenseNova 出图、长文分析和知识推荐暂不混入文本路由，防止能力错误分配；后两者属于下一步迁移范围。
 6. 调试模式下仅对 localhost 放行 HTTP，使本机 Ollama 可用；外部 HTTP 和内网访问限制保持不变。
 
+FTI-3D 完成长文与知识工作流迁移：
+
+1. 论文正文文本分析接入统一主备路由；视觉页仍只进入 vision 任务模型，图像输入失败后才以解析正文、表格和图注执行文本降级。
+2. 视觉尝试与主备文本尝试的供应商 Token 会合并计入本次论文分析，主备均失败时也保留已报告的失败调用用量。
+3. 知识自动润色、研究方向分析和研究路线文字生成接入 analysis 任务路由；界面显示实际提供商、模型、主备状态和 Token。
+4. 研究架构图继续使用独立 diagram 模型，文字模型切换不会把图片任务错误交给 Qwen、GLM 等普通文本路线。
+5. 推荐规划使用独立 recommendation 任务；没有真实检索元数据时只输出搜索方向，明确禁止虚构论文标题、作者、DOI 和引用量。
+6. 两条文本路线都失败时，论文、知识分析和推荐仍返回只重组现有材料的规则结果，不把服务故障变成空白页面或 500。
+
 ## 6. 分阶段优化顺序
 
 ### FTI-1：特征基线（本轮）
@@ -193,13 +202,13 @@ FTI-3C 将路由扩展为可检查、可复用的文本任务底座：
 - 下一步补齐通用 DocumentRecord、PDF 图像区域证据、缓存清理策略和真实产品查询集评测。
 - 验收：固定黄金集 Recall@K、MRR、证据命中率不低于基线，延迟与磁盘增长可解释。
 
-### FTI-3：推理管线与模型主备（3A/3B/3C 已完成）
+### FTI-3：推理管线与模型主备（3A/3B/3C/3D 已完成）
 
 - 明确 `intent → plan → retrieve → rerank → evidence → generate → verify` 阶段。
 - 已完成证据打包、生成、引用完整性校验的可观察轨迹，以及模型离线确定性证据回退。
 - 已实现显式备用文本模型、供应商凭据隔离、有限故障切换和逐次 Token 轨迹。
-- 已加入零调用能力检查，并将科研问答、查询规划和翻译接入统一主备路由。
-- 下一步迁移长文分析与知识推荐，增加真实能力探针、工具调用能力和语义蕴含校验。
+- 已加入零调用能力检查，并将科研问答、查询规划、翻译、论文文本分析、知识工作流和推荐规划接入统一主备路由。
+- 视觉页与出图继续保持专用任务隔离；下一步增加真实能力探针、工具调用能力和语义蕴含校验。
 - 验收：每一步可观察；任何单个外部服务失败不导致整个搜索不可用。
 
 ### FTI-4：评测与发布门禁

@@ -509,10 +509,19 @@ export interface AIAnalyzeRequest {
 
 export interface AIAnalyzeResponse {
   analysis: string
-  research_directions: string[]
-  architecture_description: string
-  suggested_routes: string[]
-  recommended_papers: string[]
+  knowledge_count: number
+  created_at: string
+  provider?: string | null
+  model?: string | null
+  model_completed: boolean
+  fallback_used: boolean
+  prompt_tokens: number
+  completion_tokens: number
+  total_tokens: number
+  research_directions?: string[]
+  architecture_description?: string
+  suggested_routes?: string[]
+  recommended_papers?: string[]
 }
 
 export interface RecommendRequest {
@@ -521,9 +530,14 @@ export interface RecommendRequest {
 }
 
 export interface RecommendResponse {
-  recommendations: {
-    title: string
-    reason: string
-    relevance_score: number
-  }[]
+  recommendations: string
+  knowledge_count: number
+  created_at: string
+  provider?: string | null
+  model?: string | null
+  model_completed: boolean
+  fallback_used: boolean
+  prompt_tokens: number
+  completion_tokens: number
+  total_tokens: number
 }

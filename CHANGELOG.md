@@ -6,6 +6,9 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 
 ### Added
 
+- Primary/fallback routing for paper text analysis, knowledge polishing, research-direction analysis, route text generation, and recommendation planning.
+- Provider, model, fallback-state, and Token metadata on knowledge-analysis and recommendation responses.
+- Evidence-bounded deterministic knowledge and recommendation results when both configured text models are unavailable.
 - Conservative task-aware capability hints for text, structured output, vision, image generation, and embeddings without a paid model call.
 - Shared primary/fallback routing for AI query planning and academic translation, including translation route and Token metadata.
 - Optional hybrid retrieval with an independent embedding profile, local vector cache, cosine ranking, and RRF fusion over BM25 results.
@@ -34,6 +37,9 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 
 ### Changed
 
+- PDF page images remain isolated to the vision task while parsed paper text can fall back across text models; diagram generation remains an independent image route.
+- Recommendation planning no longer asks a model to invent papers without verified academic-API metadata and instead emits search queries for later verification.
+- Knowledge and route-analysis UI labels are provider-neutral rather than hard-coded to MiMo.
 - Local Ollama HTTP endpoints are accepted only for localhost in debug mode; external HTTP and private-network SSRF protections remain enforced.
 - The research assistant now uses BM25 by default, optionally embeds a source-balanced pool of at most 256 candidates, fuses rankings with RRF, and transparently falls back to BM25 on every semantic-service failure.
 - Embeddings are cached by provider, model, and normalized input hash so repeated content does not consume additional embedding tokens.
@@ -60,6 +66,7 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 
 ### Verified
 
+- 310 non-integration backend tests and 19 frontend tests pass; TypeScript checks and the production build are clean. The FTI-3D regression suite verifies text routing, vision isolation, Token accounting, deterministic fallback, and non-fabricating recommendation fallback without a live model call.
 - 74 focused backend tests and 19 frontend tests cover capability hints, bounded query-planning routing, translation route metadata, model fallback, and local Ollama URL validation without live model calls.
 - 288 non-integration backend tests and 18 frontend tests pass; page-aware parsing, hybrid ranking, vector-cache reuse, citation-integrity checks, deterministic model-offline fallback, token accounting, and BM25 fallback are covered without calling a live model.
 - The production frontend build succeeds; the four-case retrieval regression fixture improves Top-1 from BM25 3/4 to hybrid 4/4 and is explicitly not presented as a competition benchmark.

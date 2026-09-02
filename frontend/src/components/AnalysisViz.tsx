@@ -1,6 +1,6 @@
 /**
  * AI 分析结果可视化组件
- * MiMo 文字分析 + SenseNova U1 图片
+ * Provider-neutral text analysis + configured diagram model
  */
 import { useState, useEffect } from 'react'
 import { Clock, Sparkles, FlaskConical } from 'lucide-react'
@@ -72,7 +72,7 @@ function renderMarkdownText(text: string) {
 function WaitTimer({ seconds }: { seconds: number }) {
   const [remaining, setRemaining] = useState(seconds)
   const [step, setStep] = useState(0)
-  const steps = ['MiMo 文字分析...', 'SenseNova 图表生成...', '渲染结果...']
+  const steps = ['AI 文字分析...', '架构图生成...', '渲染结果...']
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -118,8 +118,8 @@ export default function AnalysisViz({
   // 从全文中提取所有图片 URL
   const imageUrls: string[] = []
   const patterns = [
-    /!\[.*?\]\((https?:\/\/[^)]+)\)/g,                          // markdown 图片
-    /\[.*?\]\((https?:\/\/[^\)]+\.(png|jpg|jpeg|webp|gif)[^\)]*)\)/gi, // 带后缀链接
+    /!\[.*?\]\(((?:https?:\/\/|\/)[^)]+)\)/g,                 // markdown 图片（远程或本机）
+    /\[.*?\]\(((?:https?:\/\/|\/)[^\)]+\.(png|jpg|jpeg|webp|gif)[^\)]*)\)/gi, // 带后缀链接
     /(https?:\/\/[^\s)]+\.(png|jpg|jpeg|webp|gif)[^\s)]*)/gi,    // 裸图片 URL
   ]
   for (const p of patterns) {
@@ -136,17 +136,17 @@ export default function AnalysisViz({
     if (m2[1] && !imageUrls.includes(m2[1])) imageUrls.push(m2[1])
   }
 
-  // 分离 MiMo 文字和 SenseNova 图片
+  // 分离文字分析和架构图
   const textPart = analysis.split(/##\s*研究架构图/)[0] || analysis
   const diagramPart = analysis.includes('研究架构图') ? analysis.split(/##\s*研究架构图/)[1] || '' : ''
 
   return (
     <div className="space-y-4">
-      {/* MiMo 文字分析 */}
+      {/* 文字分析 */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
         <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-primary-500" />
-          {isChinese ? 'MiMo 文字分析' : 'MiMo Text Analysis'}
+          {isChinese ? 'AI 文字分析' : 'AI Text Analysis'}
         </h3>
         <div className="relative">
           <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary-500 to-primary-300" />
@@ -168,7 +168,7 @@ export default function AnalysisViz({
           <div key={i} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
             <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
               <FlaskConical className="w-4 h-4 text-purple-500" />
-              {isChinese ? 'SenseNova-U1 研究架构图' : 'SenseNova-U1 Architecture'}
+              {isChinese ? 'AI 研究架构图' : 'AI Research Architecture'}
             </h3>
             <img src={url} alt={isChinese ? '研究架构图' : 'Architecture'}
               className="w-full rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-shadow"
@@ -183,7 +183,7 @@ export default function AnalysisViz({
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
           <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
             <FlaskConical className="w-4 h-4 text-purple-500" />
-            {isChinese ? 'SenseNova-U1 研究架构图' : 'SenseNova-U1 Architecture'}
+            {isChinese ? 'AI 研究架构图' : 'AI Research Architecture'}
           </h3>
           <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
             {renderMarkdownText(diagramPart)}

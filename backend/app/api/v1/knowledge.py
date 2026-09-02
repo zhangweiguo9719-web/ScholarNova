@@ -16,6 +16,7 @@ from app.services.features.knowledge import (
     delete_knowledge_features,
     rebuild_knowledge_features,
 )
+from app.services.inference import AllModelsUnavailableError, chat_with_fallback
 from app.schemas.knowledge import (
     AIAnalyzeRequest,
     AIAnalyzeResponse,
@@ -37,6 +38,50 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+def _knowledge_fallback(knowledge_list: list, query: str | None = None) -> str:
+    """Return a grounded research outline without inventing unsupported claims."""
+    lines = []
+    for index, item in enumerate(knowledge_list, 1):
+        points = list(item.research_points or [])[:3]
+        detail = "；".join(points) if points else (item.content or "")[:180]
+        lines.append(f"{index}. {item.title}：{detail or '仅有标题，缺少可分析内容'}")
+    extra = f"\n\n用户补充要求：{query}" if query else ""
+    materials = chr(10).join(lines) or "暂无关联知识条目"
+    return f"""## 基于现有知识的规则整理（模型暂不可用）
+
+主模型与备用模型均未完成请求。以下内容只重组已保存的知识条目，不新增论文、实验结果或研究结论。
+
+### 当前材料
+{materials}{extra}
+
+### 可执行的下一步
+1. 核对上述条目是否覆盖同一研究问题、方法、数据和评价指标。
+2. 对缺少全文或实验细节的条目补充合法来源 PDF，再执行证据检索。
+3. 基于已核验关键词发起新一轮多源论文搜索，并人工确认候选论文后加入知识库。
+"""
+
+
+def _recommendation_fallback(knowledge_list: list) -> str:
+    """Build search directions rather than fabricating bibliographic records."""
+    terms: list[str] = []
+    for item in knowledge_list:
+        for value in [item.title, *(item.research_points or []), *(item.tags or [])]:
+            value = str(value or "").strip()
+            if value and value not in terms:
+                terms.append(value)
+    suggestions = "\n".join(
+        f"{index}. {term}" for index, term in enumerate(terms[:8], 1)
+    ) or "1. 请先为知识条目补充研究点或标签"
+    return f"""## 可核验检索方向（模型暂不可用）
+
+系统不会在缺少学术检索结果时编造论文题目或 DOI。可将以下已有主题用于 ScholarNova 多源检索：
+
+{suggestions}
+
+检索后请以 Semantic Scholar、OpenAlex、Crossref 或 arXiv 返回的真实元数据为准。
+"""
+
+
 # ============================================================
 # 知识库 CRUD 端点
 # ============================================================
@@ -56,17 +101,6 @@ async def create_knowledge(
     # AI 润色：精炼内容、提取研究点、生成标签
     if request.auto_polish and request.content:
         try:
-            from app.services.llm.gateway import LLMGateway
-            from app.config import get_model_for_task
-
-            task_config = get_model_for_task("analysis")
-            llm = LLMGateway()
-            llm.configure(
-                api_key=task_config["api_key"],
-                base_url=task_config["base_url"],
-                model_name=task_config["model"],
-            )
-
             polish_prompt = f"""请对以下学术笔记进行润色和结构化提取：
 
 原文：
@@ -75,7 +109,8 @@ async def create_knowledge(
 请输出 JSON 格式：
 {{"polished_content": "精炼后的核心内容（200字以内）", "research_points": ["研究点1", "研究点2"], "tags": ["标签1", "标签2"]}}"""
 
-            result = await llm.chat(
+            routed = await chat_with_fallback(
+                task="analysis",
                 messages=[
                     {"role": "system", "content": "你是学术笔记润色专家。输出JSON格式。"},
                     {"role": "user", "content": polish_prompt},
@@ -83,6 +118,7 @@ async def create_knowledge(
                 temperature=0.3,
                 max_tokens=1024,
             )
+            result = routed.content
 
             # 解析 LLM 结果
             import json as json_mod
@@ -349,26 +385,29 @@ async def ai_generate_route_analysis(route_id: str, db: AsyncSession = Depends(g
 请输出：研究目标、技术路线图、关键任务、预期成果。用中文。"""
 
     from app.services.llm.gateway import LLMGateway
-    from app.config import settings
+    from app.config import get_model_for_task
 
+    # Step 1: 文字分析使用任务主模型；失败后由显式备用模型接管。
     try:
-        # Step 1: MiMo 生成文字分析
-        from app.config import get_model_for_task
-        text_config = get_model_for_task("analysis")
-        mimo = LLMGateway()
-        mimo.configure(
-            api_key=text_config["api_key"],
-            base_url=text_config["base_url"],
-            model_name=text_config["model"],
-        )
-        text_analysis = await mimo.chat(
+        routed = await chat_with_fallback(
+            task="analysis",
             messages=[{"role": "system", "content": "你是学术研究顾问。请用中文输出详细的分析报告，包含研究目标、技术路线图（用文字描述模块关系和数据流）、关键任务。"}, {"role": "user", "content": prompt}],
             temperature=0.3, max_tokens=4096,
         )
+        text_analysis = routed.content
+        text_label = f"{routed.profile.get('provider')}/{routed.profile.get('model')}"
+        if routed.fallback_used:
+            text_label += " · 备用模型"
+    except AllModelsUnavailableError:
+        logger.exception("Research-route text models unavailable", extra={"route_id": route_id})
+        text_analysis = _knowledge_fallback(knowledge_list)
+        text_label = "规则兜底 · 无模型调用结果"
 
-        # Step 2: SenseNova-U1 生成可视化架构图（真实图片）
-        diagram_config = get_model_for_task("diagram")
-        sn = LLMGateway(provider="sensenova")
+    # Step 2: 出图保持独立的 diagram 配置，不路由到普通文本备用模型。
+    diagram_config = get_model_for_task("diagram")
+    diagram_label = f"{diagram_config.get('provider')}/{diagram_config.get('model')}"
+    try:
+        sn = LLMGateway(provider=diagram_config["provider"])
         sn.configure(
             api_key=diagram_config["api_key"],
             base_url=diagram_config["base_url"],
@@ -401,36 +440,39 @@ Requirements:
             prompt=image_prompt,
             save_path=str(diagram_path),
         )
+    except Exception as exc:
+        logger.exception("Research-route diagram generation failed", extra={"route_id": route_id})
+        image_result = {"status": "error", "error": str(exc)}
 
-        # 合并结果
-        if image_result.get("status") == "ok":
-            image_url = (
-                f"/generated/route_diagrams/{route.id}.png"
-                if diagram_path.exists()
-                else image_result.get("url", "")
-            )
-            combined = f"""## 文字分析（MiMo）
+    # 合并结果；模型名称取自实际路由，不再写死供应商。
+    if image_result.get("status") == "ok":
+        image_url = (
+            f"/generated/route_diagrams/{route.id}.png"
+            if diagram_path.exists()
+            else image_result.get("url", "")
+        )
+        combined = f"""## 文字分析（{text_label}）
 {text_analysis}
 
 ---
 
-## 研究架构图（SenseNova-U1）
+## 研究架构图（{diagram_label}）
 ![研究架构图]({image_url})
 
 [查看大图]({image_url})"""
-        else:
-            # 图像生成失败，回退到文字描述
-            fallback_msg = image_result.get("error", "图像生成失败")
-            combined = f"""## 文字分析（MiMo）
+    else:
+        fallback_msg = image_result.get("error", "图像生成失败")
+        combined = f"""## 文字分析（{text_label}）
 {text_analysis}
 
 ---
 
-## 研究架构图（SenseNova-U1）
+## 研究架构图（{diagram_label}）
 > ⚠️ 图像生成暂不可用：{fallback_msg}
 
 请参考上方文字分析中的架构描述。"""
 
+    try:
         route.ai_analysis = combined
         await db.commit()
         await db.refresh(route)
@@ -440,7 +482,7 @@ Requirements:
             status=route.status, created_at=route.created_at, updated_at=route.updated_at,
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"AI route analysis failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Saving route analysis failed: {str(e)}")
 
 
 # ============================================================
@@ -607,20 +649,9 @@ async def ai_analyze_research(
 
 用中文输出。"""
 
-    # 调用 LLM
-    from app.services.llm.gateway import LLMGateway
-    from app.config import get_model_for_task
-
-    task_config = get_model_for_task("analysis")
-    llm_gateway = LLMGateway()
-    llm_gateway.configure(
-        api_key=task_config["api_key"],
-        base_url=task_config["base_url"],
-        model_name=task_config["model"],
-    )
-
     try:
-        response = await llm_gateway.chat(
+        routed = await chat_with_fallback(
+            task="analysis",
             messages=[
                 {"role": "system", "content": "你是学术研究顾问，擅长分析研究方向和规划技术路线。请用中文输出详细分析。"},
                 {"role": "user", "content": prompt},
@@ -630,13 +661,29 @@ async def ai_analyze_research(
         )
 
         return AIAnalyzeResponse(
-            analysis=response,
+            analysis=routed.content,
             knowledge_count=len(knowledge_list),
+            provider=routed.profile.get("provider"),
+            model=routed.profile.get("model"),
+            model_completed=True,
+            fallback_used=routed.fallback_used,
+            prompt_tokens=routed.usage["prompt_tokens"],
+            completion_tokens=routed.usage["completion_tokens"],
+            total_tokens=routed.usage["total_tokens"],
             created_at=datetime.utcnow(),
         )
-    except Exception as e:
-        logger.error(f"AI analysis failed: {e}")
-        raise HTTPException(status_code=500, detail=f"AI analysis failed: {str(e)}")
+    except AllModelsUnavailableError as exc:
+        logger.exception("Knowledge analysis models unavailable")
+        return AIAnalyzeResponse(
+            analysis=_knowledge_fallback(knowledge_list, request.query),
+            knowledge_count=len(knowledge_list),
+            model_completed=False,
+            fallback_used=False,
+            prompt_tokens=exc.usage["prompt_tokens"],
+            completion_tokens=exc.usage["completion_tokens"],
+            total_tokens=exc.usage["total_tokens"],
+            created_at=datetime.utcnow(),
+        )
 
 
 @router.post("/recommend", response_model=RecommendResponse)
@@ -672,35 +719,24 @@ async def recommend_papers(
 """
 
     # 构建 Prompt
-    prompt = f"""你是学术论文推荐专家。根据用户的知识库，推荐值得阅读的新论文。
+    prompt = f"""你是学术检索策略专家。根据用户的知识库生成可执行的论文检索与候选核验建议。
 
 ## 用户的知识库
 {knowledge_text}
 
 ## 推荐要求：
-1. 推荐{request.limit}篇与用户研究方向高度相关的新论文
-2. 优先推荐近两年的论文
-3. 覆盖不同技术路线
-4. 每篇论文说明为什么推荐
+1. 最多给出{request.limit}条检索方向或待核验候选
+2. 优先覆盖近两年的研究方向和不同技术路线
+3. 没有来自学术 API 的真实元数据时，禁止编造论文题目、作者、DOI 或引用量
+4. 对每条建议给出可直接用于 ScholarNova 多源搜索的查询词
 
 请用中文输出。"""
 
-    # 调用 LLM
-    from app.services.llm.gateway import LLMGateway
-    from app.config import get_model_for_task
-
-    task_config = get_model_for_task("analysis")
-    llm_gateway = LLMGateway()
-    llm_gateway.configure(
-        api_key=task_config["api_key"],
-        base_url=task_config["base_url"],
-        model_name=task_config["model"],
-    )
-
     try:
-        response = await llm_gateway.chat(
+        routed = await chat_with_fallback(
+            task="recommendation",
             messages=[
-                {"role": "system", "content": "你是学术论文推荐专家，擅长根据研究方向推荐高质量论文。请用中文输出推荐结果。"},
+                {"role": "system", "content": "你是严谨的学术检索策略专家。只生成检索策略，不得伪造书目信息。请用中文输出。"},
                 {"role": "user", "content": prompt},
             ],
             temperature=0.3,
@@ -708,10 +744,26 @@ async def recommend_papers(
         )
 
         return RecommendResponse(
-            recommendations=response,
+            recommendations=routed.content,
             knowledge_count=len(knowledge_list),
+            provider=routed.profile.get("provider"),
+            model=routed.profile.get("model"),
+            model_completed=True,
+            fallback_used=routed.fallback_used,
+            prompt_tokens=routed.usage["prompt_tokens"],
+            completion_tokens=routed.usage["completion_tokens"],
+            total_tokens=routed.usage["total_tokens"],
             created_at=datetime.utcnow(),
         )
-    except Exception as e:
-        logger.error(f"Paper recommendation failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Paper recommendation failed: {str(e)}")
+    except AllModelsUnavailableError as exc:
+        logger.exception("Knowledge recommendation models unavailable")
+        return RecommendResponse(
+            recommendations=_recommendation_fallback(knowledge_list),
+            knowledge_count=len(knowledge_list),
+            model_completed=False,
+            fallback_used=False,
+            prompt_tokens=exc.usage["prompt_tokens"],
+            completion_tokens=exc.usage["completion_tokens"],
+            total_tokens=exc.usage["total_tokens"],
+            created_at=datetime.utcnow(),
+        )

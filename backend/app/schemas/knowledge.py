@@ -129,6 +129,13 @@ class AIAnalyzeResponse(BaseModel):
     """AI分析研究推进方向响应"""
     analysis: str = Field(..., description="AI生成的分析结果（中文）")
     knowledge_count: int = Field(..., description="分析的知识点数量")
+    provider: Optional[str] = Field(None, description="实际使用的模型提供商")
+    model: Optional[str] = Field(None, description="实际使用的模型")
+    model_completed: bool = Field(True, description="模型是否完成分析")
+    fallback_used: bool = Field(False, description="是否由备用模型接管")
+    prompt_tokens: int = Field(0, description="输入 Token")
+    completion_tokens: int = Field(0, description="输出 Token")
+    total_tokens: int = Field(0, description="总 Token")
     created_at: datetime
 
 
@@ -142,4 +149,11 @@ class RecommendResponse(BaseModel):
     """基于知识库推荐论文响应"""
     recommendations: str = Field(..., description="AI生成的推荐结果（中文）")
     knowledge_count: int = Field(..., description="基于的知识点数量")
+    provider: Optional[str] = Field(None, description="实际使用的模型提供商")
+    model: Optional[str] = Field(None, description="实际使用的模型")
+    model_completed: bool = Field(True, description="模型是否完成推荐规划")
+    fallback_used: bool = Field(False, description="是否由备用模型接管")
+    prompt_tokens: int = Field(0, description="输入 Token")
+    completion_tokens: int = Field(0, description="输出 Token")
+    total_tokens: int = Field(0, description="总 Token")
     created_at: datetime
