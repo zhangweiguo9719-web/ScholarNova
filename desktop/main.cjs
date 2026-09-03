@@ -8,6 +8,9 @@ const { spawn } = require('child_process')
 let mainWindow = null
 let backendProcess = null
 let staticServer = null
+let isQuitting = false
+let backendRestartCount = 0
+const MAX_BACKEND_RESTARTS = 5
 
 const isPackaged = app.isPackaged
 app.setAppUserModelId('cn.scholarnova.desktop')
@@ -54,10 +57,9 @@ function getFrontendDistPath() {
 }
 
 function getBackendExecutablePath() {
-  if (isPackaged) {
-    return path.join(process.resourcesPath, 'backend', 'ScholarNovaBackend', 'ScholarNovaBackend.exe')
-  }
-  return null
+  if (!isPackaged) return null
+  const exeName = process.platform === 'win32' ? 'ScholarNovaBackend.exe' : 'ScholarNovaBackend'
+  return path.join(process.resourcesPath, 'backend', 'ScholarNovaBackend', exeName)
 }
 
 function toSqliteUrl(filePath) {
@@ -85,21 +87,33 @@ function startBackend(port) {
     ALLOWED_HOSTS: JSON.stringify(['localhost', '127.0.0.1']),
   }
 
+  const spawnOpts = { env, stdio: ['ignore', outLog, errLog] }
+  if (process.platform === 'win32') spawnOpts.windowsHide = true
+
   const backendExe = getBackendExecutablePath()
   if (backendExe && fs.existsSync(backendExe)) {
-    backendProcess = spawn(backendExe, [], {
-      env,
-      windowsHide: true,
-      stdio: ['ignore', outLog, errLog],
+    backendProcess = spawn(backendExe, [], spawnOpts)
+  } else {
+    backendProcess = spawn('python', ['-m', 'uvicorn', 'app.main:app', '--host', '127.0.0.1', '--port', String(port)], {
+      ...spawnOpts,
+      cwd: path.join(__dirname, '..', 'backend'),
     })
-    return
   }
 
-  backendProcess = spawn('python', ['-m', 'uvicorn', 'app.main:app', '--host', '127.0.0.1', '--port', String(port)], {
-    cwd: path.join(__dirname, '..', 'backend'),
-    env,
-    windowsHide: true,
-    stdio: 'inherit',
+  // 崩溃自愈：本地服务意外退出时自动拉起，避免“后端挂了”导致整个应用不可用
+  backendProcess.on('exit', (code, signal) => {
+    if (isQuitting) return
+    backendRestartCount += 1
+    if (backendRestartCount > MAX_BACKEND_RESTARTS) {
+      dialog.showErrorBox(
+        'ScholarNova 本地服务异常',
+        `本地服务连续异常退出 ${MAX_BACKEND_RESTARTS} 次，请查看日志后重启应用。\n日志目录：${logsDir}`
+      )
+      app.quit()
+      return
+    }
+    console.error(`ScholarNova backend exited (code=${code}, signal=${signal}); restarting (${backendRestartCount}/${MAX_BACKEND_RESTARTS})`)
+    startBackend(port)
   })
 }
 
@@ -202,7 +216,9 @@ function createWindow(uiPort) {
     minWidth: 1180,
     minHeight: 760,
     title: 'ScholarNova',
-    icon: path.join(__dirname, 'assets', 'icon.ico'),
+    icon: process.platform === 'darwin'
+      ? path.join(__dirname, 'assets', 'icon.png')
+      : path.join(__dirname, 'assets', 'icon.ico'),
     backgroundColor: '#0b1220',
     autoHideMenuBar: true,
     webPreferences: {
@@ -254,6 +270,7 @@ app.on('window-all-closed', () => {
 })
 
 app.on('before-quit', () => {
+  isQuitting = true
   if (staticServer) staticServer.close()
   if (backendProcess && !backendProcess.killed) backendProcess.kill()
 })

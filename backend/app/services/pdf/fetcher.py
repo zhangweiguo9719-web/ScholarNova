@@ -33,7 +33,7 @@ DOWNLOAD_TIMEOUT = 30  # 秒
 UNPAYWALL_API = "https://api.unpaywall.org/v2"
 OPENALEX_API = "https://api.openalex.org/works"
 CROSSREF_API = "https://api.crossref.org/works"
-USER_AGENT = "ScholarNova/1.1.1 (+https://github.com/zhangweiguo9719-web/ScholarNova)"
+USER_AGENT = "ScholarNova/1.2.0 (+https://github.com/zhangweiguo9719-web/ScholarNova)"
 
 # arXiv PDF 基础 URL
 ARXIV_PDF_BASE = "https://arxiv.org/pdf"
