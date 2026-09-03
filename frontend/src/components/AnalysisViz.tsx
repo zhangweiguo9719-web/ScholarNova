@@ -79,11 +79,13 @@ function renderMarkdownText(text: string) {
  * 通用架构解析器：把任意格式的架构文字转成「层 → 模块」结构。
  * 泛化启发式（不针对具体文字）：
  *   1. 清理 markdown 符号（代码围栏 / 标题 # / 列表符号 / 编号 / 加粗 / 反引号）
- *   2. 行类型分流：
- *      - 列表项（- / * / + 开头）→ 一律是模块
- *      - markdown 标题（### 开头）→ 一律是层
- *      - 顶格纯文本 → 含强层词（层/阶段/编码器/Layer/Encoder…）或以冒号结尾 → 层；否则模块
+ *   2. 表格容错：跳过纯框线行（┌┐└┘├┤┬┴┼─ 等）；含竖线（│|）的行按单元格拆分，
+ *      每个单元格成为模块（单元格本身是层词时建立新层）
+ *   3. 行类型分流：列表项（- / * / + 开头）→ 模块；markdown 标题（###）→ 层；
+ *      顶格纯文本 → 含强层词或以冒号结尾 → 层，否则模块
  */
+const BOX_CHARS = /[┌┐└┘├┤┬┴┼─═║╔╗╚╝╠╣╦╩╬]/g
+
 function parseLayers(text: string): { title: string; modules: string[] }[] {
   const lines = text.split('\n').filter((l) => l.trim().length > 0)
   const layers: { title: string; modules: string[] }[] = []
@@ -100,11 +102,37 @@ function parseLayers(text: string): { title: string; modules: string[] }[] {
   }
   const modName = (clean: string): string =>
     clean.replace(/^(.{2,28}?)[:：].*$/, '$1').trim()
+  const openLayer = (clean: string) => {
+    const layer = { title: clean.replace(/[:：]\s*$/, ''), modules: [] as string[] }
+    layers.push(layer)
+    return layer
+  }
 
   for (const line of lines) {
     const stripped = line.trim()
     // 代码围栏整行跳过
     if (/^```+/.test(stripped)) continue
+    // 表格纯框线行（无正文）跳过
+    if (/^[\s┌┐└┘├┤┬┴┼─═║╔╗╚╝╠╣╦╩╬|=\-]+$/.test(stripped)) continue
+    // 含竖线/框线的行：按单元格拆分
+    if (stripped.includes('│') || stripped.includes('|')) {
+      const cells = stripped
+        .split(/[│|]/)
+        .map((c) => c.replace(BOX_CHARS, '').replace(/^#{1,6}\s*/, '').replace(/^[-*+•]\s+/, '').trim())
+        .filter(Boolean)
+      if (cells.length === 0) continue
+      for (const cell of cells) {
+        if (isLayerTitle(cell)) {
+          current = openLayer(cell)
+        } else if (current) {
+          current.modules.push(modName(cell))
+        } else {
+          current = openLayer('架构模块')
+          current.modules.push(modName(cell))
+        }
+      }
+      continue
+    }
     const isList = /^[-*+•]\s+/.test(stripped)
     const isHeading = /^#{1,6}\s+/.test(stripped)
     const clean = stripped
@@ -120,8 +148,7 @@ function parseLayers(text: string): { title: string; modules: string[] }[] {
     if (isList) {
       if (current) current.modules.push(modName(clean))
     } else if (isHeading || isLayerTitle(clean)) {
-      current = { title: clean.replace(/[:：]\s*$/, ''), modules: [] }
-      layers.push(current)
+      current = openLayer(clean)
     } else if (current) {
       current.modules.push(modName(clean))
     }
