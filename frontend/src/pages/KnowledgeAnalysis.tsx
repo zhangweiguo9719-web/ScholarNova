@@ -37,6 +37,7 @@ export default function KnowledgeAnalysis() {
           analysis: parsed.analysis || '',
           research_directions: parsed.research_directions || [],
           architecture_description: parsed.architecture_description || '',
+          architecture_json: parsed.architecture_json || null,
           suggested_routes: parsed.suggested_routes || [],
           recommended_papers: parsed.recommended_papers || [],
           knowledge_count: parsed.knowledge_count || 0,
@@ -337,6 +338,7 @@ export default function KnowledgeAnalysis() {
 
               <AnalysisViz
                 analysis={result.analysis || ''}
+                architectureJson={result.architecture_json || null}
               />
             </div>
           )}

@@ -17,6 +17,56 @@ interface AnalysisVizProps {
   analysis: string
   loading?: boolean
   estimatedTime?: number
+  architectureJson?: ArchitectureJson | null
+}
+
+interface ArchLayer {
+  title: string
+  modules: string[]
+  formula?: string
+}
+
+interface ArchitectureJson {
+  title?: string
+  layers?: { name: string; modules?: { name: string; desc?: string }[]; formula?: string }[]
+}
+
+/**
+ * 连续同名层合并：AI 常把同一层拆成多步（如 决策生成 7/8/9/10），
+ * 渲染前合并成一层，避免出现大量重复空层与空白。
+ */
+function mergeConsecutiveDupLayers(layers: ArchLayer[]): ArchLayer[] {
+  const out: ArchLayer[] = []
+  for (const l of layers) {
+    const last = out[out.length - 1]
+    if (last && last.title === l.title) {
+      last.modules.push(...l.modules)
+      if (l.formula && !last.formula) last.formula = l.formula
+    } else {
+      out.push({ ...l, modules: [...l.modules] })
+    }
+  }
+  return out
+}
+
+/**
+ * 把 AI 评判提炼的统一架构 JSON 归一化成渲染结构；无效返回 null。
+ * 这是"AI 中间评判一次 → 确定性 SVG 最终决定"流程的输入。
+ */
+function normalizeJsonLayers(json: ArchitectureJson | null | undefined): { title: string; layers: ArchLayer[] } | null {
+  if (!json || !Array.isArray(json.layers) || json.layers.length === 0) return null
+  const layers: ArchLayer[] = []
+  for (const item of json.layers) {
+    if (!item || typeof item.name !== 'string' || !item.name.trim()) continue
+    const modules = Array.isArray(item.modules)
+      ? item.modules.map((m) => (m && typeof m.name === 'string' ? m.name.trim() : '')).filter(Boolean)
+      : []
+    const formula = typeof item.formula === 'string' ? item.formula.trim() : ''
+    if (modules.length === 0 && !formula) continue
+    layers.push({ title: item.name.trim(), modules, formula })
+  }
+  if (layers.length === 0) return null
+  return { title: typeof json.title === 'string' ? json.title.trim() : '', layers }
 }
 
 function renderMarkdownText(text: string) {
@@ -162,35 +212,7 @@ function parseLayers(text: string): { title: string; modules: string[] }[] {
  *       模块 = 白色圆角卡片（层主色描边 + 微阴影），行内居中排布；
  *       层间 = 虚线箭头流线。每层配色取自 7 色学术色板，自动循环。
  */
-function ArchitectureSvg({ text }: { text: string }) {
-  // 提取标题行（可选，如 "研究架构图" / "3.研究架构图(文字描述)"）
-  let title = ''
-  let body = text
-  const titleMatch = text.match(/^\s*\d*[.、)．]?\s*(研究架构图[^\n]*)/)
-  if (titleMatch && titleMatch[1].length <= 32) {
-    title = titleMatch[1].trim().replace(/[:：]$/, '')
-    body = text.replace(titleMatch[0], '')
-  }
-  const cleaned = body.replace(/^```+[a-zA-Z]*\s*$/gm, '').trim()
-  const layers = parseLayers(cleaned)
-
-  // 泛化兜底：解析不出结构时也做干净排版（绝不暴露原始 markdown 符号）
-  if (layers.length === 0) {
-    const safe = cleaned
-      .replace(/^#{1,6}\s*/gm, '')
-      .replace(/\*\*([^*]+)\*\*/g, '$1')
-      .replace(/`/g, '')
-    return (
-      <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-        {safe.split('\n').filter(Boolean).map((l, i) => (
-          <p key={i} className="pl-3 border-l-2 border-gray-200 dark:border-gray-700 mb-1">
-            {l.replace(/^[-*+]\s+/, '• ')}
-          </p>
-        ))}
-      </div>
-    )
-  }
-
+function ArchitectureSvg({ title, layers }: { title: string; layers: ArchLayer[] }) {
   // ---- 布局参数 ----
   const width = 840
   const modW = 176
@@ -200,6 +222,7 @@ function ArchitectureSvg({ text }: { text: string }) {
   const padTop = 42
   const padBottom = 14
   const arrowH = 30
+  const formulaH = 32
   const titleH = title ? 46 : 0
   const cols = Math.max(1, Math.floor((width - padX * 2 + gap) / (modW + gap)))
   const rowH = modH + 10
@@ -214,8 +237,9 @@ function ArchitectureSvg({ text }: { text: string }) {
     { main: '#475569', bg: '#f8fafc', border: '#cbd5e1', text: '#334155' },
   ]
 
-  const rowCounts = layers.map((l) => Math.max(1, Math.ceil(Math.min(l.modules.length, 16) / cols)))
-  const layerHs = rowCounts.map((rows) => padTop + rows * rowH + padBottom)
+  // 空模块层压缩高度（0 行），避免大面积空白
+  const rowCounts = layers.map((l) => (l.modules.length > 0 ? Math.ceil(Math.min(l.modules.length, 16) / cols) : 0))
+  const layerHs = rowCounts.map((rows, i) => padTop + rows * rowH + (layers[i].formula ? formulaH : 0) + padBottom)
   const totalH = titleH + layerHs.reduce((a, b) => a + b, 0) + arrowH * (layers.length - 1) + 16
 
   let y = titleH + 8
@@ -238,7 +262,6 @@ function ArchitectureSvg({ text }: { text: string }) {
     const gid = `arch-lg-${li}`
     const n = Math.min(layer.modules.length, 16)
 
-    // 泳道背景（纵向渐变）+ 左侧色条
     els.push(
       <defs key={`defs-${li}`}>
         <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
@@ -249,7 +272,6 @@ function ArchitectureSvg({ text }: { text: string }) {
       <rect key={`bg-${li}`} x={8} y={y} width={width - 16} height={layerH} rx={14}
         fill={`url(#${gid})`} stroke={pal.border} strokeWidth={1.2} />,
       <rect key={`bar-${li}`} x={8} y={y + 14} width={5} height={layerH - 28} rx={2.5} fill={pal.main} />,
-      // 层标题 + 序号
       <text key={`lt-${li}`} x={26} y={y + 26} fontSize={14.5} fontWeight={700} fill={pal.text}>
         {layer.title.length > 30 ? layer.title.slice(0, 29) + '…' : layer.title}
       </text>,
@@ -258,7 +280,6 @@ function ArchitectureSvg({ text }: { text: string }) {
       </text>,
     )
 
-    // 模块卡片（行内居中）
     layer.modules.slice(0, 16).forEach((mod, mi) => {
       const row = Math.floor(mi / cols)
       const rowStart = row * cols
@@ -283,7 +304,22 @@ function ArchitectureSvg({ text }: { text: string }) {
       )
     })
 
-    // 层间虚线箭头
+    // 公式条（虚线边框，等宽字体）
+    if (layer.formula) {
+      const fy = y + layerH - formulaH - 8
+      const ftext = layer.formula.length > 66 ? layer.formula.slice(0, 65) + '…' : layer.formula
+      els.push(
+        <g key={`f-${li}`}>
+          <rect x={padX} y={fy} width={width - padX * 2} height={formulaH - 8} rx={7}
+            fill="#ffffff" stroke={pal.border} strokeWidth={1.2} strokeDasharray="4 3" />
+          <text x={padX + 14} y={fy + 18} fontSize={12.5} fill={pal.text}
+            fontFamily="'Courier New', Consolas, monospace" fontWeight={600}>
+            {ftext}
+          </text>
+        </g>,
+      )
+    }
+
     if (li < layers.length - 1) {
       const fromY = y + layerH
       const toY = fromY + arrowH
@@ -350,8 +386,31 @@ function WaitTimer({ seconds }: { seconds: number }) {
   )
 }
 
+/**
+ * 架构图数据源决策：优先 AI 评判提炼的统一 JSON（确定性、干净、无空层），
+ * 否则回退到文字启发式解析（仍走同一个 SVG 引擎）。
+ */
+function resolveArchitecture(analysis: string, architectureJson?: ArchitectureJson | null) {
+  const fromJson = normalizeJsonLayers(architectureJson)
+  if (fromJson) return fromJson
+  const archIndex = analysis.search(/研究架构图/)
+  const diagramPart = archIndex >= 0 ? analysis.slice(archIndex) : ''
+  if (!diagramPart.trim()) return null
+  let title = ''
+  let body = diagramPart
+  const titleMatch = diagramPart.match(/^\s*\d*[.、)．]?\s*(研究架构图[^\n]*)/)
+  if (titleMatch && titleMatch[1].length <= 32) {
+    title = titleMatch[1].trim().replace(/[:：]$/, '')
+    body = diagramPart.replace(titleMatch[0], '')
+  }
+  const cleaned = body.replace(/^```+[a-zA-Z]*\s*$/gm, '').trim()
+  let layers = parseLayers(cleaned)
+  layers = mergeConsecutiveDupLayers(layers)
+  return { title, layers }
+}
+
 export default function AnalysisViz({
-  analysis, loading = false, estimatedTime = 60,
+  analysis, loading = false, estimatedTime = 60, architectureJson = null,
 }: AnalysisVizProps) {
   const { locale } = useLocaleStore()
   const isChinese = locale === 'zh'
@@ -362,9 +421,9 @@ export default function AnalysisViz({
   // 从全文中提取所有图片 URL
   const imageUrls: string[] = []
   const patterns = [
-    /!\[.*?\]\(((?:https?:\/\/|\/)[^)]+)\)/g,                 // markdown 图片（远程或本机）
-    /\[.*?\]\(((?:https?:\/\/|\/)[^\)]+\.(png|jpg|jpeg|webp|gif)[^\)]*)\)/gi, // 带后缀链接
-    /(https?:\/\/[^\s)]+\.(png|jpg|jpeg|webp|gif)[^\s)]*)/gi,    // 裸图片 URL
+    /!\[.*?\]\(((?:https?:\/\/|\/)[^)]+)\)/g,
+    /\[.*?\]\(((?:https?:\/\/|\/)[^\)]+\.(png|jpg|jpeg|webp|gif)[^\)]*)\)/gi,
+    /(https?:\/\/[^\s)]+\.(png|jpg|jpeg|webp|gif)[^\s)]*)/gi,
   ]
   for (const p of patterns) {
     let m
@@ -373,17 +432,19 @@ export default function AnalysisViz({
       if (url && !imageUrls.includes(url)) imageUrls.push(url)
     }
   }
-  // 补充匹配 SenseNova OSS 域名（无后缀的 UUID 图片）
   const ossRegex = /(https?:\/\/aoss\.cn-sh-01\.sensecoreapi-oss\.cn\/[^\s)\]>"]+)/gi
   let m2
   while ((m2 = ossRegex.exec(analysis)) !== null) {
     if (m2[1] && !imageUrls.includes(m2[1])) imageUrls.push(m2[1])
   }
 
-  // 分离文字分析和架构图（兼容多种格式）
+  // 架构图数据源：AI 评判 JSON 优先，文字解析兜底
+  const arch = resolveArchitecture(analysis, architectureJson)
+  const hasDiagram = arch !== null
+
+  // 文字分析部分（架构段落之前）
   const archIndex = analysis.search(/研究架构图/)
   const textPart = archIndex >= 0 ? analysis.slice(0, archIndex) : analysis
-  const diagramPart = archIndex >= 0 ? analysis.slice(archIndex) : ''
 
   return (
     <div className="space-y-4">
@@ -407,8 +468,8 @@ export default function AnalysisViz({
         </div>
       </div>
 
-      {/* 架构图：通用 SVG 引擎（每次确定性生成，不依赖 AI 生图） */}
-      {diagramPart ? (
+      {/* 架构图：确定性 SVG 引擎（AI 评判 JSON 优先；文字解析兜底） */}
+      {hasDiagram ? (
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
           <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
             <FlaskConical className="w-4 h-4 text-purple-500" />
@@ -418,7 +479,7 @@ export default function AnalysisViz({
             </span>
           </h3>
           <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-3">
-            <ArchitectureSvg text={diagramPart} />
+            <ArchitectureSvg title={arch?.title || ''} layers={arch?.layers || []} />
           </div>
           {imageUrls.length > 0 && (
             <details className="mt-3">

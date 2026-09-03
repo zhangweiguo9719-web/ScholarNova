@@ -17,6 +17,7 @@ from app.services.features.knowledge import (
     delete_knowledge_features,
     rebuild_knowledge_features,
 )
+from app.services.diagram.architecture_judge import judge_architecture
 from app.services.inference import AllModelsUnavailableError, chat_with_fallback
 from app.schemas.knowledge import (
     AIAnalyzeRequest,
@@ -557,8 +558,16 @@ async def ai_analyze_research(
             max_tokens=4096,
         )
 
+        # AI 中间评判：把主分析提炼成统一架构 JSON（失败则 None，前端文字兜底）
+        arch_json = None
+        try:
+            arch_json = await judge_architecture(knowledge_text, routed.content)
+        except Exception:
+            arch_json = None
+
         return AIAnalyzeResponse(
             analysis=routed.content,
+            architecture_json=arch_json,
             knowledge_count=len(knowledge_list),
             provider=routed.profile.get("provider"),
             model=routed.profile.get("model"),

@@ -128,6 +128,7 @@ class AIAnalyzeRequest(BaseModel):
 class AIAnalyzeResponse(BaseModel):
     """AI分析研究推进方向响应"""
     analysis: str = Field(..., description="AI生成的分析结果（中文）")
+    architecture_json: Optional[dict] = Field(None, description="AI评判提炼的统一架构 JSON（层/模块/公式），用于确定性 SVG 渲染")
     knowledge_count: int = Field(..., description="分析的知识点数量")
     provider: Optional[str] = Field(None, description="实际使用的模型提供商")
     model: Optional[str] = Field(None, description="实际使用的模型")

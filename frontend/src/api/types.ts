@@ -546,6 +546,7 @@ export interface AIAnalyzeResponse {
   total_tokens: number
   research_directions?: string[]
   architecture_description?: string
+  architecture_json?: { title?: string; layers?: { name: string; modules?: { name: string; desc?: string }[]; formula?: string }[] } | null
   suggested_routes?: string[]
   recommended_papers?: string[]
 }
