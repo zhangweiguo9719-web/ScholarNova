@@ -2,6 +2,8 @@
 
 from pathlib import Path
 
+import certifi
+
 from PyInstaller.utils.hooks import collect_submodules
 
 ROOT = Path.cwd()
@@ -24,7 +26,7 @@ a = Analysis(
     [str(BACKEND / "desktop_server.py")],
     pathex=[str(BACKEND)],
     binaries=[],
-    datas=[],
+    datas=[(certifi.where(), "certifi")],
     hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},
