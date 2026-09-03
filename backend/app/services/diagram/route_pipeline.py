@@ -48,6 +48,32 @@ async def _resolve_route_context(route_id: str, db: AsyncSession) -> Dict[str, A
     return {"route": route, "knowledge_list": knowledge_list, "knowledge_text": knowledge_text}
 
 
+def _modules_to_arch_text(modules):
+    import re
+    """把规划出的模块结构渲染成中文分层文字（供前端 SVG 架构图引擎解析）。
+
+    每模块一行层标题（### N. <Name> Layer）+ 子模块/描述/公式行。
+    层标题带 Layer 后缀，保证 SVG 解析器能识别为层；子模块作为该层模块。
+    """
+    lines = []
+    for i, m in enumerate(modules or [], 1):
+        name = str(m.get("name", f"Module {i}"))
+        if not re.search(r"layer|层", name, re.I):
+            name += " Layer"
+        lines.append(f"### {i}. {name}")
+        subs = m.get("sub_modules") or []
+        desc = str(m.get("desc", "") or "")
+        if subs:
+            for s in subs:
+                lines.append(f"- {s}")
+        elif desc:
+            lines.append(f"- {desc}")
+        formula = m.get("formula")
+        if formula:
+            lines.append(f"- {formula}")
+    return "\n".join(lines)
+
+
 async def stream_route_analysis(
     route_id: str,
     db: AsyncSession,
@@ -123,12 +149,26 @@ async def stream_route_analysis(
             model_name=diagram_config["model"],
         )
         planner_gw = LLMGateway(task="analysis")
-        image_prompt = await build_prompt_for_route(
+        from app.services.diagram import prompt_engine as pe
+        from app.services.diagram.planner import plan_modules_with_llm, _fallback_modules
+        _plan = await plan_modules_with_llm(
             planner_gw,
             route_title=route.title,
             knowledge_text=knowledge_text or "No linked knowledge details",
             text_analysis=text_analysis or "",
         )
+        if _plan is not None:
+            _layout = _plan.get("layout", "pipeline")
+            _modules = _plan.get("modules") or _fallback_modules(route.title, knowledge_text)
+        else:
+            _layout = pe.select_layout(route.title, text_analysis, knowledge_text)
+            _modules = _fallback_modules(route.title, knowledge_text)
+        image_prompt = pe.build_render_prompt(
+            route_title=route.title,
+            modules=_modules,
+            layout=_layout,
+        )
+        arch_text = _modules_to_arch_text(_modules)
         diagram_dir = runtime_path("generated") / "route_diagrams"
         diagram_dir.mkdir(parents=True, exist_ok=True)
         diagram_path = diagram_dir / f"{route.id}.png"
@@ -200,6 +240,7 @@ async def stream_route_analysis(
     }
 
     # ---- 合并结果 ----
+    arch_text = arch_text if "arch_text" in dir() else ""
     if image_url:
         combined = f"""## 文字分析（{text_label}）
 {text_analysis}
@@ -207,6 +248,8 @@ async def stream_route_analysis(
 ---
 
 ## 研究架构图（{diagram_label}）
+{arch_text}
+
 ![研究架构图]({image_url})
 
 [查看大图]({image_url})
@@ -223,9 +266,9 @@ async def stream_route_analysis(
 ---
 
 ## 研究架构图（{diagram_label}）
-> ⚠️ 图像生成暂不可用：{fallback_msg}
+{arch_text}
 
-请参考上方文字分析中的架构描述。
+> ⚠️ 图像生成暂不可用：{fallback_msg}
 
 ---
 

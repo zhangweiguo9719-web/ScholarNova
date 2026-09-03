@@ -1,9 +1,15 @@
 /**
  * AI 分析结果可视化组件
- * Provider-neutral text analysis + configured diagram model
+ * Provider-neutral text analysis + generic SVG architecture renderer
+ *
+ * 架构图渲染原则（泛化设计）：
+ * - 任何来源的架构文字（## 研究架构图 / 3.研究架构图(文字描述) /
+ *   "研究架构图（文字描述）" + 代码块 / 纯分层文本）都会先解析为
+ *   通用「层 → 模块」结构，再交给同一个 SVG 布局引擎渲染。
+ * - 不依赖 AI 生图模型：每次都是确定性代码生成，结果稳定、可排版。
  */
 import { useState, useEffect } from 'react'
-import { Clock, Sparkles, FlaskConical } from 'lucide-react'
+import { Clock, Sparkles, FlaskConical, ChevronDown } from 'lucide-react'
 import clsx from 'clsx'
 import { useLocaleStore } from '@/stores/localeStore'
 
@@ -69,108 +75,196 @@ function renderMarkdownText(text: string) {
   }).filter(Boolean)
 }
 
+/**
+ * 通用架构解析器：把任意格式的架构文字转成「层 → 模块」结构。
+ * 泛化启发式（不针对具体文字）：
+ *   1. 清理 markdown 符号（代码围栏 / 标题 # / 列表符号 / 编号 / 加粗 / 反引号）
+ *   2. 行类型分流：
+ *      - 列表项（- / * / + 开头）→ 一律是模块
+ *      - markdown 标题（### 开头）→ 一律是层
+ *      - 顶格纯文本 → 含强层词（层/阶段/编码器/Layer/Encoder…）或以冒号结尾 → 层；否则模块
+ */
 function parseLayers(text: string): { title: string; modules: string[] }[] {
-  const lines = text.split('\n').map((l) => l.trim()).filter(Boolean)
+  const lines = text.split('\n').filter((l) => l.trim().length > 0)
   const layers: { title: string; modules: string[] }[] = []
   let current: { title: string; modules: string[] } | null = null
+
+  const isLayerTitle = (clean: string): boolean => {
+    if (clean.includes('|') || clean.includes('=')) return false
+    if (/(层|阶段|模块组|环节|编码器|解码器|主干|Encoder|Decoder|Layer|Stage|Phase|Block|Pipeline|Controller|Policy|Critic|Reward|Optimizer)/i.test(clean)) return true
+    if (/[:：]$/.test(clean)) return true
+    // 短命名结构词（≤18 字、不含冒号/顿号/逗号、非内容行）
+    if (clean.length <= 18 && !clean.includes(':') && !clean.includes('、') && !clean.includes(',') &&
+        /^(输入|输出|特征|表示|决策|应用|优化|训练|推理|融合|多模态|模型|编码|解码|系统|架构|整体|端到端|数据流|信息流|动作|奖励|策略|环境|经验回放|轨迹)/.test(clean)) return true
+    return false
+  }
+  const modName = (clean: string): string =>
+    clean.replace(/^(.{2,28}?)[:：].*$/, '$1').trim()
+
   for (const line of lines) {
-    const clean = line.replace(/^[-*#>#\s]+/, '').replace(/\*\*/g, '')
+    const stripped = line.trim()
+    // 代码围栏整行跳过
+    if (/^```+/.test(stripped)) continue
+    const isList = /^[-*+•]\s+/.test(stripped)
+    const isHeading = /^#{1,6}\s+/.test(stripped)
+    const clean = stripped
+      .replace(/^#{1,6}\s*/g, '')
+      .replace(/^[-*+•]\s+/g, '')
+      .replace(/^\d+[.、)．:：]\s*/g, '')
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/\*([^*]+)\*/g, '$1')
+      .replace(/`/g, '')
+      .trim()
     if (!clean) continue
-    const isLayerTitle = (/(层|阶段|模块组|环节|编码器|解码器|Layer|Stage|Phase|Core|Input|Output)/.test(clean) || /[:：]$/.test(clean)) && !clean.includes('|') && clean.length <= 40
-    if (isLayerTitle) {
+
+    if (isList) {
+      if (current) current.modules.push(modName(clean))
+    } else if (isHeading || isLayerTitle(clean)) {
       current = { title: clean.replace(/[:：]\s*$/, ''), modules: [] }
       layers.push(current)
     } else if (current) {
-      if (clean.includes('|')) {
-        current.modules.push(...clean.split('|').map((m) => m.trim()).filter(Boolean))
-      } else if (clean.length > 2 && !/^(图|表|注|说明)/.test(clean)) {
-        current.modules.push(clean)
-      }
+      current.modules.push(modName(clean))
     }
   }
   return layers.filter((l) => l.title || l.modules.length > 0)
 }
 
+/**
+ * 通用 SVG 架构图引擎
+ * 设计：层 = 渐变泳道（左侧色条 + 左上角层标题 + 右上角序号）；
+ *       模块 = 白色圆角卡片（层主色描边 + 微阴影），行内居中排布；
+ *       层间 = 虚线箭头流线。每层配色取自 7 色学术色板，自动循环。
+ */
 function ArchitectureSvg({ text }: { text: string }) {
-  const cleaned = text.replace(/^\s*\d+[.、)]?\s*研究架构图[（(]?[^）)]*[）)]?\s*[\r\n]*/m, '').trim()
+  // 提取标题行（可选，如 "研究架构图" / "3.研究架构图(文字描述)"）
+  let title = ''
+  let body = text
+  const titleMatch = text.match(/^\s*\d*[.、)．]?\s*(研究架构图[^\n]*)/)
+  if (titleMatch && titleMatch[1].length <= 32) {
+    title = titleMatch[1].trim().replace(/[:：]$/, '')
+    body = text.replace(titleMatch[0], '')
+  }
+  const cleaned = body.replace(/^```+[a-zA-Z]*\s*$/gm, '').trim()
   const layers = parseLayers(cleaned)
+
+  // 泛化兜底：解析不出结构时也做干净排版（绝不暴露原始 markdown 符号）
   if (layers.length === 0) {
+    const safe = cleaned
+      .replace(/^#{1,6}\s*/gm, '')
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/`/g, '')
     return (
-      <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
-        {text.replace(/#{1,4}\s*/g, '').replace(/\*\*([^*]+)\*\*/g, '$1')}
+      <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+        {safe.split('\n').filter(Boolean).map((l, i) => (
+          <p key={i} className="pl-3 border-l-2 border-gray-200 dark:border-gray-700 mb-1">
+            {l.replace(/^[-*+]\s+/, '• ')}
+          </p>
+        ))}
       </div>
     )
   }
-  // SVG 布局参数
-  const width = 760
-  const modX = 220
-  const modW = 160
-  const modH = 34
-  const gap = 12
-  const perRow = Math.max(1, Math.floor((width - modX - 24) / (modW + gap)))
-  const rowH = modH + 8
-  const padTop = 14
+
+  // ---- 布局参数 ----
+  const width = 840
+  const modW = 176
+  const modH = 38
+  const gap = 14
+  const padX = 20
+  const padTop = 42
+  const padBottom = 14
   const arrowH = 30
-  const colors = ['#eaf2fb', '#e8f6ef', '#fbf1e7', '#f1eafa', '#e7f5f7', '#fdf3e6']
-  const borders = ['#8bc8ea', '#94d8c3', '#f4b393', '#c9a7e8', '#a3d5e8', '#e4d48f']
+  const titleH = title ? 46 : 0
+  const cols = Math.max(1, Math.floor((width - padX * 2 + gap) / (modW + gap)))
+  const rowH = modH + 10
 
-  // 计算每层高度
-  const layerRows = layers.map((l) => Math.max(1, Math.ceil(l.modules.length / perRow)))
-  const layerHeights = layerRows.map((rows) => padTop + rows * rowH + 8)
-  const totalH = layerHeights.reduce((a, b) => a + b, 0) + arrowH * (layers.length - 1) + 16
+  const palette = [
+    { main: '#2563eb', bg: '#eff6ff', border: '#bfdbfe', text: '#1e40af' },
+    { main: '#0891b2', bg: '#ecfeff', border: '#a5f3fc', text: '#155e75' },
+    { main: '#059669', bg: '#ecfdf5', border: '#a7f3d0', text: '#065f46' },
+    { main: '#d97706', bg: '#fffbeb', border: '#fde68a', text: '#92400e' },
+    { main: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe', text: '#5b21b6' },
+    { main: '#db2777', bg: '#fdf2f8', border: '#fbcfe8', text: '#9d174d' },
+    { main: '#475569', bg: '#f8fafc', border: '#cbd5e1', text: '#334155' },
+  ]
 
-  let y = 8
-  const boxes: React.ReactNode[] = []
-  layers.forEach((layer, li) => {
-    const layerH = layerHeights[li]
-    const color = colors[li % colors.length]
-    const border = borders[li % borders.length]
-    // 层背景
-    boxes.push(
-      <rect key={`bg${li}`} x={6} y={y} width={width - 12} height={layerH} rx={12}
-        fill={color} stroke={border} strokeWidth={1.2} />,
+  const rowCounts = layers.map((l) => Math.max(1, Math.ceil(Math.min(l.modules.length, 16) / cols)))
+  const layerHs = rowCounts.map((rows) => padTop + rows * rowH + padBottom)
+  const totalH = titleH + layerHs.reduce((a, b) => a + b, 0) + arrowH * (layers.length - 1) + 16
+
+  let y = titleH + 8
+  const els: React.ReactNode[] = []
+
+  if (title) {
+    els.push(
+      <g key="title">
+        <text x={width / 2} y={30} fontSize={17} fontWeight={700} fill="#1f2937" textAnchor="middle">
+          {title}
+        </text>
+        <line x1={width / 2 - 42} y1={38} x2={width / 2 + 42} y2={38} stroke="#e5e7eb" strokeWidth={2} strokeLinecap="round" />
+      </g>,
     )
-    // 层标题（竖排居左）
-    const midY = y + layerH / 2
-    const titleLines = layer.title.length > 10
-      ? [layer.title.slice(0, Math.ceil(layer.title.length / 2)), layer.title.slice(Math.ceil(layer.title.length / 2))]
-      : [layer.title]
-    titleLines.forEach((tl, ti) => {
-      boxes.push(
-        <text key={`t${li}-${ti}`} x={22} y={midY + (titleLines.length === 1 ? 5 : (ti - 0.5) * 15)}
-          fontSize={14} fontWeight={700} fill="#334155">
-          {tl}
-        </text>,
+  }
+
+  layers.forEach((layer, li) => {
+    const pal = palette[li % palette.length]
+    const layerH = layerHs[li]
+    const gid = `arch-lg-${li}`
+    const n = Math.min(layer.modules.length, 16)
+
+    // 泳道背景（纵向渐变）+ 左侧色条
+    els.push(
+      <defs key={`defs-${li}`}>
+        <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={pal.bg} />
+          <stop offset="100%" stopColor={pal.bg} stopOpacity={0.5} />
+        </linearGradient>
+      </defs>,
+      <rect key={`bg-${li}`} x={8} y={y} width={width - 16} height={layerH} rx={14}
+        fill={`url(#${gid})`} stroke={pal.border} strokeWidth={1.2} />,
+      <rect key={`bar-${li}`} x={8} y={y + 14} width={5} height={layerH - 28} rx={2.5} fill={pal.main} />,
+      // 层标题 + 序号
+      <text key={`lt-${li}`} x={26} y={y + 26} fontSize={14.5} fontWeight={700} fill={pal.text}>
+        {layer.title.length > 30 ? layer.title.slice(0, 29) + '…' : layer.title}
+      </text>,
+      <text key={`li-${li}`} x={width - 30} y={y + 26} fontSize={11} fill="#9ca3af" textAnchor="end" fontWeight={500}>
+        {li + 1} / {layers.length}
+      </text>,
+    )
+
+    // 模块卡片（行内居中）
+    layer.modules.slice(0, 16).forEach((mod, mi) => {
+      const row = Math.floor(mi / cols)
+      const rowStart = row * cols
+      const inRow = Math.min(cols, n - rowStart)
+      const rowTotalW = inRow * modW + (inRow - 1) * gap
+      const startX = padX + (width - padX * 2 - rowTotalW) / 2
+      const col = mi - rowStart
+      const mx = startX + col * (modW + gap)
+      const my = y + padTop + row * rowH
+      const label = mod.length > 20 ? mod.slice(0, 19) + '…' : mod
+      els.push(
+        <g key={`m-${li}-${mi}`}>
+          <rect x={mx} y={my} width={modW} height={modH} rx={9}
+            fill="#ffffff" stroke={pal.border} strokeWidth={1.4}
+            filter="url(#arch-shadow)" />
+          <rect x={mx} y={my} width={4} height={modH} rx={2} fill={pal.main} opacity={0.55} />
+          <text x={mx + modW / 2 + 4} y={my + modH / 2 + 4.5}
+            fontSize={12} fill="#374151" textAnchor="middle" fontWeight={500}>
+            {label}
+          </text>
+        </g>,
       )
     })
-    // 模块 chip
-    layer.modules.slice(0, 14).forEach((mod, mi) => {
-      const row = Math.floor(mi / perRow)
-      const col = mi % perRow
-      const cx = modX + col * (modW + gap)
-      const cy = y + padTop + row * rowH
-      boxes.push(
-        <rect key={`m${li}-${mi}`} x={cx} y={cy} width={modW} height={modH} rx={8}
-          fill="#ffffff" stroke={border} strokeWidth={1} />,
-      )
-      const label = mod.length > 18 ? mod.slice(0, 17) + '…' : mod
-      boxes.push(
-        <text key={`mt${li}-${mi}`} x={cx + modW / 2} y={cy + modH / 2 + 4.5}
-          fontSize={11.5} fill="#334155" textAnchor="middle" fontWeight={500}>
-          {label}
-        </text>,
-      )
-    })
-    // 层间箭头（垂直向下）
+
+    // 层间虚线箭头
     if (li < layers.length - 1) {
       const fromY = y + layerH
       const toY = fromY + arrowH
-      const cxA = width / 2
-      boxes.push(
-        <g key={`a${li}`}>
-          <line x1={cxA} y1={fromY} x2={cxA} y2={toY - 8} stroke="#94a3b8" strokeWidth={2} />
-          <path d={`M ${cxA - 6} ${toY - 14} L ${cxA} ${toY - 2} L ${cxA + 6} ${toY - 14}`}
-            fill="none" stroke="#94a3b8" strokeWidth={2} />
+      const cx = width / 2
+      els.push(
+        <g key={`a-${li}`}>
+          <line x1={cx} y1={fromY} x2={cx} y2={toY - 10} stroke="#94a3b8" strokeWidth={2} strokeDasharray="4 3" />
+          <path d={`M ${cx - 7} ${toY - 17} L ${cx} ${toY - 3} L ${cx + 7} ${toY - 17}`} fill="none" stroke="#94a3b8" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
         </g>,
       )
     }
@@ -179,9 +273,14 @@ function ArchitectureSvg({ text }: { text: string }) {
 
   return (
     <div className="overflow-x-auto rounded-lg">
-      <svg viewBox={`0 0 ${width} ${totalH}`} style={{ minWidth: 640 }} role="img"
-        aria-label="研究架构图">
-        {boxes}
+      <svg viewBox={`0 0 ${width} ${totalH}`} style={{ minWidth: 720, maxWidth: '100%' }} role="img"
+        aria-label="研究架构图" className="w-full h-auto">
+        <defs>
+          <filter id="arch-shadow" x="-30%" y="-30%" width="160%" height="160%">
+            <feDropShadow dx="0" dy="1.5" stdDeviation="2" floodColor="#00000018" />
+          </filter>
+        </defs>
+        {els}
       </svg>
     </div>
   )
@@ -230,7 +329,6 @@ export default function AnalysisViz({
   const { locale } = useLocaleStore()
   const isChinese = locale === 'zh'
   const [showFull, setShowFull] = useState(false)
-  const [imgFailed, setImgFailed] = useState<Record<number, boolean>>({})
 
   if (loading) return <WaitTimer seconds={estimatedTime} />
 
@@ -255,7 +353,7 @@ export default function AnalysisViz({
     if (m2[1] && !imageUrls.includes(m2[1])) imageUrls.push(m2[1])
   }
 
-  // 分离文字分析和架构图（兼容 ## 研究架构图 / 3.研究架构图(文字描述) 等格式）
+  // 分离文字分析和架构图（兼容多种格式）
   const archIndex = analysis.search(/研究架构图/)
   const textPart = archIndex >= 0 ? analysis.slice(0, archIndex) : analysis
   const diagramPart = archIndex >= 0 ? analysis.slice(archIndex) : ''
@@ -282,43 +380,47 @@ export default function AnalysisViz({
         </div>
       </div>
 
-      {/* SenseNova 架构图 */}
-      {imageUrls.length > 0 ? (
-        imageUrls.map((url, i) => (
-          <div key={i} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-            <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-              <FlaskConical className="w-4 h-4 text-purple-500" />
-              {isChinese ? 'AI 研究架构图' : 'AI Research Architecture'}
-            </h3>
-            {imgFailed[i] && diagramPart ? (
-              <ArchitectureSvg text={diagramPart} />
-            ) : imgFailed[i] ? (
-              <div className="text-sm text-gray-500">{isChinese ? '图片加载失败' : 'Image failed to load'}</div>
-            ) : (
-              <>
-                <img src={url} alt={isChinese ? '研究架构图' : 'Architecture'}
-                  className="w-full rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-shadow"
-                  onError={() => setImgFailed((prev) => ({ ...prev, [i]: true }))}
-                  onClick={() => window.open(url, '_blank')} />
-                <a href={url} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs text-primary-600 dark:text-primary-400 hover:underline mt-2">
-                  {isChinese ? '🔍 查看大图' : '🔍 View full size'}
-                </a>
-              </>
-            )}
+      {/* 架构图：通用 SVG 引擎（每次确定性生成，不依赖 AI 生图） */}
+      {diagramPart ? (
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+          <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+            <FlaskConical className="w-4 h-4 text-purple-500" />
+            {isChinese ? 'AI 研究架构图' : 'AI Research Architecture'}
+            <span className="ml-auto text-[11px] font-normal text-gray-400">
+              {isChinese ? 'SVG 渲染' : 'SVG rendered'}
+            </span>
+          </h3>
+          <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-3">
+            <ArchitectureSvg text={diagramPart} />
           </div>
-        ))
-      ) : diagramPart && (
+          {imageUrls.length > 0 && (
+            <details className="mt-3">
+              <summary className="inline-flex items-center gap-1 text-xs text-primary-600 dark:text-primary-400 hover:underline cursor-pointer select-none">
+                <ChevronDown className="w-3.5 h-3.5" />
+                {isChinese ? 'AI 绘制版大图' : 'AI-drawn version'}
+              </summary>
+              <div className="mt-2 space-y-3">
+                {imageUrls.map((url, i) => (
+                  <img key={i} src={url} alt={isChinese ? 'AI 绘制架构图' : 'AI-drawn architecture'}
+                    className="w-full rounded-lg border border-gray-200 dark:border-gray-700" />
+                ))}
+              </div>
+            </details>
+          )}
+        </div>
+      ) : imageUrls.length > 0 ? (
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
           <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
             <FlaskConical className="w-4 h-4 text-purple-500" />
             {isChinese ? 'AI 研究架构图' : 'AI Research Architecture'}
           </h3>
-          <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
-            <ArchitectureSvg text={diagramPart} />
-          </div>
+          {imageUrls.map((url, i) => (
+            <img key={i} src={url} alt={isChinese ? 'AI 绘制架构图' : 'AI-drawn architecture'}
+              className="w-full rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => window.open(url, '_blank')} />
+          ))}
         </div>
-      )}
+      ) : null}
     </div>
   )
 }
