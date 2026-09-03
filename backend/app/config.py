@@ -265,7 +265,11 @@ def load_saved_model_config():
                 default_base_url = config.get("base_url")
                 task_configs = config.get("tasks") or {}
                 for task_name, existing in MODEL_PROFILES.items():
-                    task_config = task_configs.get(task_name) or {}
+                    # 任务完全未在 tasks 中显式配置时，保留其默认 provider 与
+                    # 凭据（如 diagram 默认走 sensenova），避免被主配置覆盖。
+                    if task_name not in task_configs or not task_configs[task_name]:
+                        continue
+                    task_config = task_configs[task_name]
                     task_provider = task_config.get("provider") or default_provider
                     same_provider = task_provider == default_provider
                     MODEL_PROFILES[task_name] = {
@@ -276,7 +280,7 @@ def load_saved_model_config():
                             or (default_model if same_provider else existing.get("model"))
                         ),
                         "api_key": task_config.get("api_key")
-                        or (default_api_key if same_provider else None),
+                        or (default_api_key if same_provider else existing.get("api_key")),
                         "base_url": task_config.get("base_url")
                         or (default_base_url if same_provider else existing.get("base_url")),
                     }
