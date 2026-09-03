@@ -76,7 +76,7 @@ function parseLayers(text: string): { title: string; modules: string[] }[] {
   for (const line of lines) {
     const clean = line.replace(/^[-*#>#\s]+/, '').replace(/\*\*/g, '')
     if (!clean) continue
-    const isLayerTitle = /(层|阶段|模块组|环节|Layer|Stage|Phase|Core|Input|Output)/.test(clean) && !clean.includes('|') && clean.length <= 40
+    const isLayerTitle = (/(层|阶段|模块组|环节|编码器|解码器|Layer|Stage|Phase|Core|Input|Output)/.test(clean) || /[:：]$/.test(clean)) && !clean.includes('|') && clean.length <= 40
     if (isLayerTitle) {
       current = { title: clean.replace(/[:：]\s*$/, ''), modules: [] }
       layers.push(current)
@@ -92,7 +92,8 @@ function parseLayers(text: string): { title: string; modules: string[] }[] {
 }
 
 function ArchitectureSvg({ text }: { text: string }) {
-  const layers = parseLayers(text)
+  const cleaned = text.replace(/^\s*\d+[.、)]?\s*研究架构图[（(]?[^）)]*[）)]?\s*[\r\n]*/m, '').trim()
+  const layers = parseLayers(cleaned)
   if (layers.length === 0) {
     return (
       <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
@@ -254,9 +255,10 @@ export default function AnalysisViz({
     if (m2[1] && !imageUrls.includes(m2[1])) imageUrls.push(m2[1])
   }
 
-  // 分离文字分析和架构图
-  const textPart = analysis.split(/##\s*研究架构图/)[0] || analysis
-  const diagramPart = analysis.includes('研究架构图') ? analysis.split(/##\s*研究架构图/)[1] || '' : ''
+  // 分离文字分析和架构图（兼容 ## 研究架构图 / 3.研究架构图(文字描述) 等格式）
+  const archIndex = analysis.search(/研究架构图/)
+  const textPart = archIndex >= 0 ? analysis.slice(0, archIndex) : analysis
+  const diagramPart = archIndex >= 0 ? analysis.slice(archIndex) : ''
 
   return (
     <div className="space-y-4">
