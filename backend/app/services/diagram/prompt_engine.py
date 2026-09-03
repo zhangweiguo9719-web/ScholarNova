@@ -72,6 +72,20 @@ LAYOUT_PATTERNS = {
         ),
         "plan_hint": "side-by-side comparison panels",
     },
+    "roadmap": {
+        "name": "Research Stage Roadmap",
+        "best_for": "科研阶段路线图（选题→调研→方案→实验→成稿）",
+        "render": (
+            "Layout: horizontal research roadmap with 5 stage columns arranged "
+            "left to right, connected by arrows: stage 1 topic formulation, "
+            "stage 2 literature review, stage 3 method design, stage 4 "
+            "experiments and validation, stage 5 paper writing. Each stage "
+            "column contains 2-3 short task labels and one key deliverable. "
+            "Use a distinct accent color for the current stage. Arrows show "
+            "stage progression only."
+        ),
+        "plan_hint": "horizontal 5-stage research roadmap",
+    },
 }
 
 # =============================================================================
@@ -128,6 +142,9 @@ def select_layout(
     优先级：明确的方法对比 > 框架/分层 > 融合/多模态 > 默认流水线。
     """
     text = f"{route_title} {analysis_text} {knowledge_text}".lower()
+    # 科研阶段路线图关键词优先
+    if any(k in text for k in ("路线图", "科研阶段", "roadmap", "研究路线", "阶段规划")):
+        return "roadmap"
     if any(k in text for k in ("对比", "消融", "基线", "compare", "ablation", "baseline")):
         return "comparison"
     if any(k in text for k in ("框架", "分层", "栈", "架构", "stack", "layer", "architect")):

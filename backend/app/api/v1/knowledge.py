@@ -16,6 +16,8 @@ from app.services.features.knowledge import (
     delete_knowledge_features,
     rebuild_knowledge_features,
 )
+from app.services.diagram.planner import build_prompt_for_route
+from app.services.diagram.route_planner import build_roadmap_for_route
 from app.services.inference import AllModelsUnavailableError, chat_with_fallback
 from app.schemas.knowledge import (
     AIAnalyzeRequest,
@@ -435,7 +437,49 @@ async def ai_generate_route_analysis(route_id: str, db: AsyncSession = Depends(g
         logger.exception("Research-route diagram generation failed", extra={"route_id": route_id})
         image_result = {"status": "error", "error": str(exc)}
 
+
+    # Step 3: 科研阶段路线图。复用 Step 2 的商汤实例与 analysis 模型做规划；
+    # 失败时静默降级（不影响主流程），仅在日志记录。
+    roadmap_result = None
+    try:
+        roadmap = await build_roadmap_for_route(
+            planner_gw,
+            route_title=route.title,
+            knowledge_text=knowledge_text or "No linked knowledge details",
+            text_analysis=text_analysis or "",
+        )
+        roadmap_prompt = roadmap["prompt"]
+        roadmap_plan = roadmap["plan"]
+        # 结构化阶段路线文字版（无论出图是否成功都保留，规划结果有价值）
+        stage_lines = []
+        for s in roadmap_plan.get("stages", []):
+            tasks = "、".join(s.get("tasks", []))
+            stage_lines.append(
+                f"- **{s.get("id")}. {s.get("zh", s.get("name", ""))}**："
+                f"任务（{tasks}）；产出：{s.get("deliverable", "")}；"
+                f"决策门：{s.get("gate", "")}"
+            )
+        roadmap_md = "\n".join(stage_lines)
+        roadmap_result = {"md": roadmap_md, "url": ""}
+        # 出图（失败不影响文字版）
+        roadmap_path = diagram_dir / f"{route.id}_roadmap.png"
+        roadmap_img = await sn.generate_image(
+            prompt=roadmap_prompt,
+            save_path=str(roadmap_path),
+        )
+        if roadmap_img.get("status") == "ok":
+            roadmap_result["url"] = (
+                f"/generated/route_diagrams/{route.id}_roadmap.png"
+                if roadmap_path.exists()
+                else roadmap_img.get("url", "")
+            )
+    except Exception:
+        logger.exception("Research-route roadmap generation failed", extra={"route_id": route_id})
+        roadmap_result = None
+
+
     # 合并结果；模型名称取自实际路由，不再写死供应商。
+    roadmap_md = (roadmap_result or {}).get("md", "> 路线图生成暂不可用。")
     if image_result.get("status") == "ok":
         image_url = (
             f"/generated/route_diagrams/{route.id}.png"
@@ -450,7 +494,12 @@ async def ai_generate_route_analysis(route_id: str, db: AsyncSession = Depends(g
 ## 研究架构图（{diagram_label}）
 ![研究架构图]({image_url})
 
-[查看大图]({image_url})"""
+[查看大图]({image_url})
+
+---
+
+## 科研阶段路线图
+{roadmap_md}"""
     else:
         fallback_msg = image_result.get("error", "图像生成失败")
         combined = f"""## 文字分析（{text_label}）
@@ -461,7 +510,12 @@ async def ai_generate_route_analysis(route_id: str, db: AsyncSession = Depends(g
 ## 研究架构图（{diagram_label}）
 > ⚠️ 图像生成暂不可用：{fallback_msg}
 
-请参考上方文字分析中的架构描述。"""
+请参考上方文字分析中的架构描述。
+
+---
+
+## 科研阶段路线图
+{roadmap_md}"""
 
     try:
         route.ai_analysis = combined

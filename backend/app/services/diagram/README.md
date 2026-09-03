@@ -34,8 +34,10 @@ ScholarNova 的研究路线图/架构图出图链路，采用 **Nature 期刊配
 |---|---|
 | `app/services/diagram/prompt_engine.py` | 纯字符串组装：布局模式、配色、视觉风格、渲染提示词、规划层提示词模板 |
 | `app/services/diagram/planner.py` | LLM 规划 + 降级兜底，对外暴露 `build_prompt_for_route` |
-| `app/api/v1/knowledge.py` | 研究路线出图端点，调用 `build_prompt_for_route` 替代原硬编码提示词 |
+| `app/services/diagram/route_planner.py` | 科研阶段路线规划：LLM 生成 5 阶段路线（选题→调研→方法→实验→论文），输出结构化阶段 + roadmap 渲染提示词 |
+| `app/api/v1/knowledge.py` | 研究路线出图端点，Step 2 架构图 + Step 3 科研阶段路线图 |
 | `docs/diagram-skill/nature-figure-prompts/` | 上游参考资产（Aryous/nature-figure-prompts, MIT），论文分析/布局/配色/词汇规范 |
+| `docs/diagram-skill/research-planning-architect/` | 上游参考资产（clear0215/research-planning-architect），分层实验矩阵/新颖性诊断/决策门思想 |
 
 ## 布局模式
 
@@ -45,6 +47,7 @@ ScholarNova 的研究路线图/架构图出图链路，采用 **Nature 期刊配
 | `hierarchy` | 分层堆叠 | 算法栈 / 框架分层 |
 | `radial` | 放射中心 | 核心方法与多数据/多任务交互 |
 | `comparison` | 并排对比 | 消融实验 / 基线对照 |
+| `roadmap` | 科研阶段路线图 | 选题→调研→方法→实验→论文的 5 阶段横向路线 |
 
 布局由 LLM 规划选择，LLM 失败时按标题/分析文本关键词启发式选择。
 
