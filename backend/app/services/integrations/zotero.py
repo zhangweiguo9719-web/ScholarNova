@@ -9,6 +9,7 @@ from typing import Any
 import httpx
 
 ZOTERO_LOCAL_API = "http://127.0.0.1:23119/api"
+ZOTERO_CONNECTOR_API = "http://127.0.0.1:23119/connector"
 ZOTERO_API_VERSION = "3"
 _COLLECTION_KEY = re.compile(r"^[A-Za-z0-9]+$")
 
@@ -104,6 +105,70 @@ class ZoteroLocalClient:
                 f"{response.text[:160]}"
             ) from exc
         return response
+
+
+    async def _connector_save_items(
+        self,
+        items: list[dict[str, Any]],
+    ) -> None:
+        """Save items via the Zotero Connector endpoint (write-capable).
+
+        In Zotero 9 the /api prefix is read-only; writes must go through
+        /connector/saveItems, the same endpoint the browser extension uses.
+        Returns 201 with an empty body on success.
+        """
+        try:
+            async with httpx.AsyncClient(
+                base_url=ZOTERO_CONNECTOR_API,
+                timeout=10.0,
+                trust_env=False,
+            ) as client:
+                response = await client.post("/saveItems", json={"items": items})
+        except (httpx.ConnectError, httpx.ConnectTimeout, httpx.ReadTimeout) as exc:
+            raise ZoteroUnavailableError(
+                "未检测到 Zotero。请先启动 Zotero，并在设置 → 高级中启用本地 API。"
+            ) from exc
+        if response.status_code in {401, 403}:
+            raise ZoteroAccessDeniedError(
+                "Zotero 拒绝了写入请求。请在 Zotero 设置 → 高级中启用"
+                "“允许此计算机上的其他应用程序与 Zotero 通讯”。"
+            )
+        if response.status_code != 201:
+            raise ZoteroClientError(
+                f"Zotero Connector 写入失败: HTTP {response.status_code} "
+                f"{response.text[:160]}"
+            )
+
+    async def _find_item_key_by_title(
+        self,
+        title: str,
+        *,
+        doi: str | None = None,
+    ) -> str:
+        """Look up a recently-created item's key by title (and optional DOI).
+
+        /connector/saveItems returns 201 with an empty body, so we retrieve
+        the key via the read-only search API.
+        """
+        results = await self.search_items(title, limit=10)
+        target_title = title.strip().casefold()
+        target_doi = (doi or "").strip().casefold()
+        for item in results:
+            data = item.get("data") or {}
+            if str(data.get("title") or "").strip().casefold() != target_title:
+                continue
+            if target_doi and str(data.get("DOI") or "").strip().casefold() != target_doi:
+                continue
+            key = str(item.get("key") or data.get("key") or "").strip()
+            if key:
+                return key
+        for item in results:
+            data = item.get("data") or {}
+            if str(data.get("title") or "").strip().casefold() == target_title:
+                key = str(item.get("key") or data.get("key") or "").strip()
+                if key:
+                    return key
+        return ""
 
     async def status(self) -> ZoteroStatus:
         response = await self._get(
@@ -282,35 +347,36 @@ class ZoteroLocalClient:
         if collection_key and _COLLECTION_KEY.fullmatch(collection_key):
             item["collections"] = [collection_key]
 
-        response = await self._post("/users/0/items", [item], api_key=api_key)
-        created = response.json()
-        parent_key = ""
-        if isinstance(created, list) and created and isinstance(created[0], dict):
-            parent_key = str(created[0].get("successful", {}).get("0", {}).get("key", "") or "")
+        # Write via the Connector endpoint (the /api prefix is read-only in Zotero 9).
+        # This is the same mechanism the Zotero Connector browser extension uses.
+        await self._connector_save_items([item])
+
+        # /connector/saveItems returns 201 with an empty body; look up the key via search.
+        parent_key = await self._find_item_key_by_title(clean_title, doi=doi)
 
         attachment_key = ""
         if parent_key and pdf_path:
-            attachment = [
-                {
-                    "itemType": "attachment",
-                    "parentItem": parent_key,
-                    "linkMode": "linked_file",
-                    "path": str(pdf_path),
-                    "title": f"{clean_title[:200]}.pdf",
-                    "contentType": "application/pdf",
-                }
-            ]
+            attachment = {
+                "itemType": "attachment",
+                "parentItem": parent_key,
+                "linkMode": "linked_file",
+                "path": str(pdf_path),
+                "title": f"{clean_title[:200]}.pdf",
+                "contentType": "application/pdf",
+            }
             try:
-                att_response = await self._post(
-                    "/users/0/items", attachment, api_key=api_key
+                await self._connector_save_items([attachment])
+                children_resp = await self._get(
+                    f"/users/0/items/{parent_key}/children",
+                    params={"format": "json"},
                 )
-                att_created = att_response.json()
-                if isinstance(att_created, list) and att_created and isinstance(
-                    att_created[0], dict
-                ):
-                    attachment_key = str(
-                        att_created[0].get("successful", {}).get("0", {}).get("key", "") or ""
-                    )
+                for child in children_resp.json():
+                    cdata = child.get("data") or {}
+                    if cdata.get("itemType") == "attachment":
+                        attachment_key = str(
+                            child.get("key") or cdata.get("key") or ""
+                        ).strip()
+                        break
             except ZoteroClientError:
                 # 附件失败不回滚条目，返回时说明
                 pass
