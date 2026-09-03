@@ -2,11 +2,12 @@
 研究知识库相关 API 端点
 """
 
+import asyncio
 import logging
 from datetime import datetime
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -16,8 +17,6 @@ from app.services.features.knowledge import (
     delete_knowledge_features,
     rebuild_knowledge_features,
 )
-from app.services.diagram.planner import build_prompt_for_route
-from app.services.diagram.route_planner import build_roadmap_for_route
 from app.services.inference import AllModelsUnavailableError, chat_with_fallback
 from app.schemas.knowledge import (
     AIAnalyzeRequest,
@@ -366,168 +365,21 @@ async def delete_route(route_id: str, db: AsyncSession = Depends(get_db)) -> dic
 
 @router.post("/routes/{route_id}/ai-generate", response_model=RouteResponse)
 async def ai_generate_route_analysis(route_id: str, db: AsyncSession = Depends(get_db)) -> RouteResponse:
-    """AI 生成研究路线分析"""
-    route = (await db.execute(select(ResearchRoute).where(ResearchRoute.id == route_id))).scalar_one_or_none()
-    if not route:
+    """AI 生成研究路线分析（三步：文字分析 → 架构图 → 科研阶段路线图）"""
+    from app.services.diagram.route_pipeline import stream_route_analysis
+
+    result = None
+    error = None
+    async for event in stream_route_analysis(route_id, db):
+        if event["event"] == "done":
+            result = event["data"]
+        elif event["event"] == "error":
+            error = event["message"]
+    if error:
+        raise HTTPException(status_code=500, detail=error)
+    if result is None:
         raise HTTPException(status_code=404, detail="Route not found")
-
-    knowledge_list = []
-    if route.knowledge_ids:
-        for kid in route.knowledge_ids:
-            k = (await db.execute(select(KnowledgeBase).where(KnowledgeBase.id == kid))).scalar_one_or_none()
-            if k: knowledge_list.append(k)
-
-    knowledge_text = "\n".join([f"{i}. {k.title} [{k.category}] - {(k.content or '')[:200]}" for i, k in enumerate(knowledge_list, 1)])
-
-    prompt = f"""你是学术研究顾问。请为研究路线「{route.title}」生成分析报告。
-
-关联知识点：
-{knowledge_text or '暂无'}
-
-请输出：研究目标、技术路线图、关键任务、预期成果。用中文。"""
-
-    from app.services.llm.gateway import LLMGateway
-    from app.config import get_model_for_task
-
-    # Step 1: 文字分析使用任务主模型；失败后由显式备用模型接管。
-    try:
-        routed = await chat_with_fallback(
-            task="analysis",
-            messages=[{"role": "system", "content": "你是学术研究顾问。请用中文输出详细的分析报告，包含研究目标、技术路线图（用文字描述模块关系和数据流）、关键任务。"}, {"role": "user", "content": prompt}],
-            temperature=0.3, max_tokens=4096,
-        )
-        text_analysis = routed.content
-        text_label = f"{routed.profile.get('provider')}/{routed.profile.get('model')}"
-        if routed.fallback_used:
-            text_label += " · 备用模型"
-    except AllModelsUnavailableError:
-        logger.exception("Research-route text models unavailable", extra={"route_id": route_id})
-        text_analysis = _knowledge_fallback(knowledge_list)
-        text_label = "规则兜底 · 无模型调用结果"
-
-    # Step 2: 出图保持独立的 diagram 配置，不路由到普通文本备用模型。
-    diagram_config = get_model_for_task("diagram")
-    diagram_label = f"{diagram_config.get('provider')}/{diagram_config.get('model')}"
-    try:
-        sn = LLMGateway(provider=diagram_config["provider"])
-        sn.configure(
-            api_key=diagram_config["api_key"],
-            base_url=diagram_config["base_url"],
-            model_name=diagram_config["model"],
-        )
-        # 提示词由 LLM 规划 + Nature 规范引擎组装；LLM 失败时降级到启发式布局。
-        planner_gw = LLMGateway(task="analysis")
-        image_prompt = await build_prompt_for_route(
-            planner_gw,
-            route_title=route.title,
-            knowledge_text=knowledge_text or "No linked knowledge details",
-            text_analysis=text_analysis or "",
-        )
-
-        from app.config import runtime_path
-
-        diagram_dir = runtime_path("generated") / "route_diagrams"
-        diagram_dir.mkdir(parents=True, exist_ok=True)
-        diagram_path = diagram_dir / f"{route.id}.png"
-        image_result = await sn.generate_image(
-            prompt=image_prompt,
-            save_path=str(diagram_path),
-        )
-    except Exception as exc:
-        logger.exception("Research-route diagram generation failed", extra={"route_id": route_id})
-        image_result = {"status": "error", "error": str(exc)}
-
-
-    # Step 3: 科研阶段路线图。复用 Step 2 的商汤实例与 analysis 模型做规划；
-    # 失败时静默降级（不影响主流程），仅在日志记录。
-    roadmap_result = None
-    try:
-        roadmap = await build_roadmap_for_route(
-            planner_gw,
-            route_title=route.title,
-            knowledge_text=knowledge_text or "No linked knowledge details",
-            text_analysis=text_analysis or "",
-        )
-        roadmap_prompt = roadmap["prompt"]
-        roadmap_plan = roadmap["plan"]
-        # 结构化阶段路线文字版（无论出图是否成功都保留，规划结果有价值）
-        stage_lines = []
-        for s in roadmap_plan.get("stages", []):
-            tasks = "、".join(s.get("tasks", []))
-            stage_lines.append(
-                f"- **{s.get("id")}. {s.get("zh", s.get("name", ""))}**："
-                f"任务（{tasks}）；产出：{s.get("deliverable", "")}；"
-                f"决策门：{s.get("gate", "")}"
-            )
-        roadmap_md = "\n".join(stage_lines)
-        roadmap_result = {"md": roadmap_md, "url": ""}
-        # 出图（失败不影响文字版）
-        roadmap_path = diagram_dir / f"{route.id}_roadmap.png"
-        roadmap_img = await sn.generate_image(
-            prompt=roadmap_prompt,
-            save_path=str(roadmap_path),
-        )
-        if roadmap_img.get("status") == "ok":
-            roadmap_result["url"] = (
-                f"/generated/route_diagrams/{route.id}_roadmap.png"
-                if roadmap_path.exists()
-                else roadmap_img.get("url", "")
-            )
-    except Exception:
-        logger.exception("Research-route roadmap generation failed", extra={"route_id": route_id})
-        roadmap_result = None
-
-
-    # 合并结果；模型名称取自实际路由，不再写死供应商。
-    roadmap_md = (roadmap_result or {}).get("md", "> 路线图生成暂不可用。")
-    if image_result.get("status") == "ok":
-        image_url = (
-            f"/generated/route_diagrams/{route.id}.png"
-            if diagram_path.exists()
-            else image_result.get("url", "")
-        )
-        combined = f"""## 文字分析（{text_label}）
-{text_analysis}
-
----
-
-## 研究架构图（{diagram_label}）
-![研究架构图]({image_url})
-
-[查看大图]({image_url})
-
----
-
-## 科研阶段路线图
-{roadmap_md}"""
-    else:
-        fallback_msg = image_result.get("error", "图像生成失败")
-        combined = f"""## 文字分析（{text_label}）
-{text_analysis}
-
----
-
-## 研究架构图（{diagram_label}）
-> ⚠️ 图像生成暂不可用：{fallback_msg}
-
-请参考上方文字分析中的架构描述。
-
----
-
-## 科研阶段路线图
-{roadmap_md}"""
-
-    try:
-        route.ai_analysis = combined
-        await db.commit()
-        await db.refresh(route)
-        return RouteResponse(
-            id=route.id, title=route.title, description=route.description,
-            knowledge_ids=route.knowledge_ids or [], ai_analysis=route.ai_analysis,
-            status=route.status, created_at=route.created_at, updated_at=route.updated_at,
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Saving route analysis failed: {str(e)}")
+    return RouteResponse(**result)
 
 
 # ============================================================
@@ -812,3 +664,59 @@ async def recommend_papers(
             total_tokens=exc.usage["total_tokens"],
             created_at=datetime.utcnow(),
         )
+
+
+
+# ============================================================
+# SSE 流式：研究路线分析进度
+# ============================================================
+
+@router.post("/routes/{route_id}/ai-generate-stream")
+async def ai_generate_route_analysis_stream(
+    route_id: str,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """SSE 流式版本：分步推送 文字分析 → 架构图 → 科研阶段路线图 的进度。
+
+    事件格式（data 为 JSON）：
+      {"event":"stage","stage":"analysis","progress":30,"message":"...","data":{...}}
+      {"event":"done","progress":100,"data":{RouteResponse 字段}}
+      {"event":"error","message":"..."}
+    客户端以 EventSource / fetch-stream 消费。
+    """
+    from sse_starlette.sse import EventSourceResponse
+
+    from app.services.diagram.route_pipeline import stream_route_analysis
+
+    async def event_generator():
+        try:
+            async for event in stream_route_analysis(route_id, db):
+                # 保持 SSE 连接活跃
+                yield {
+                    "event": event.get("event", "stage"),
+                    "data": _json_dumps(event),
+                }
+        except asyncio.CancelledError:
+            # 客户端断开，清理
+            logger.info("SSE stream cancelled for route %s", route_id)
+            raise
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("SSE stream error for route %s", route_id)
+            yield {
+                "event": "error",
+                "data": _json_dumps({"event": "error", "message": f"Stream error: {exc}"}),
+            }
+
+    return EventSourceResponse(event_generator(), ping=15)
+
+
+def _json_dumps(obj) -> str:
+    import json
+
+    def _default(o):
+        if hasattr(o, "isoformat"):
+            return o.isoformat()
+        return str(o)
+
+    return json.dumps(obj, ensure_ascii=False, default=_default)

@@ -34,10 +34,35 @@ ScholarNova 的研究路线图/架构图出图链路，采用 **Nature 期刊配
 |---|---|
 | `app/services/diagram/prompt_engine.py` | 纯字符串组装：布局模式、配色、视觉风格、渲染提示词、规划层提示词模板 |
 | `app/services/diagram/planner.py` | LLM 规划 + 降级兜底，对外暴露 `build_prompt_for_route` |
-| `app/services/diagram/route_planner.py` | 科研阶段路线规划：LLM 生成 5 阶段路线（选题→调研→方法→实验→论文），输出结构化阶段 + roadmap 渲染提示词 |
-| `app/api/v1/knowledge.py` | 研究路线出图端点，Step 2 架构图 + Step 3 科研阶段路线图 |
+| `app/services/diagram/route_planner.py` | 科研阶段路线规划：LLM 生成 5 阶段路线（选题→调研→方法→实验→论文），输出结构化阶段 + roadmap 渲染提示词；内置**时效性/幻觉防线**（每阶段 evidence_status 标注 + 整体 evidence_summary） |
+| `app/services/diagram/paper_analyzer.py` | 论文分析图：把知识库/论文内容转成「Question→Method→Contribution→Evidence」结构图（LLM 规划 + 兜底骨架） |
+| `app/services/diagram/route_pipeline.py` | 三步分析流水线（文字→架构图→路线图）异步生成器，供 REST 端点与 SSE 流式端点复用 |
+| `app/api/v1/knowledge.py` | 研究路线端点：`POST /routes/{id}/ai-generate`（REST）+ `POST /routes/{id}/ai-generate-stream`（SSE 流式进度） |
 | `docs/diagram-skill/nature-figure-prompts/` | 上游参考资产（Aryous/nature-figure-prompts, MIT），论文分析/布局/配色/词汇规范 |
 | `docs/diagram-skill/research-planning-architect/` | 上游参考资产（clear0215/research-planning-architect），分层实验矩阵/新颖性诊断/决策门思想 |
+
+## SSE 流式进度
+
+`POST /api/v1/knowledge/routes/{route_id}/ai-generate-stream` 返回 `text/event-stream`，
+逐步推送 文字分析 → 架构图 → 科研阶段路线图 的进度事件（含 evidence 防线报告）：
+
+```
+event: stage   data: {"event":"stage","stage":"analysis","progress":30,...}
+event: done    data: {"event":"done","progress":100,"data":{...RouteResponse}}
+event: error   data: {"event":"error","message":"..."}
+```
+
+## 时效性 / 幻觉防线
+
+规划器给每个科研阶段标注 `evidence_status`（grounded / partial / unverified）：
+
+- **grounded**：阶段任务有知识库条目直接支撑（如"模型设计"被知识项 1-2 支持）
+- **partial**：部分支撑，需补充文献验证
+- **unverified**：纯规划动作（文献检索、论文撰写等），知识库未覆盖，明确提示需自行验证
+
+整体 `evidence_summary` 汇总各阶段覆盖情况；LLM 未标注时由 `_annotate_evidence_status`
+规则兜底（检测知识库是否含证据性内容：实验/结果/数据/验证等信号词）。
+防线信息只进**文字版路线**与事件推送，**不进渲染提示词**（避免污染画面）。
 
 ## 布局模式
 
