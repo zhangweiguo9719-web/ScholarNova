@@ -6,6 +6,7 @@ import { searchApi, papersApi, networkApi } from '@/api/client'
 import type { AnalysisResult } from '@/api/types'
 import { useSearchStore } from '@/stores/searchStore'
 import { useLocaleStore } from '@/stores/localeStore'
+import { addSearchHistory, clearSearchHistory, getSearchHistory } from '@/utils/searchHistory'
 import SearchBar from '@/components/SearchBar/SearchBar'
 import QueryPlan from '@/components/QueryPlan/QueryPlan'
 import SearchInsights from '@/components/SearchInsights/SearchInsights'
@@ -26,7 +27,7 @@ export default function Search() {
     selectedPaper, analysis, analysisLoading, evidenceSpans, evidenceLoading,
     setSearchRun, setIsLoading, setError, setQuery,
     setSelectedPaper, setAnalysis, setAnalysisLoading,
-    setEvidenceSpans, clearSearch,
+    setEvidenceSpans,
   } = useSearchStore()
 
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -41,16 +42,16 @@ export default function Search() {
     return Number.isFinite(saved) && saved >= 360 ? saved : 440
   })
   const [isResizing, setIsResizing] = useState(false)
+  const [searchHistory, setSearchHistory] = useState<ReturnType<typeof getSearchHistory>>(() => getSearchHistory())
 
+  // 卸载时只清理轮询与缓存，保留 store 中的搜索状态，切页返回不空白
   useEffect(() => {
-    window.localStorage.removeItem('scholar-search-state')
     return () => {
       if (pollTimerRef.current) clearTimeout(pollTimerRef.current)
       analysisCacheRef.current.clear()
       lastStartedQueryRef.current = null
-      clearSearch()
     }
-  }, [clearSearch])
+  }, [])
 
   useEffect(() => {
     if (!isLoading || searchStartedAtRef.current == null) return
@@ -110,6 +111,7 @@ export default function Search() {
 
   const performSearch = async (searchQuery: string) => {
     lastStartedQueryRef.current = searchQuery
+    setSearchHistory(addSearchHistory(searchQuery))
     if (pollTimerRef.current) clearTimeout(pollTimerRef.current)
     setIsLoading(true)
     setError(null)
@@ -350,8 +352,8 @@ export default function Search() {
               </div>
             )}
 
-            {/* 没有 URL 查询时：显示空状态。搜索内容只保留在当前页面会话。 */}
-            {!queryParam && (
+            {/* 没有 URL 查询也没有历史结果时：显示空状态 + 最近搜索。 */}
+            {!queryParam && !searchRun && (
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <BookOpen className="w-16 h-16 text-gray-200 dark:text-gray-700 mb-4" />
                 <h3 className="text-lg font-medium text-gray-600 dark:text-gray-400 mb-2">
@@ -362,6 +364,35 @@ export default function Search() {
                     ? '输入研究问题或主题，AI 会规划优化的子查询并搜索多个学术数据库'
                     : 'Enter a research question or topic above. The AI will plan optimized sub-queries and search across multiple academic databases.'}
                 </p>
+                {searchHistory.length > 0 && (
+                  <div className="w-full max-w-xl">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-medium text-gray-400 dark:text-gray-500 flex items-center gap-1">
+                        <Clock3 className="w-3.5 h-3.5" />
+                        {locale === 'zh' ? '最近搜索' : 'Recent searches'}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => { clearSearchHistory(); setSearchHistory([]) }}
+                        className="text-xs text-gray-400 hover:text-red-500 transition-colors"
+                      >
+                        {locale === 'zh' ? '清空' : 'Clear'}
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap justify-center gap-2">
+                      {searchHistory.slice(0, 8).map((item) => (
+                        <button
+                          key={`${item.query}-${item.at}`}
+                          type="button"
+                          onClick={() => navigate(`/search?q=${encodeURIComponent(item.query)}`)}
+                          className="px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-600 dark:text-gray-300 hover:border-primary-300 dark:hover:border-primary-600 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                        >
+                          {item.query}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

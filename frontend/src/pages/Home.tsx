@@ -1,11 +1,13 @@
 import { useNavigate } from 'react-router-dom'
-import { GitBranch, Globe, ShieldCheck, Sparkles } from 'lucide-react'
+import { GitBranch, Globe, ShieldCheck, Sparkles, Clock3 } from 'lucide-react'
 import SearchBar from '@/components/SearchBar/SearchBar'
 import { useLocaleStore } from '@/stores/localeStore'
+import { getSearchHistory } from '@/utils/searchHistory'
 
 export default function Home() {
   const navigate = useNavigate()
   const { t, locale } = useLocaleStore()
+  const searchHistory = getSearchHistory()
 
   const handleSearch = (query: string) => {
     navigate(`/search?q=${encodeURIComponent(query)}`)
@@ -54,6 +56,27 @@ export default function Home() {
               </button>
             ))}
           </div>
+          {searchHistory.length > 0 && (
+            <div className="mt-6 w-full max-w-xl mx-auto text-center">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Clock3 className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
+                <span className="text-xs text-gray-400 dark:text-gray-500">
+                  {locale === 'zh' ? '最近搜索' : 'Recent searches'}
+                </span>
+              </div>
+              <div className="flex flex-wrap justify-center gap-2">
+                {searchHistory.slice(0, 8).map((item) => (
+                  <button
+                    key={`${item.query}-${item.at}`}
+                    onClick={() => handleSearch(item.query)}
+                    className="px-3 py-1 rounded-full border border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-600 hover:text-primary-600 dark:hover:text-primary-400 text-sm text-gray-500 dark:text-gray-400 transition-colors"
+                  >
+                    {item.query}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </section>
 

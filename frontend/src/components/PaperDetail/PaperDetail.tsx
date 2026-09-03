@@ -48,6 +48,10 @@ export default function PaperDetailPanel({
   const [fulltextStatus, setFulltextStatus] = useState<FulltextStatus | null>(null)
   const [uploadingFulltext, setUploadingFulltext] = useState(false)
   const [zoteroSyncing, setZoteroSyncing] = useState(false)
+  const [zoteroPickerOpen, setZoteroPickerOpen] = useState(false)
+  const [zoteroCollections, setZoteroCollections] = useState<import('@/api/types').ZoteroCollection[]>([])
+  const [zoteroCollectionsLoading, setZoteroCollectionsLoading] = useState(false)
+  const [zoteroSelectedCollection, setZoteroSelectedCollection] = useState('') // '' = 根库（我的文库）
   const [analysisElapsed, setAnalysisElapsed] = useState(0)
   const analysisStartedAtRef = useRef<number | null>(null)
   const fulltextInputRef = useRef<HTMLInputElement>(null)
@@ -144,6 +148,27 @@ export default function PaperDetailPanel({
           : 'Zotero not detected. Start Zotero and enable the local API under Settings → Advanced.')
         return
       }
+      setZoteroCollectionsLoading(true)
+      try {
+        const { data } = await zoteroApi.collections()
+        setZoteroCollections(data.items || [])
+      } catch {
+        setZoteroCollections([])
+        toast.error(isChinese ? '获取 Zotero 文件夹列表失败' : 'Failed to load Zotero collections')
+        return
+      } finally {
+        setZoteroCollectionsLoading(false)
+      }
+      setZoteroSelectedCollection('')
+      setZoteroPickerOpen(true)
+    } finally {
+      setZoteroSyncing(false)
+    }
+  }
+
+  const handleConfirmZoteroPush = async () => {
+    setZoteroSyncing(true)
+    try {
       await zoteroApi.push({
         title: paper.title,
         creators: paper.authors.map((name) => {
@@ -158,8 +183,14 @@ export default function PaperDetailPanel({
         doi: paper.doi || undefined,
         url: paper.url || undefined,
         abstract: paper.abstract || undefined,
+        collection_key: zoteroSelectedCollection || undefined,
       })
-      toast.success(isChinese ? '已同步到 Zotero' : 'Pushed to Zotero')
+      toast.success(isChinese
+        ? (zoteroSelectedCollection
+            ? `已同步到 Zotero「${zoteroCollections.find((c) => c.key === zoteroSelectedCollection)?.name || ''}」`
+            : '已同步到 Zotero 我的文库')
+        : 'Pushed to Zotero')
+      setZoteroPickerOpen(false)
     } catch (err: any) {
       const detail = err?.response?.data?.detail
       const msg = typeof detail === 'object' ? detail?.message : detail
@@ -261,6 +292,58 @@ export default function PaperDetailPanel({
           {isChinese ? '同步到 Zotero' : 'Push to Zotero'}
         </button>
       </div>
+
+      {/* Zotero 文件夹选择器 */}
+      {zoteroPickerOpen && (
+        <div className="mt-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/40">
+          <div className="flex items-center gap-2 mb-2">
+            <BookMarked className="w-4 h-4 text-primary-500" />
+            <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+              {isChinese ? '同步到 Zotero 文件夹' : 'Push to Zotero collection'}
+            </span>
+          </div>
+          {zoteroCollectionsLoading ? (
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              {isChinese ? '正在读取文件夹列表...' : 'Loading collections...'}
+            </div>
+          ) : (
+            <select
+              value={zoteroSelectedCollection}
+              onChange={(e) => setZoteroSelectedCollection(e.target.value)}
+              className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-400"
+            >
+              <option value="">{isChinese ? '我的文库（根目录）' : 'My Library (root)'}</option>
+              {zoteroCollections.map((col) => (
+                <option key={col.key} value={col.key}>{col.name}</option>
+              ))}
+            </select>
+          )}
+          {!zoteroCollectionsLoading && zoteroCollections.length === 0 && (
+            <p className="text-[11px] text-gray-400 mt-1">
+              {isChinese ? '未发现自定义文件夹，将写入我的文库根目录。' : 'No custom collections found; will write to My Library root.'}
+            </p>
+          )}
+          <div className="flex items-center justify-end gap-2 mt-3">
+            <button
+              type="button"
+              onClick={() => setZoteroPickerOpen(false)}
+              className="px-3 py-1.5 rounded-md text-xs text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            >
+              {isChinese ? '取消' : 'Cancel'}
+            </button>
+            <button
+              type="button"
+              disabled={zoteroSyncing || zoteroCollectionsLoading}
+              onClick={handleConfirmZoteroPush}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {zoteroSyncing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <BookMarked className="w-3.5 h-3.5" />}
+              {zoteroSyncing ? (isChinese ? '同步中...' : 'Syncing...') : (isChinese ? '确认同步' : 'Confirm')}
+            </button>
+          </div>
+        </div>
+      )}
 
       {(fulltextStatus?.available || analysis) && (
         <div className={clsx(

@@ -115,6 +115,19 @@ RENDER_VISUAL_STYLE = (
     "short English labels only, generous white space between modules."
 )
 
+# 顶刊级深度：鼓励模块内部子结构（多层堆叠/子组件）与公式标注
+RENDER_TOP_TIER_STYLE = (
+    "Top-tier journal depth: mimic high-quality architecture figures in "
+    "NeurIPS / CVPR / Nature-style papers. Every major module may contain its "
+    "own internal structure - e.g. stacked sub-blocks for convolution layers, "
+    "small nested boxes for attention heads, fusion branches or critic/reward "
+    "components, tiny rounded chips for loss and evaluation. Use feedback or "
+    "bidirectional arrows where the method has loops or iterative refinement. "
+    "Keep short mathematical notations minimal and clean (like X, f(.), L, "
+    "Attention(Q,K,V)). The overall composition should feel dense, structured "
+    "and professional - not a simple flat strip of boxes."
+)
+
 # =============================================================================
 # 禁止元素（规划层约束，绝不进入渲染层提示词）
 # =============================================================================
@@ -181,11 +194,24 @@ def build_render_prompt(
     )
 
     if modules:
-        # 只取 name，避免长 desc 被渲染成画面文字
+        # 只取 name + 内部子模块 + 公式，避免长 desc 被渲染成画面文字
         label_list = []
         for m in modules:
-            if isinstance(m, dict) and m.get("name"):
-                label_list.append(str(m["name"]))
+            if not (isinstance(m, dict) and m.get("name")):
+                continue
+            name = str(m["name"])
+            subs = m.get("sub_modules")
+            subs_list = []
+            if isinstance(subs, list):
+                subs_list = [
+                    str(s) for s in subs if isinstance(s, str) and s.strip()
+                ][:6]
+            formula = m.get("formula") if isinstance(m, dict) else None
+            if subs_list:
+                name = name + " (stacked blocks: " + ", ".join(subs_list) + ")"
+            elif formula and isinstance(formula, str) and formula.strip():
+                name = name + " (notation: " + formula.strip()[:60] + ")"
+            label_list.append(name)
         if label_list:
             parts.append(
                 "The diagram should contain these labeled modules, in order: "
@@ -194,6 +220,7 @@ def build_render_prompt(
 
     parts.append(layout_render + ".")
     parts.append(RENDER_VISUAL_STYLE)
+    parts.append(RENDER_TOP_TIER_STYLE)
     parts.append(RENDER_COLOR_HINT)
 
     return "\n".join(parts)
@@ -225,7 +252,12 @@ Output JSON with this exact schema:
 {{
   "layout": "pipeline" | "hierarchy" | "radial" | "comparison",
   "modules": [
-    {{"name": "short English label (2-3 words)", "desc": "what this module covers, one short phrase"}}
+    {{
+      "name": "short English label (2-3 words)",
+      "desc": "what this module covers, one short phrase",
+      "sub_modules": ["2-4 short internal sub-modules giving this module depth, e.g. stacked layers or components"],
+      "formula": "optional minimal math notation for this module, e.g. Attention(Q,K,V) or L(theta)"
+    }}
   ],
   "flow": "a short phrase describing the visual flow"
 }}
@@ -235,7 +267,11 @@ Output JSON with this exact schema:
 Additional rules:
 - 4 to 6 modules max
 - Modules MUST reflect the actual research content from the knowledge items; do not invent
-- No numeric results in labels"""
+- No numeric results in labels
+- Every module SHOULD include 2-4 sub_modules describing its internal structure
+  (e.g. a convolution module -> ["Conv 3x3", "BN", "ReLU", "Pooling"]) so the
+  figure has top-tier-journal depth instead of being a flat strip of boxes
+- Optionally include one short formula per module when it is natural"""
 
 
 def build_planning_user_prompt(
