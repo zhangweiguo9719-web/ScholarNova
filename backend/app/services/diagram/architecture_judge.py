@@ -29,6 +29,10 @@ _SYSTEM_PROMPT = (
 _USER_PROMPT_TEMPLATE = """请对下面的研究架构进行"评判式提炼"：去掉噪音、纠正重复与空泛，输出一份干净、专业、适合绘制科研架构图的 JSON。
 
 要求：
+
+研究背景（仅用于理解领域；所有层与模块必须来自下面的原文，禁止从背景臆造）：
+{background}
+
 1. 结构字段严格如下（不要增删字段）：
 {{
   "title": "架构总名称（简短）",
@@ -46,7 +50,9 @@ _USER_PROMPT_TEMPLATE = """请对下面的研究架构进行"评判式提炼"：
 3. 每层 1~6 个模块；模块名要具体（如"跨模态注意力"、"Prompt-as-Prefix"），不要写空话。
 4. 公式用 ASCII/LaTeX 简写（如 F = concat(F1, F2, ...)；Y = LightGPT(X, P)；theta = theta + alpha*dL）。
 5. 合并同名层、去掉没有内容的空层；从原文提取真实模块，不要臆造。
-6. 用 <{tag}>...</{tag}> 包裹 JSON，例如：
+6. 必须忠实于原文的研究架构：层与模块只能取自原文，禁止套用通用大模型模板、禁止臆造原文没有的模块；原文层名请对应译为中文（如 Data Encoding Layer → 数据编码层），不要替换成其他领域概念。
+7. 层名与模块名默认用中文（如 输入层 / 特征融合 / LLM 推理层 / 决策层 / 反馈层），专业术语可保留英文缩写（LLM、Attention、LoRA、Prompt 等）；描述用中文。
+8. 用 <{tag}>...</{tag}> 包裹 JSON，例如：
 <{tag}>
 {{"title": "...", "layers": [...]}}
 </{tag}>
@@ -154,8 +160,10 @@ async def judge_architecture(
     analysis_snippet = (analysis_text or "")[:6000]
     if not analysis_snippet.strip():
         return None
+    background = (knowledge_text or "")[:1500]
     prompt = _USER_PROMPT_TEMPLATE.format(
         tag=ARCH_JSON_TAG,
+        background=background or "（无额外背景）",
         analysis=analysis_snippet,
     )
     messages = [

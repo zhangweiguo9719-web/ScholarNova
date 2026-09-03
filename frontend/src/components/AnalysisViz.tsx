@@ -136,43 +136,53 @@ function renderMarkdownText(text: string) {
  */
 const BOX_CHARS = /[┌┐└┘├┤┬┴┼─═║╔╗╚╝╠╣╦╩╬]/g
 
-function parseLayers(text: string): { title: string; modules: string[] }[] {
+function parseLayers(text: string): ArchLayer[] {
   const lines = text.split('\n').filter((l) => l.trim().length > 0)
-  const layers: { title: string; modules: string[] }[] = []
-  let current: { title: string; modules: string[] } | null = null
+  const layers: ArchLayer[] = []
+  let current: ArchLayer | null = null
 
   const isLayerTitle = (clean: string): boolean => {
     if (clean.includes('|') || clean.includes('=')) return false
     if (/(层|阶段|模块组|环节|编码器|解码器|主干|Encoder|Decoder|Layer|Stage|Phase|Block|Pipeline|Controller|Policy|Critic|Reward|Optimizer)/i.test(clean)) return true
     if (/[:：]$/.test(clean)) return true
-    // 短命名结构词（≤18 字、不含冒号/顿号/逗号、非内容行）
     if (clean.length <= 18 && !clean.includes(':') && !clean.includes('、') && !clean.includes(',') &&
         /^(输入|输出|特征|表示|决策|应用|优化|训练|推理|融合|多模态|模型|编码|解码|系统|架构|整体|端到端|数据流|信息流|动作|奖励|策略|环境|经验回放|轨迹)/.test(clean)) return true
     return false
   }
   const modName = (clean: string): string =>
     clean.replace(/^(.{2,28}?)[:：].*$/, '$1').trim()
-  const openLayer = (clean: string) => {
-    const layer = { title: clean.replace(/[:：]\s*$/, ''), modules: [] as string[] }
+  // 数学特征行（含 = → 希腊字母 / argmax 等）→ 作为当前层的公式，而不是模块
+  const isFormulaLine = (s: string): boolean =>
+    /[=→Σ∏θαβγδλμωΩ∫∂∈]|argmax|argmin|concat|Attention\(|softmax|normalize|Loss|encode\(|decoder\(/.test(s)
+  const openLayer = (clean: string): ArchLayer => {
+    const layer: ArchLayer = { title: clean.replace(/[:：]\s*$/, ''), modules: [], formula: '' }
     layers.push(layer)
     return layer
+  }
+  const addFormula = (clean: string) => {
+    if (!current) current = openLayer('架构模块')
+    current.formula = current.formula ? `${current.formula}; ${clean}` : clean
   }
 
   for (const line of lines) {
     const stripped = line.trim()
-    // 代码围栏整行跳过
     if (/^```+/.test(stripped)) continue
+    // markdown 图片 / 链接（独立一行）跳过，绝不当作模块（否则会显示 ![..](..) 乱码）
+    if (/^!\[[^\]]*\]\([^)]*\)\s*$/.test(stripped)) continue
+    if (/^\[[^\]]*\]\([^)]*\)\s*$/.test(stripped)) continue
     // 表格纯框线行（无正文）跳过
     if (/^[\s┌┐└┘├┤┬┴┼─═║╔╗╚╝╠╣╦╩╬|=\-]+$/.test(stripped)) continue
     // 含竖线/框线的行：按单元格拆分
     if (stripped.includes('│') || stripped.includes('|')) {
       const cells = stripped
         .split(/[│|]/)
-        .map((c) => c.replace(BOX_CHARS, '').replace(/^#{1,6}\s*/, '').replace(/^[-*+•]\s+/, '').trim())
+        .map((cell) => cell.replace(BOX_CHARS, '').replace(/^#{1,6}\s*/, '').replace(/^[-*+•]\s+/, '').trim())
         .filter(Boolean)
       if (cells.length === 0) continue
       for (const cell of cells) {
-        if (isLayerTitle(cell)) {
+        if (isFormulaLine(cell)) {
+          addFormula(cell)
+        } else if (isLayerTitle(cell)) {
           current = openLayer(cell)
         } else if (current) {
           current.modules.push(modName(cell))
@@ -195,7 +205,9 @@ function parseLayers(text: string): { title: string; modules: string[] }[] {
       .trim()
     if (!clean) continue
 
-    if (isList) {
+    if (isFormulaLine(clean)) {
+      addFormula(clean)
+    } else if (isList) {
       if (current) current.modules.push(modName(clean))
     } else if (isHeading || isLayerTitle(clean)) {
       current = openLayer(clean)
@@ -391,8 +403,18 @@ function WaitTimer({ seconds }: { seconds: number }) {
  * 否则回退到文字启发式解析（仍走同一个 SVG 引擎）。
  */
 function resolveArchitecture(analysis: string, architectureJson?: ArchitectureJson | null) {
+  // 1) 显式传入的 AI 评判 JSON
   const fromJson = normalizeJsonLayers(architectureJson)
   if (fromJson) return fromJson
+  // 2) 文本内嵌 <ARCH_JSON> 块（route_pipeline 等后端可写入）
+  const emb = analysis.match(/<ARCH_JSON>\s*(\{[\s\S]*?\})\s*<\/ARCH_JSON>/)
+  if (emb) {
+    try {
+      const embedded = normalizeJsonLayers(JSON.parse(emb[1]))
+      if (embedded) return embedded
+    } catch {}
+  }
+  // 3) 文字启发式解析（兜底）
   const archIndex = analysis.search(/研究架构图/)
   const diagramPart = archIndex >= 0 ? analysis.slice(archIndex) : ''
   if (!diagramPart.trim()) return null

@@ -241,6 +241,16 @@ async def stream_route_analysis(
 
     # ---- 合并结果 ----
     arch_text = arch_text if "arch_text" in dir() else ""
+    # AI 评判：把架构提炼成统一 JSON（前端优先渲染，层名统一为中文；失败静默跳过）
+    arch_json_block = ""
+    try:
+        import json as _json
+        from app.services.diagram.architecture_judge import judge_architecture
+        _judged = await judge_architecture(knowledge_text, arch_text)
+        if _judged:
+            arch_json_block = "\n\n<ARCH_JSON>" + _json.dumps(_judged, ensure_ascii=False) + "</ARCH_JSON>"
+    except Exception:
+        arch_json_block = ""
     if image_url:
         combined = f"""## 文字分析（{text_label}）
 {text_analysis}
@@ -248,7 +258,7 @@ async def stream_route_analysis(
 ---
 
 ## 研究架构图（{diagram_label}）
-{arch_text}
+{arch_text}{arch_json_block}
 
 ![研究架构图]({image_url})
 
@@ -266,7 +276,7 @@ async def stream_route_analysis(
 ---
 
 ## 研究架构图（{diagram_label}）
-{arch_text}
+{arch_text}{arch_json_block}
 
 > ⚠️ 图像生成暂不可用：{fallback_msg}
 
