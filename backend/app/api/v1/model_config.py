@@ -472,11 +472,17 @@ async def test_model_connection(
             api_key = settings.OPENAI_API_KEY
         elif not api_key and saved_fallback.get("provider") == request.provider:
             api_key = saved_fallback.get("api_key")
+        # 测试连接优先使用该供应商自己的默认地址兜底，避免 base_url 为空时
+        # 误用 .env 或其他已保存配置的地址，导致 Key 打到错误的厂商。
+        from app.config import PROVIDER_DEFAULTS as _PD
+
+        _default_base, _ = _PD.get(request.provider, (None, None))
+        _target_base = request.base_url or _default_base or settings.OPENAI_API_BASE
         gateway = LLMGateway.from_profile(
             {
                 "provider": request.provider,
                 "api_key": api_key,
-                "base_url": request.base_url,
+                "base_url": _target_base,
                 "model": request.model_name,
             }
         )
