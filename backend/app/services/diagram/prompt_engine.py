@@ -117,11 +117,17 @@ PLANNING_FORBIDDEN = """HARD RULES for module design:
 # 规划 → 渲染提示词
 # =============================================================================
 
-def select_layout(route_title: str, analysis_text: str = "", knowledge_text: str = "") -> str:
+def select_layout(
+    route_title: str,
+    analysis_text: str = "",
+    knowledge_text: str = "",
+) -> str:
     """
-    根据研究路线标题与文字分析选择布局模式（启发式，可被 LLM 规划覆盖）。
+    根据研究路线标题、文字分析与知识库内容选择布局模式（启发式，可被 LLM 规划覆盖）。
+
+    优先级：明确的方法对比 > 框架/分层 > 融合/多模态 > 默认流水线。
     """
-    text = f"{route_title} {analysis_text}".lower()
+    text = f"{route_title} {analysis_text} {knowledge_text}".lower()
     if any(k in text for k in ("对比", "消融", "基线", "compare", "ablation", "baseline")):
         return "comparison"
     if any(k in text for k in ("框架", "分层", "栈", "架构", "stack", "layer", "architect")):
@@ -135,19 +141,19 @@ def build_render_prompt(
     route_title: str,
     modules: Optional[List[Dict[str, Any]]] = None,
     layout: str = "pipeline",
-    aspect_ratio: str = "16:9",
 ) -> str:
     """
     生成**只含可渲染内容**的英文提示词（交给生图模型）。
 
     关键：这里不拼接 FORBIDDEN / COLOR RULES / 知识库原文——
     那些约束只作用于规划层，避免生图模型把指令当画面文字。
+    比例也不写进渲染层（由 generate_image 的 aspect_ratio 参数控制），
+    避免 "ASPECT RATIO:" 这类元指令被渲染成乱码。
 
     Args:
         route_title: 研究路线标题
         modules: 结构化模块列表 [{name, desc}]（由 LLM 规划或启发式生成）
         layout: 布局模式 key
-        aspect_ratio: 出图比例
     """
     layout_render = LAYOUT_PATTERNS.get(layout, LAYOUT_PATTERNS["pipeline"])["render"]
 

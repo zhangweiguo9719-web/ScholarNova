@@ -20,23 +20,84 @@ from app.services.diagram import prompt_engine as pe
 logger = logging.getLogger(__name__)
 
 
+# 常见中文科研术语 → 英文模块名（供启发式降级路径使用）
+_TERM_TO_MODULE = {
+    "图卷积": "Graph Convolution",
+    "图神经": "Graph Neural Net",
+    "卷积": "Convolution",
+    "注意力": "Attention",
+    "transformer": "Transformer",
+    "多模态": "Multi-modal Fusion",
+    "融合": "Feature Fusion",
+    "知识图谱": "Knowledge Graph",
+    "知识库": "Knowledge Base",
+    "检索": "Retrieval",
+    "生成": "Generation",
+    "预测": "Prediction",
+    "分类": "Classification",
+    "聚类": "Clustering",
+    "强化学习": "Reinforcement",
+    "深度学习": "Deep Learning",
+    "预训练": "Pre-training",
+    "微调": "Fine-tuning",
+    "大模型": "Foundation Model",
+    "llm": "LLM",
+    "向量": "Embedding",
+    "时序": "Time Series",
+    "时空": "Spatio-temporal",
+    "图网络": "Graph Network",
+    "传感器": "Sensor Data",
+    "天气": "Weather Data",
+    "路网": "Road Network",
+    "轨迹": "Trajectory",
+    "优化": "Optimization",
+    "评估": "Evaluation",
+    "验证": "Validation",
+}
+
+
+def _extract_domain_terms(knowledge_text: str, limit: int = 3) -> List[str]:
+    """
+    从知识库文本中抽取领域术语（启发式，命中则转英文模块名）。
+
+    - 按配置顺序匹配；命中更具体的术语后，跳过其子串（如"图卷积"命中后跳过"卷积"）
+    - limit 为最大返回数，但保证先取多样化的领域词
+    """
+    if not knowledge_text:
+        return []
+    lowered = knowledge_text.lower()
+    found: List[str] = []
+    matched_terms: List[str] = []
+    for term, eng in _TERM_TO_MODULE.items():
+        t = term.lower()
+        if t not in lowered:
+            continue
+        # 若该术语是已命中更具体术语的子串，跳过（避免"图卷积"与"卷积"并存）
+        if any(t in m and len(t) < len(m) for m in matched_terms):
+            continue
+        if eng not in found:
+            found.append(eng)
+            matched_terms.append(t)
+        if len(found) >= limit:
+            break
+    return found
+
+
 def _fallback_modules(route_title: str, knowledge_text: str = "") -> List[Dict[str, str]]:
     """
-    启发式模块生成：当 LLM 规划失败时，从布局 + 通用科研流程生成兜底模块。
+    启发式模块生成：当 LLM 规划失败时，从知识库文本抽取领域术语，
+    组装成贴近研究主题的流水线模块（而非纯通用骨架）。
 
-    返回 5 个通用科研流程模块，并尽量从知识库文本中抽取领域名词做标签。
+    结构：Input → [抽取的领域模块...] → Output，数量 4-6 个。
     """
-    # 通用科研流程骨架
+    domain = _extract_domain_terms(knowledge_text, limit=3)
     skeleton = [
         ("Data Input", "multi-source data collection"),
-        ("Preprocessing", "cleaning and normalization"),
-        ("Core Method", "model and algorithm"),
+        *[(d, "core processing module") for d in domain],
         ("Training & Validation", "loss optimization and evaluation"),
         ("Output", "predictions and metrics"),
     ]
-    # 尝试从知识库提取 1-2 个领域词作为方法模块增强（尽力而为）
-    modules = [{"name": n, "desc": d} for n, d in skeleton]
-    return modules
+    return [{"name": n, "desc": d} for n, d in skeleton]
 
 
 async def plan_modules_with_llm(
@@ -98,17 +159,17 @@ async def build_prompt_for_route(
     route_title: str,
     knowledge_text: str = "",
     text_analysis: str = "",
-    aspect_ratio: str = "16:9",
 ) -> str:
     """
     一站式：尝试 LLM 规划，失败则启发式布局，返回**渲染层**最终提示词。
+
+    注：出图比例不在此控制，由调用方 generate_image(aspect_ratio=...) 决定。
 
     Args:
         llm_gateway: 已配置 LLMGateway（analysis 任务即可）
         route_title: 研究路线标题
         knowledge_text: 知识库条目
         text_analysis: 文字分析
-        aspect_ratio: 出图比例
 
     Returns:
         完整英文生图提示词（只含可渲染内容）
@@ -123,7 +184,6 @@ async def build_prompt_for_route(
             route_title=route_title,
             modules=modules,
             layout=layout,
-            aspect_ratio=aspect_ratio,
         )
     # 降级：启发式布局 + 兜底模块
     layout = pe.select_layout(route_title, text_analysis, knowledge_text)
@@ -132,5 +192,4 @@ async def build_prompt_for_route(
         route_title=route_title,
         modules=modules,
         layout=layout,
-        aspect_ratio=aspect_ratio,
     )
