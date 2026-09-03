@@ -413,23 +413,14 @@ async def ai_generate_route_analysis(route_id: str, db: AsyncSession = Depends(g
             base_url=diagram_config["base_url"],
             model_name=diagram_config["model"],
         )
-        image_prompt = f"""Create a publication-quality research framework infographic for:
-"{route.title}"
-
-Ground the diagram in these verified knowledge items:
-{knowledge_text[:1200] or "No linked knowledge details"}
-
-Use the following route analysis only as layout guidance:
-{text_analysis[:1500]}
-
-Requirements:
-- 16:9 landscape, clean white background, academic paper style
-- clear left-to-right data flow with arrows
-- 3 to 5 labeled modules covering inputs, core methods, validation, and outputs
-- concise English labels to avoid unreadable generated text
-- navy, teal, and restrained gold palette
-- no decorative filler, no invented numeric results, no logos or watermarks
-"""
+        # 提示词由 LLM 规划 + Nature 规范引擎组装；LLM 失败时降级到启发式布局。
+        planner_gw = LLMGateway(task="analysis")
+        image_prompt = await build_prompt_for_route(
+            planner_gw,
+            route_title=route.title,
+            knowledge_text=knowledge_text or "No linked knowledge details",
+            text_analysis=text_analysis or "",
+        )
 
         from app.config import runtime_path
 
