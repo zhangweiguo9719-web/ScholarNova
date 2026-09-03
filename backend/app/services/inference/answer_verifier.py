@@ -35,6 +35,26 @@ _META_PREFIXES = (
     "note:",
 )
 
+# 总结/列举/总览类问题标记：这类问题的回答职责是概括检索到的材料，
+# 未逐句引用属于正常现象，不应判为"引用校验失败"。
+_OVERVIEW_MARKERS = (
+    # 中文
+    "有哪些", "有什么", "总结", "概括", "列举", "列出", "总览", "概览",
+    "包含哪些", "包含什么", "有什么研究", "都有什么", "现在有哪些",
+    # 英文
+    "what do i have", "what are", "list", "summarize", "summarise",
+    "overview", "summarize my", "what's in", "what is in",
+)
+
+
+def _is_overview_question(question: str) -> bool:
+    normalized = (question or "").casefold().strip()
+    if not normalized:
+        return False
+    if len(normalized) <= 24 and any(m in normalized for m in _OVERVIEW_MARKERS):
+        return True
+    return any(normalized.startswith(m) for m in _OVERVIEW_MARKERS)
+
 
 @dataclass(frozen=True, slots=True)
 class CitationVerification:
@@ -83,8 +103,16 @@ def _claim_segments(answer: str) -> list[str]:
 def verify_answer_citations(
     answer: str,
     allowed_citation_ids: Sequence[str],
+    *,
+    question: str | None = None,
 ) -> CitationVerification:
-    """Check that factual answer segments use only provided source markers."""
+    """Check that factual answer segments use only provided source markers.
+
+    ``question`` 用于识别"总结/列举/总览"类问题：这类回答的职责是概括
+    检索到的材料，未逐句引用属于正常现象。此时把失败阈值放宽为 partial，
+    避免把"我的知识库有哪些"这类问题误报为引用校验失败。
+    """
+    lenient = _is_overview_question(question) if question else False
     allowed = {source_id.upper() for source_id in allowed_citation_ids}
     claims = _claim_segments(answer)
     used = {
@@ -100,8 +128,9 @@ def verify_answer_citations(
 
     claim_count = len(claims)
     if claim_count == 0:
+        status: VerificationStatus = "not_applicable" if lenient else "failed"
         return CitationVerification(
-            status="failed",
+            status=status,
             coverage=0.0,
             claim_count=0,
             cited_claim_count=0,
@@ -111,9 +140,16 @@ def verify_answer_citations(
         )
 
     coverage = cited_claims / claim_count
+    used_allowed = used & allowed
     if coverage == 1.0 and not invalid:
-        status: VerificationStatus = "verified"
+        status = "verified"
+    elif invalid:
+        # 引用了未提供的来源编号，无论何种问题类型都判失败（防幻觉保护）
+        status = "failed"
     elif cited_claims > 0 and coverage >= 0.5:
+        status = "partial"
+    elif lenient and (cited_claims > 0 or bool(used_allowed)):
+        # 总结/列举类：回答职责是概括材料，开头或整体引用一次来源即可视为正常
         status = "partial"
     else:
         status = "failed"

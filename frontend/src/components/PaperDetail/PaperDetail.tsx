@@ -7,7 +7,7 @@ import {
 import clsx from 'clsx'
 import toast from 'react-hot-toast'
 import { useLocaleStore } from '@/stores/localeStore'
-import { knowledgeApi, papersApi } from '@/api/client'
+import { knowledgeApi, papersApi, zoteroApi } from '@/api/client'
 import type { PaperDetail as PaperDetailType, AnalysisResult, FulltextStatus } from '@/api/types'
 import KnowledgeForm from '@/components/KnowledgeForm/KnowledgeForm'
 import './PaperDetail.css'
@@ -47,9 +47,31 @@ export default function PaperDetailPanel({
   const [knowledgeCategories, setKnowledgeCategories] = useState<{ name: string; count: number }[]>([])
   const [fulltextStatus, setFulltextStatus] = useState<FulltextStatus | null>(null)
   const [uploadingFulltext, setUploadingFulltext] = useState(false)
+  const [zoteroSyncing, setZoteroSyncing] = useState(false)
+  const [analysisElapsed, setAnalysisElapsed] = useState(0)
+  const analysisStartedAtRef = useRef<number | null>(null)
   const fulltextInputRef = useRef<HTMLInputElement>(null)
 
   const isChinese = locale === 'zh'
+
+  // 切换论文时重置所有一次性状态，避免残留上一篇的翻译/分析
+  useEffect(() => {
+    setTranslatedAbstract(null)
+    setActiveAnalysis(null)
+    setActiveTab('abstract')
+  }, [paper.id])
+
+  // 分析进行中显示已用时长
+  useEffect(() => {
+    if (analysisLoading) {
+      analysisStartedAtRef.current = Date.now()
+      setAnalysisElapsed(0)
+      const timer = window.setInterval(() => {
+        setAnalysisElapsed(Math.floor((Date.now() - (analysisStartedAtRef.current || Date.now())) / 1000))
+      }, 500)
+      return () => window.clearInterval(timer)
+    }
+  }, [analysisLoading])
 
   useEffect(() => {
     let active = true
@@ -103,6 +125,47 @@ export default function PaperDetailPanel({
       toast.error(error.response?.data?.detail || (isChinese ? 'PDF 导入失败' : 'PDF import failed'))
     } finally {
       setUploadingFulltext(false)
+    }
+  }
+
+  const handleSyncToZotero = async () => {
+    setZoteroSyncing(true)
+    try {
+      let connected = false
+      try {
+        const { data } = await zoteroApi.status()
+        connected = data.connected
+      } catch {
+        connected = false
+      }
+      if (!connected) {
+        toast.error(isChinese
+          ? '未检测到本地 Zotero。请先启动 Zotero，并在 设置 → 高级 → 允许其他应用程序与 Zotero 通信 中启用本地 API。'
+          : 'Zotero not detected. Start Zotero and enable the local API under Settings → Advanced.')
+        return
+      }
+      await zoteroApi.push({
+        title: paper.title,
+        creators: paper.authors.map((name) => {
+          const parts = name.trim().split(/\s+/)
+          return {
+            firstName: parts.length > 1 ? parts.slice(0, -1).join(' ') : '',
+            lastName: parts[parts.length - 1] || '',
+          }
+        }),
+        year: paper.year ? String(paper.year) : undefined,
+        venue: paper.venue || undefined,
+        doi: paper.doi || undefined,
+        url: paper.url || undefined,
+        abstract: paper.abstract || undefined,
+      })
+      toast.success(isChinese ? '已同步到 Zotero' : 'Pushed to Zotero')
+    } catch (err: any) {
+      const detail = err?.response?.data?.detail
+      const msg = typeof detail === 'object' ? detail?.message : detail
+      toast.error(msg || (isChinese ? '同步到 Zotero 失败' : 'Failed to push to Zotero'))
+    } finally {
+      setZoteroSyncing(false)
     }
   }
 
@@ -187,6 +250,16 @@ export default function PaperDetailPanel({
             ? (isChinese ? '替换全文' : 'Replace PDF')
             : (isChinese ? '导入全文 PDF' : 'Import PDF')}
         </button>
+        <button
+          type="button"
+          className="paper-link"
+          disabled={zoteroSyncing}
+          onClick={handleSyncToZotero}
+          title={isChinese ? '将本条文献（含已导入的 PDF）同步到本地 Zotero' : 'Push this item (with its PDF) into local Zotero'}
+        >
+          {zoteroSyncing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <BookMarked className="w-3.5 h-3.5" />}
+          {isChinese ? '同步到 Zotero' : 'Push to Zotero'}
+        </button>
       </div>
 
       {(fulltextStatus?.available || analysis) && (
@@ -230,7 +303,7 @@ export default function PaperDetailPanel({
               <div className="flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
                 <span>{isChinese
-                  ? '自动获取全文未成功，本次仅依据摘要。请下载你有权使用的 PDF 后点击“导入全文 PDF”。'
+                  ? '自动获取全文未成功，本次仅依据摘要。请通过学校图书馆 / 校园网数据库下载你有权访问的 PDF，回到本页点击“导入全文 PDF”，AI 将读取全文与图表辅助分析。'
                   : 'Automatic full-text retrieval failed. This analysis used the abstract only; import an authorized PDF for full analysis.'}</span>
               </div>
               {analysis?.document_error && (
@@ -314,7 +387,11 @@ export default function PaperDetailPanel({
             {analysisLoading && (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="w-6 h-6 animate-spin text-primary-500" />
-                <span className="ml-2 text-sm text-gray-500">{isChinese ? `正在分析：${activeAnalysis ? analysisConfig[activeAnalysis].zhLabel : ''}...` : 'Analyzing...'}</span>
+                <span className="ml-2 text-sm text-gray-500 tabular-nums">
+                  {isChinese
+                    ? `正在分析：${activeAnalysis ? analysisConfig[activeAnalysis].zhLabel : ''}... 已用时 ${analysisElapsed}s`
+                    : `Analyzing... ${analysisElapsed}s elapsed`}
+                </span>
               </div>
             )}
             {!analysis && !analysisLoading && (

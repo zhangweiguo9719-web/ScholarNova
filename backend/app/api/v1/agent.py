@@ -491,6 +491,7 @@ async def chat_with_research_agent(
     verification = verify_answer_citations(
         answer,
         [citation.id for citation in citations],
+        question=request.question,
     )
     steps.append(
         AgentToolStep(

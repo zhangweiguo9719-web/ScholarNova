@@ -18,6 +18,10 @@ export default defineConfig({
         target: process.env.VITE_API_BASE_URL || 'http://localhost:8000',
         changeOrigin: true,
       },
+      '/generated': {
+        target: process.env.VITE_API_BASE_URL || 'http://localhost:8000',
+        changeOrigin: true,
+      },
     },
   },
   build: {

@@ -26,6 +26,7 @@ export default function KnowledgeAnalysis() {
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [analyzing, setAnalyzing] = useState(false)
+  const [analyzeElapsed, setAnalyzeElapsed] = useState(0)
   const [result, setResult] = useState<AIAnalyzeResponse | null>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY)
@@ -67,6 +68,18 @@ export default function KnowledgeAnalysis() {
   }, [])
 
   useEffect(() => { fetchCategories() }, [fetchCategories])
+
+  // 分析进行中显示已用时长
+  useEffect(() => {
+    if (analyzing) {
+      const startedAt = Date.now()
+      setAnalyzeElapsed(0)
+      const timer = window.setInterval(() => {
+        setAnalyzeElapsed(Math.floor((Date.now() - startedAt) / 1000))
+      }, 500)
+      return () => window.clearInterval(timer)
+    }
+  }, [analyzing])
 
   // 展开分类时加载其条目
   const toggleCategory = async (catName: string) => {
@@ -290,7 +303,7 @@ export default function KnowledgeAnalysis() {
                   className={clsx('inline-flex items-center gap-2 px-6 py-3 text-sm font-medium rounded-lg transition-colors',
                     analyzing || selectedIds.length === 0 ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed' : 'bg-primary-600 text-white hover:bg-primary-700')}>
                   {analyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                  {analyzing ? (isChinese ? '分析中...' : 'Analyzing...') : (isChinese ? 'AI 分析研究方向' : 'AI Research Analysis')}
+                  {analyzing ? (isChinese ? `分析中... 已用时 ${analyzeElapsed}s` : `Analyzing... ${analyzeElapsed}s`) : (isChinese ? 'AI 分析研究方向' : 'AI Research Analysis')}
                 </button>
               </div>
 

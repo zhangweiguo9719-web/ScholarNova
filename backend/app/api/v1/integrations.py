@@ -26,6 +26,19 @@ class ZoteroImportRequest(BaseModel):
     limit: int = Field(default=50, ge=1, le=100)
 
 
+class ZoteroPushRequest(BaseModel):
+    title: str = Field(min_length=1, max_length=500)
+    creators: list[dict[str, str]] = Field(default_factory=list)
+    year: str | None = Field(default=None, max_length=16)
+    venue: str | None = Field(default=None, max_length=255)
+    doi: str | None = Field(default=None, max_length=255)
+    url: str | None = Field(default=None, max_length=1000)
+    abstract: str | None = Field(default=None, max_length=5000)
+    collection_key: str | None = Field(default=None, max_length=32)
+    pdf_path: str | None = Field(default=None, max_length=1024)
+    api_key: str | None = Field(default=None, max_length=128)
+
+
 def _normalise_doi(value: Any) -> str | None:
     doi = str(value or "").strip().casefold()
     doi = re.sub(r"^(?:https?://(?:dx\.)?doi\.org/|doi:\s*)", "", doi)
@@ -138,6 +151,49 @@ async def zotero_collections() -> dict[str, Any]:
     except Exception as exc:
         _raise_zotero_error(exc)
         raise
+
+
+@router.post("/zotero/push")
+async def push_to_zotero(request: ZoteroPushRequest) -> dict[str, Any]:
+    """Push the current paper (and its local PDF) into the user's Zotero library.
+
+    Requires Zotero running with local API enabled; writes may require an
+    API key (Settings → Advanced → create one for ScholarNova).
+    """
+    from app.services.integrations.zotero import ZoteroLocalClient
+
+    creators = []
+    for creator in request.creators:
+        if not isinstance(creator, dict):
+            continue
+        creators.append(
+            {
+                "firstName": str(creator.get("firstName") or "").strip(),
+                "lastName": str(creator.get("lastName") or "").strip(),
+            }
+        )
+    try:
+        result = await ZoteroLocalClient().create_paper(
+            title=request.title,
+            creators=creators,
+            year=request.year,
+            venue=request.venue,
+            doi=request.doi,
+            url=request.url,
+            abstract=request.abstract,
+            collection_key=request.collection_key,
+            pdf_path=request.pdf_path,
+            api_key=request.api_key or None,
+        )
+    except Exception as exc:
+        _raise_zotero_error(exc)
+        raise
+    if not result.get("item_key"):
+        raise HTTPException(
+            status_code=502,
+            detail={"code": "zotero_write_failed", "message": "Zotero 未返回创建成功的条目"},
+        )
+    return {"success": True, **result}
 
 
 @router.post("/zotero/import")

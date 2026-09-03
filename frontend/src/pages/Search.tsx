@@ -47,6 +47,7 @@ export default function Search() {
     return () => {
       if (pollTimerRef.current) clearTimeout(pollTimerRef.current)
       analysisCacheRef.current.clear()
+      lastStartedQueryRef.current = null
       clearSearch()
     }
   }, [clearSearch])
@@ -392,6 +393,7 @@ export default function Search() {
               onKeyDown={handleResizeKeyDown}
             />
             <PaperDetailPanel
+              key={selectedPaper.id}
               paper={selectedPaper} analysis={analysis} analysisLoading={analysisLoading}
               evidenceSpans={evidenceSpans} evidenceLoading={evidenceLoading}
               runId={searchRun?.run_id ?? null} onClose={handleCloseDetail} onAnalyze={handleAnalyze}

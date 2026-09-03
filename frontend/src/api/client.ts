@@ -208,6 +208,23 @@ export const zoteroApi = {
       collection_key: collectionKey || null,
       limit,
     }),
+  push: (data: {
+    title: string
+    creators?: { firstName?: string; lastName?: string }[]
+    year?: string
+    venue?: string
+    doi?: string
+    url?: string
+    abstract?: string
+    collection_key?: string
+    pdf_path?: string
+    api_key?: string
+  }) => api.post<{
+    success: boolean
+    item_key: string
+    attachment_key: string
+    collection_key?: string
+  }>('/integrations/zotero/push', data),
 }
 
 export const agentApi = {
@@ -265,6 +282,45 @@ export const knowledgeApi = {
 
   generateRouteAnalysis: (id: string) =>
     api.post<ResearchRoute>(`/knowledge/routes/${id}/ai-generate`),
+
+  // SSE 流式：分步返回 文字分析→架构图→路线图 的进度
+  generateRouteAnalysisStream: async (
+    id: string,
+    onEvent: (event: {
+      event: string
+      progress?: number
+      stage?: string
+      message?: string
+      data?: any
+    }) => void,
+    signal?: AbortSignal,
+  ) => {
+    const res = await fetch(`/api/v1/knowledge/routes/${id}/ai-generate-stream`, {
+      method: 'POST',
+      signal,
+    })
+    if (!res.ok || !res.body) {
+      throw new Error(`SSE request failed: ${res.status}`)
+    }
+    const reader = res.body.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split('\n')
+      buffer = lines.pop() || ''
+      for (const line of lines) {
+        const trimmed = line.trim()
+        if (trimmed.startsWith('data:')) {
+          try {
+            onEvent(JSON.parse(trimmed.slice(5).trim()))
+          } catch { /* 忽略无法解析的帧 */ }
+        }
+      }
+    }
+  },
 }
 
 export default api

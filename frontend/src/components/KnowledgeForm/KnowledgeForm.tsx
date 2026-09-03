@@ -132,6 +132,17 @@ export default function KnowledgeForm({
     setNewCategory('')
   }
 
+  const confirmNewCategory = () => {
+    const name = newCategory.trim()
+    if (!name) {
+      toast.error(isChinese ? '请输入分类名称' : 'Please enter a category name')
+      return
+    }
+    setCategory(name)
+    setShowNewCategory(false)
+    setNewCategory('')
+  }
+
   const handleResearchPointKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault()
@@ -271,9 +282,19 @@ export default function KnowledgeForm({
                   type="text"
                   value={newCategory}
                   onChange={(e) => setNewCategory(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') { e.preventDefault(); confirmNewCategory() }
+                  }}
                   placeholder={t('knowledge.categoryNewPlaceholder')}
                   className="knowledge-form-input flex-1"
                 />
+                <button
+                  type="button"
+                  onClick={confirmNewCategory}
+                  className="knowledge-form-submit-btn"
+                >
+                  {t('common.confirm')}
+                </button>
                 <button
                   type="button"
                   onClick={() => { setShowNewCategory(false); setNewCategory('') }}

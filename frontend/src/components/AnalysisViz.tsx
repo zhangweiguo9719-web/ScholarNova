@@ -69,6 +69,123 @@ function renderMarkdownText(text: string) {
   }).filter(Boolean)
 }
 
+function parseLayers(text: string): { title: string; modules: string[] }[] {
+  const lines = text.split('\n').map((l) => l.trim()).filter(Boolean)
+  const layers: { title: string; modules: string[] }[] = []
+  let current: { title: string; modules: string[] } | null = null
+  for (const line of lines) {
+    const clean = line.replace(/^[-*#>#\s]+/, '').replace(/\*\*/g, '')
+    if (!clean) continue
+    const isLayerTitle = /(层|阶段|模块组|环节|Layer|Stage|Phase|Core|Input|Output)/.test(clean) && !clean.includes('|') && clean.length <= 40
+    if (isLayerTitle) {
+      current = { title: clean.replace(/[:：]\s*$/, ''), modules: [] }
+      layers.push(current)
+    } else if (current) {
+      if (clean.includes('|')) {
+        current.modules.push(...clean.split('|').map((m) => m.trim()).filter(Boolean))
+      } else if (clean.length > 2 && !/^(图|表|注|说明)/.test(clean)) {
+        current.modules.push(clean)
+      }
+    }
+  }
+  return layers.filter((l) => l.title || l.modules.length > 0)
+}
+
+function ArchitectureSvg({ text }: { text: string }) {
+  const layers = parseLayers(text)
+  if (layers.length === 0) {
+    return (
+      <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
+        {text.replace(/#{1,4}\s*/g, '').replace(/\*\*([^*]+)\*\*/g, '$1')}
+      </div>
+    )
+  }
+  // SVG 布局参数
+  const width = 760
+  const modX = 220
+  const modW = 160
+  const modH = 34
+  const gap = 12
+  const perRow = Math.max(1, Math.floor((width - modX - 24) / (modW + gap)))
+  const rowH = modH + 8
+  const padTop = 14
+  const arrowH = 30
+  const colors = ['#eaf2fb', '#e8f6ef', '#fbf1e7', '#f1eafa', '#e7f5f7', '#fdf3e6']
+  const borders = ['#8bc8ea', '#94d8c3', '#f4b393', '#c9a7e8', '#a3d5e8', '#e4d48f']
+
+  // 计算每层高度
+  const layerRows = layers.map((l) => Math.max(1, Math.ceil(l.modules.length / perRow)))
+  const layerHeights = layerRows.map((rows) => padTop + rows * rowH + 8)
+  const totalH = layerHeights.reduce((a, b) => a + b, 0) + arrowH * (layers.length - 1) + 16
+
+  let y = 8
+  const boxes: React.ReactNode[] = []
+  layers.forEach((layer, li) => {
+    const layerH = layerHeights[li]
+    const color = colors[li % colors.length]
+    const border = borders[li % borders.length]
+    // 层背景
+    boxes.push(
+      <rect key={`bg${li}`} x={6} y={y} width={width - 12} height={layerH} rx={12}
+        fill={color} stroke={border} strokeWidth={1.2} />,
+    )
+    // 层标题（竖排居左）
+    const midY = y + layerH / 2
+    const titleLines = layer.title.length > 10
+      ? [layer.title.slice(0, Math.ceil(layer.title.length / 2)), layer.title.slice(Math.ceil(layer.title.length / 2))]
+      : [layer.title]
+    titleLines.forEach((tl, ti) => {
+      boxes.push(
+        <text key={`t${li}-${ti}`} x={22} y={midY + (titleLines.length === 1 ? 5 : (ti - 0.5) * 15)}
+          fontSize={14} fontWeight={700} fill="#334155">
+          {tl}
+        </text>,
+      )
+    })
+    // 模块 chip
+    layer.modules.slice(0, 14).forEach((mod, mi) => {
+      const row = Math.floor(mi / perRow)
+      const col = mi % perRow
+      const cx = modX + col * (modW + gap)
+      const cy = y + padTop + row * rowH
+      boxes.push(
+        <rect key={`m${li}-${mi}`} x={cx} y={cy} width={modW} height={modH} rx={8}
+          fill="#ffffff" stroke={border} strokeWidth={1} />,
+      )
+      const label = mod.length > 18 ? mod.slice(0, 17) + '…' : mod
+      boxes.push(
+        <text key={`mt${li}-${mi}`} x={cx + modW / 2} y={cy + modH / 2 + 4.5}
+          fontSize={11.5} fill="#334155" textAnchor="middle" fontWeight={500}>
+          {label}
+        </text>,
+      )
+    })
+    // 层间箭头（垂直向下）
+    if (li < layers.length - 1) {
+      const fromY = y + layerH
+      const toY = fromY + arrowH
+      const cxA = width / 2
+      boxes.push(
+        <g key={`a${li}`}>
+          <line x1={cxA} y1={fromY} x2={cxA} y2={toY - 8} stroke="#94a3b8" strokeWidth={2} />
+          <path d={`M ${cxA - 6} ${toY - 14} L ${cxA} ${toY - 2} L ${cxA + 6} ${toY - 14}`}
+            fill="none" stroke="#94a3b8" strokeWidth={2} />
+        </g>,
+      )
+    }
+    y += layerH + arrowH
+  })
+
+  return (
+    <div className="overflow-x-auto rounded-lg">
+      <svg viewBox={`0 0 ${width} ${totalH}`} style={{ minWidth: 640 }} role="img"
+        aria-label="研究架构图">
+        {boxes}
+      </svg>
+    </div>
+  )
+}
+
 function WaitTimer({ seconds }: { seconds: number }) {
   const [remaining, setRemaining] = useState(seconds)
   const [step, setStep] = useState(0)
@@ -112,6 +229,7 @@ export default function AnalysisViz({
   const { locale } = useLocaleStore()
   const isChinese = locale === 'zh'
   const [showFull, setShowFull] = useState(false)
+  const [imgFailed, setImgFailed] = useState<Record<number, boolean>>({})
 
   if (loading) return <WaitTimer seconds={estimatedTime} />
 
@@ -170,13 +288,22 @@ export default function AnalysisViz({
               <FlaskConical className="w-4 h-4 text-purple-500" />
               {isChinese ? 'AI 研究架构图' : 'AI Research Architecture'}
             </h3>
-            <img src={url} alt={isChinese ? '研究架构图' : 'Architecture'}
-              className="w-full rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={() => window.open(url, '_blank')} />
-            <a href={url} target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs text-primary-600 dark:text-primary-400 hover:underline mt-2">
-              {isChinese ? '🔍 查看大图' : '🔍 View full size'}
-            </a>
+            {imgFailed[i] && diagramPart ? (
+              <ArchitectureSvg text={diagramPart} />
+            ) : imgFailed[i] ? (
+              <div className="text-sm text-gray-500">{isChinese ? '图片加载失败' : 'Image failed to load'}</div>
+            ) : (
+              <>
+                <img src={url} alt={isChinese ? '研究架构图' : 'Architecture'}
+                  className="w-full rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-shadow"
+                  onError={() => setImgFailed((prev) => ({ ...prev, [i]: true }))}
+                  onClick={() => window.open(url, '_blank')} />
+                <a href={url} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs text-primary-600 dark:text-primary-400 hover:underline mt-2">
+                  {isChinese ? '🔍 查看大图' : '🔍 View full size'}
+                </a>
+              </>
+            )}
           </div>
         ))
       ) : diagramPart && (
@@ -186,7 +313,7 @@ export default function AnalysisViz({
             {isChinese ? 'AI 研究架构图' : 'AI Research Architecture'}
           </h3>
           <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
-            {renderMarkdownText(diagramPart)}
+            <ArchitectureSvg text={diagramPart} />
           </div>
         </div>
       )}
