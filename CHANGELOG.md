@@ -16,6 +16,7 @@ No changes pending after the v1.2.1 release candidate.
 - Separate textual relevance from composite recommendation scores without changing ranking order.
 - Fix cross-provider placeholder credential inheritance and accurately report Zotero's read-only detection versus explicit write requests.
 - Fix the macOS minimum icon size and build Intel/Apple Silicon backends on matching native runners.
+- Escape untrusted research-route text and image attributes in Word/PDF exports, and disable scripts in export documents.
 
 ### Release and documentation
 

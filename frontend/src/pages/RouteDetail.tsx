@@ -9,6 +9,7 @@ import { useLocaleStore } from '@/stores/localeStore'
 import { knowledgeApi } from '@/api/client'
 import type { ResearchRoute, KnowledgeItem } from '@/api/types'
 import AnalysisViz from '@/components/AnalysisViz'
+import { buildRouteDocumentHtml, cleanRouteMarkdown } from '@/utils/routeDocument'
 import './KnowledgeAnalysis.css'
 
 export default function RouteDetail() {
@@ -27,18 +28,6 @@ export default function RouteDetail() {
   const [generateProgress, setGenerateProgress] = useState(0)
   const [generateStage, setGenerateStage] = useState<string>('')
 
-  // 清理 markdown 符号，避免影响观感
-  const cleanMarkdown = useCallback((text: string) => {
-    return (text || '')
-      .replace(/#{1,6}\s*/g, '')
-      .replace(/\*\*([^*]+)\*\*/g, '$1')
-      .replace(/\*([^*]+)\*/g, '$1')
-      .replace(/^\s*[-•]\s*/gm, '• ')
-      .replace(/\|/g, ' | ')
-      .replace(/\s+/g, ' ')
-      .trim()
-  }, [])
-
   // 从 ai_analysis 解析实际调用模型（格式：## 文字分析（zhipu/glm-4-plus））
   const modelLabels = useMemo(() => {
     const textMatch = route?.ai_analysis?.match(/##\s*文字分析[（(]([^）)]+)[）)]/)
@@ -49,44 +38,9 @@ export default function RouteDetail() {
     }
   }, [route?.ai_analysis])
 
-  // 导出 Word（.doc 排版 HTML）与 PDF（打印视图）
-  const buildDocHtml = useCallback((r: ResearchRoute) => {
-    const abs = (u: string) => (u.startsWith('/') ? `${window.location.origin}${u}` : u)
-    const textClean = cleanMarkdown((r.ai_analysis || '').split(/##\s*研究架构图/)[0])
-      .split('\n').filter(Boolean).map((l) => `<p style="margin:6px 0;line-height:1.8;">${l}</p>`).join('')
-    const diagramRaw = (r.ai_analysis || '').split(/##\s*研究架构图/)[1] || ''
-    const diagramText = cleanMarkdown(diagramRaw.replace(/!\[.*?\]\([^)]*\)/g, ''))
-      .split('\n').filter(Boolean).map((l) => `<p style="margin:6px 0;line-height:1.8;">${l}</p>`).join('')
-    const imgs = (r.ai_analysis || '').match(/!\[.*?\]\(((?:https?:\/\/|\/)[^)]+)\)/g) || []
-    const imgTags = imgs.map((m) => {
-      const url = m.replace(/^!\[.*?\]\(/, '').replace(/\)$/, '')
-      return `<div style="margin:12px 0;text-align:center;"><img src="${abs(url)}" style="max-width:100%;border:1px solid #ddd;border-radius:8px;" /></div>`
-    }).join('')
-    const desc = cleanMarkdown(r.description || '').split('\n').filter(Boolean).map((l) => `<p style="margin:6px 0;line-height:1.8;">${l}</p>`).join('')
-    const modelLine = [
-      modelLabels.text ? `<span style="display:inline-block;margin-right:10px;padding:2px 10px;border-radius:999px;background:#eef2ff;color:#4f46e5;font-size:12px;">文字分析：${modelLabels.text}</span>` : '',
-      modelLabels.diagram ? `<span style="display:inline-block;padding:2px 10px;border-radius:999px;background:#faf5ff;color:#7c3aed;font-size:12px;">架构图：${modelLabels.diagram}</span>` : '',
-    ].filter(Boolean).join('')
-    return `<!DOCTYPE html>
-<html lang="zh">
-<head><meta charset="utf-8" /><title>${r.title || '研究路线'}</title></head>
-<body style="font-family:'PingFang SC','Microsoft YaHei',sans-serif;color:#1a1b1c;max-width:820px;margin:0 auto;padding:32px 24px;">
-  <h1 style="font-size:24px;margin-bottom:4px;">${r.title || ''}</h1>
-  <p style="color:#6b7280;font-size:13px;margin-bottom:20px;">状态：${r.status || ''}${modelLine ? '　' + modelLine : ''}</p>
-  <h2 style="font-size:18px;border-left:4px solid #4f46e5;padding-left:10px;margin:24px 0 8px;">路线描述</h2>
-  ${desc || '<p style="color:#9ca3af;">无</p>'}
-  <h2 style="font-size:18px;border-left:4px solid #4f46e5;padding-left:10px;margin:24px 0 8px;">AI 分析结果</h2>
-  ${textClean}
-  ${imgTags}
-  ${diagramText ? `<h2 style="font-size:18px;border-left:4px solid #7c3aed;padding-left:10px;margin:24px 0 8px;">研究架构图描述</h2>${diagramText}` : ''}
-  <p style="margin-top:32px;padding-top:12px;border-top:1px solid #eee;color:#9ca3af;font-size:12px;">由 ScholarNova 生成 · 模型与检索依据见上</p>
-</body>
-</html>`
-  }, [cleanMarkdown, modelLabels.text, modelLabels.diagram])
-
   const handleExportDoc = useCallback(() => {
     if (!route) return
-    const html = buildDocHtml(route)
+    const html = buildRouteDocumentHtml(route, window.location.origin)
     const blob = new Blob(['\ufeff' + html], { type: 'application/msword' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -94,11 +48,11 @@ export default function RouteDetail() {
     a.download = `${(route.title || '研究路线').replace(/[\\/:*?"<>|]/g, '_')}.doc`
     a.click()
     URL.revokeObjectURL(url)
-  }, [route, buildDocHtml])
+  }, [route])
 
   const handleExportPdf = useCallback(() => {
     if (!route) return
-    const html = buildDocHtml(route)
+    const html = buildRouteDocumentHtml(route, window.location.origin)
     const iframe = document.createElement('iframe')
     iframe.style.position = 'fixed'
     iframe.style.right = '0'
@@ -118,7 +72,7 @@ export default function RouteDetail() {
         setTimeout(() => iframe.remove(), 2000)
       }, 400)
     }
-  }, [route, buildDocHtml])
+  }, [route])
 
   const fetchRoute = useCallback(async () => {
     if (!id) return
@@ -265,7 +219,7 @@ export default function RouteDetail() {
                 {t('knowledge.routeDescription')}
               </h2>
               {(() => {
-                const cleanDesc = cleanMarkdown(route.description)
+                const cleanDesc = cleanRouteMarkdown(route.description)
                 const isLong = cleanDesc.length > 320
                 const shown = descExpanded ? cleanDesc : cleanDesc.slice(0, 320) + (isLong ? '…' : '')
                 return (
