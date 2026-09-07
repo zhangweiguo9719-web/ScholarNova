@@ -10,6 +10,8 @@ A desktop research workspace for individuals: **find papers â†’ read full text â
 
 Open **[GitHub Releases](https://github.com/zhangweiguo9719-web/ScholarNova/releases/latest)** and choose an existing asset for your computer. A source version or Git tag does not mean downloadable binaries have been published; the release assets are authoritative.
 
+**v1.2.1 is a release candidate, not a published binary release.** Native Windows, Intel Mac and Apple Silicon builds have passed validation; public distribution awaits the PDF dependency licensing decision described in [Desktop license review](docs/DESKTOP_LICENSE_REVIEW.md). Older releases do not include the latest fixes.
+
 | Computer | Download | Install |
 | --- | --- | --- |
 | Windows 10/11, 64-bit | `ScholarNova-Setup-VERSION-x64.exe` | Run the installer; desktop and Start menu shortcuts are included |
@@ -99,4 +101,4 @@ Historical Asta results: **F1 0.341379** on an 18-query validation subset; **F1 
 
 ## Feedback
 
-Report reproducible issues with OS, app version and sanitized error details in [Issues](https://github.com/zhangweiguo9719-web/ScholarNova/issues). Do not attach API keys or private papers. See [CONTRIBUTING](CONTRIBUTING.md), [SECURITY](SECURITY.md) and the [MIT License](LICENSE). Third-party models, data sources and papers retain their own terms.
+Report reproducible issues with OS, app version and sanitized error details in [Issues](https://github.com/zhangweiguo9719-web/ScholarNova/issues). Do not attach API keys or private papers. See [CONTRIBUTING](CONTRIBUTING.md), [SECURITY](SECURITY.md) and the [MIT License](LICENSE) for project-owned code. Bundled libraries (especially PyMuPDF / MuPDF), models, data sources and papers retain their own terms; see [Desktop license review](docs/DESKTOP_LICENSE_REVIEW.md).

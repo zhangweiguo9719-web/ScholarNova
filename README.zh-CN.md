@@ -10,6 +10,8 @@
 
 到 **[GitHub Releases 下载已发布安装包](https://github.com/zhangweiguo9719-web/ScholarNova/releases/latest)**，展开 Assets，按你的电脑选择。源码中的版本号或 Git 标签不代表安装包已经发布；以 Release 中实际存在的文件为准。
 
+**v1.2.1 当前为验收候选版，尚未发布安装包。** Windows、Intel Mac 与 Apple Silicon Mac 的原生构建已通过；正式分发还需确认 PDF 依赖的许可方案，见 [桌面发行许可检查](docs/DESKTOP_LICENSE_REVIEW.md)。旧 Release 不等于已经包含本轮修复。
+
 | 你的电脑 | 选择文件 | 安装方法 |
 | --- | --- | --- |
 | Windows 10/11，64 位 | `ScholarNova-Setup-版本-x64.exe` | 运行安装向导，创建桌面与开始菜单快捷方式 |
@@ -101,4 +103,4 @@ React + TypeScript 构建界面，Electron 提供桌面外壳，FastAPI 编排�
 
 欢迎通过 [Issues](https://github.com/zhangweiguo9719-web/ScholarNova/issues) 提交使用问题，附上系统版本、应用版本、操作步骤和脱敏错误信息。不要附上 API Key 或私有论文。开发贡献见 [CONTRIBUTING](CONTRIBUTING.md)，安全反馈见 [SECURITY](SECURITY.md)。
 
-[MIT License](LICENSE)。第三方模型、数据源和论文受各自条款约束。
+[MIT License](LICENSE) 适用于项目自有代码。打包的第三方库（特别是 PyMuPDF / MuPDF）、模型、数据源和论文受各自条款约束，详见 [桌面发行许可检查](docs/DESKTOP_LICENSE_REVIEW.md)。
