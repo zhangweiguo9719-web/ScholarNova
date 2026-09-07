@@ -50,6 +50,17 @@ class TestRanker:
         # 标题包含查询关键词的应排在前面
         assert "attention" in result[0].title.lower()
 
+    async def test_relevance_is_independent_of_popularity_and_ranking_score(self):
+        ranker = Ranker()
+        target = _make_paper("Traffic flow prediction", citation_count=0, year=2020)
+        unrelated = _make_paper("Quantum chemistry", citation_count=99999, year=2026, is_open_access=True)
+        results = await ranker.rank([unrelated, target], query="traffic flow prediction")
+        target_result = next(p for p in results if p.id == target.id)
+        unrelated_result = next(p for p in results if p.id == unrelated.id)
+        assert target_result.relevance_score >= 0.9
+        assert unrelated_result.relevance_score < 0.1
+        assert target_result.ranking_score != target_result.relevance_score
+
     async def test_rank_respects_limit(self):
         """应限制返回数量"""
         ranker = Ranker()

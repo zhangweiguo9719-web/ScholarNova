@@ -142,7 +142,8 @@ class Ranker:
         result = []
         for item in selected:
             paper = item["paper"]
-            paper.relevance_score = round(item["base_score"], 4)
+            paper.relevance_score = round(item["breakdown"]["relevance"], 4)
+            paper.ranking_score = round(item["base_score"], 4)
             result.append(paper)
 
         self._attach_quality_signals(result, papers)

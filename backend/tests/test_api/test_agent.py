@@ -47,6 +47,17 @@ class UncitedGateway(FakeGateway):
         return "现有材料指出需要进行可追溯检索。[S1]\n仍需要跨领域实验验证。"
 
 
+class RepairingGateway(FakeGateway):
+    calls = 0
+
+    async def chat(self, messages, **kwargs) -> str:
+        del messages, kwargs
+        type(self).calls += 1
+        if type(self).calls == 1:
+            return "现有材料要求保留来源编号。[S1]\n这些结论仍然需要跨领域实验验证。"
+        return "现有材料要求保留来源编号。[S1]"
+
+
 class PrimaryFailingQwenGateway:
     def __init__(self, *args, **kwargs) -> None:
         self.provider = kwargs.get("provider") or "zhipu"
@@ -164,11 +175,27 @@ async def test_agent_returns_traceable_evidence_when_model_is_offline(
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("needs_repair", [False, True])
 async def test_agent_uses_explicit_qwen_fallback_and_reports_both_attempts(
     client,
     db_session,
     monkeypatch,
+    needs_repair,
 ) -> None:
+    class QwenRepairGateway(PrimaryFailingQwenGateway):
+        qwen_calls = 0
+
+        @classmethod
+        def from_profile(cls, profile):
+            return cls(provider=profile["provider"])
+
+        async def chat(self, messages, **kwargs):
+            answer = await super().chat(messages, **kwargs)
+            type(self).qwen_calls += 1
+            if needs_repair and type(self).qwen_calls == 1:
+                return answer + "\n这些结论仍然需要跨领域实验验证。"
+            return answer
+
     db_session.add(
         KnowledgeBase(
             title="多模型科研问答",
@@ -183,7 +210,7 @@ async def test_agent_uses_explicit_qwen_fallback_and_reports_both_attempts(
         "api_key": "primary",
         "base_url": "https://open.bigmodel.cn/api/paas/v4",
     }
-    monkeypatch.setattr("app.api.v1.agent.LLMGateway", PrimaryFailingQwenGateway)
+    monkeypatch.setattr("app.api.v1.agent.LLMGateway", QwenRepairGateway)
     monkeypatch.setattr("app.api.v1.agent.get_model_for_task", lambda task: primary)
     monkeypatch.setattr(
         "app.services.inference.model_router.get_model_for_task",
@@ -216,15 +243,20 @@ async def test_agent_uses_explicit_qwen_fallback_and_reports_both_attempts(
     assert data["model_route"] == "fallback"
     assert data["model_fallback_used"] is True
     assert data["fallback_used"] is False
-    assert [attempt["status"] for attempt in data["model_attempts"]] == [
-        "unavailable",
-        "completed",
-    ]
-    assert data["total_tokens"] == 30
+    assert [attempt["status"] for attempt in data["model_attempts"]] == (
+        ["unavailable", "completed", "completed"]
+        if needs_repair else ["unavailable", "completed"]
+    )
+    assert [attempt["role"] for attempt in data["model_attempts"]] == (
+        ["primary", "fallback", "fallback"]
+        if needs_repair else ["primary", "fallback"]
+    )
+    assert data["verification_status"] == "verified"
+    assert data["total_tokens"] == (45 if needs_repair else 30)
 
 
 @pytest.mark.asyncio
-async def test_agent_reports_partial_citation_coverage(
+async def test_agent_replaces_still_partial_answer_with_traceable_evidence(
     client,
     db_session,
     monkeypatch,
@@ -250,10 +282,56 @@ async def test_agent_reports_partial_citation_coverage(
 
     data = response.json()
     assert response.status_code == 200
-    assert data["verification_status"] == "partial"
-    assert data["citation_coverage"] == 0.5
-    assert data["uncited_claim_count"] == 1
-    assert data["grounded"] is False
+    assert data["verification_status"] == "verified"
+    assert data["citation_coverage"] == 1.0
+    assert data["uncited_claim_count"] == 0
+    assert data["grounded"] is True
+    assert data["fallback_used"] is True
+    assert data["inference_mode"] == "deterministic_fallback"
+    assert data["model_route"] == "deterministic"
+    assert data["total_tokens"] == 320
+    repair = next(step for step in data["tool_steps"] if step["tool"] == "answer_repair")
+    assert repair["status"] == "completed"
+    assert "确定性证据摘要" in repair["detail"]
+
+
+@pytest.mark.asyncio
+async def test_agent_repairs_partial_citations_once_with_bounded_budget(
+    client,
+    db_session,
+    monkeypatch,
+) -> None:
+    db_session.add(
+        KnowledgeBase(
+            title="严格引证",
+            category="科研智能体",
+            content="科研回答中的事实句需要保留来源编号。",
+        )
+    )
+    await db_session.flush()
+    RepairingGateway.calls = 0
+    monkeypatch.setattr("app.api.v1.agent.LLMGateway", RepairingGateway)
+    monkeypatch.setattr(
+        "app.api.v1.agent.ZoteroLocalClient.search_items",
+        AsyncMock(return_value=[]),
+    )
+
+    response = await client.post(
+        "/api/v1/agent/chat",
+        json={"question": "科研回答如何实现严格引证？"},
+    )
+
+    data = response.json()
+    assert response.status_code == 200
+    assert RepairingGateway.calls == 2
+    assert data["verification_status"] == "verified"
+    assert data["grounded"] is True
+    assert data["fallback_used"] is False
+    assert data["inference_mode"] == "model"
+    assert data["total_tokens"] == 320
+    repair = next(step for step in data["tool_steps"] if step["tool"] == "answer_repair")
+    assert repair["status"] == "completed"
+    assert "通过严格校验" in repair["detail"]
 
 
 @pytest.mark.asyncio

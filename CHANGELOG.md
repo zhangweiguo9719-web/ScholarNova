@@ -4,6 +4,31 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 
 ## [Unreleased]
 
+No changes pending after the v1.2.1 release candidate.
+
+## [1.2.1] - 2026-09-08
+
+### Fixed
+
+- Restore verifiable citations for every sentence in evidence-only fallback excerpts; expose citation rejection separately from a model outage.
+- Limit assistant model routes and citation repair, while preserving provider-reported token usage.
+- Ignore late search/detail/analysis responses after changing sessions or selections; keep query shortcuts in the current window, not persistent browser storage.
+- Separate textual relevance from composite recommendation scores without changing ranking order.
+- Fix cross-provider placeholder credential inheritance and accurately report Zotero's read-only detection versus explicit write requests.
+- Fix the macOS minimum icon size and build Intel/Apple Silicon backends on matching native runners.
+
+### Release and documentation
+
+- Upgrade Electron to 44.2.0 and refresh frontend runtime dependencies.
+- Add clean-profile packaged-app startup checks, desktop URL/path isolation tests, consistent version checks, and release checksums.
+- Prevent missing bundled backends from silently using a developer Python environment; restrict external protocols and cross-origin desktop requests.
+- Reorganize the bilingual README with one compact four-panel gallery and separate installation, API-key, and source-development guides.
+- See [consumer readiness report](docs/reports/v1.2.1-consumer-readiness.zh-CN.md) for verified results and remaining release boundaries. Packages remain unsigned/not notarized.
+
+## [1.2.0] - 2026-09-07
+
+The source tag existed, but its macOS release build failed. The entries below are the historical development log, not new v1.2.1 benchmark results.
+
 ### Added
 
 - First-class SiliconFlow chat and embedding profiles with Qwen defaults, task capability hints, credential isolation, and real-probe support.
@@ -37,7 +62,7 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 - Real capability probes inherit saved credentials only from the matching provider and never reuse a primary model key across providers.
 - Embedding credentials are isolated from chat credentials, stored only by the local backend, and never returned to browser storage.
 - Zotero access is pinned to `127.0.0.1:23119`; users cannot supply an arbitrary integration URL.
-- The integration never writes to Zotero, never accesses `zotero.sqlite` directly, and does not upload a user's library.
+- Automatic Zotero detection is read-only. Writing bibliographic items requires an explicit user request through the local Connector; no direct `zotero.sqlite` edits are made.
 
 ### Changed
 

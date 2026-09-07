@@ -26,7 +26,7 @@ export default function ResultsList({ papers, selectedPaperId, onPaperClick }: R
       let cmp = 0
       if (sortKey === 'year') cmp = (a.year || 0) - (b.year || 0)
       else if (sortKey === 'citations') cmp = a.citation_count - b.citation_count
-      else cmp = (a.relevance_score || 0) - (b.relevance_score || 0)
+      else cmp = (a.ranking_score ?? a.relevance_score ?? 0) - (b.ranking_score ?? b.relevance_score ?? 0)
       return sortDir === 'desc' ? -cmp : cmp
     })
     return arr
@@ -68,7 +68,7 @@ export default function ResultsList({ papers, selectedPaperId, onPaperClick }: R
           {papers.length} {isZh ? '篇论文' : 'results'}
         </span>
         <div className="flex items-center gap-1">
-          <SortBtn k="relevance" label={isZh ? '相关度' : 'Relevance'} />
+          <SortBtn k="relevance" label={isZh ? '综合推荐' : 'Recommended'} />
           <SortBtn k="year" label={isZh ? '年份' : 'Year'} />
           <SortBtn k="citations" label={isZh ? '引用' : 'Citations'} />
         </div>

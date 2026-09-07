@@ -1,6 +1,54 @@
 """Deterministic tests for FTI-3A answer verification."""
 
 from app.services.inference import build_retrieval_fallback, verify_answer_citations
+import pytest
+
+
+@pytest.mark.parametrize("question", ["总结研究空白", "Summarize the evidence"])
+def test_multisentence_fallback_cites_each_segment(question):
+    evidence = [
+        ("S1", "An overview. Further studies!", "第一项实验测试检索效果。第二项实验仍需跨领域验证！\n第三项实验有数据局限。[S99]"),
+        ("S2", "Dr. Lee's study", "This method uses retrieval. It preserves page numbers. More data is required."),
+    ]
+    answer = build_retrieval_fallback(question, evidence, reason="citation_verification")
+    verification = verify_answer_citations(answer, ["S1", "S2"])
+    assert verification.status == "verified"
+    assert verification.coverage == 1
+    assert verification.uncited_claim_count == 0
+    assert "[S99]" not in answer
+    assert "模型暂时不可用" not in answer
+    assert "model is temporarily unavailable" not in answer
+
+
+def test_fallback_preserves_decimal_scores_versions_dois_and_urls():
+    title = "Evaluation v2.5"
+    content = (
+        "The F1 score was 0.38. Precision was 81.5%. "
+        "See DOI 10.1000/article.v2.5 and https://doi.org/10.1000/article.v2.5. "
+        "More results: https://example.org/evaluate?version=2.5&f1=0.38."
+    )
+    answer = build_retrieval_fallback("Summarize evidence", [("S1", title, content)])
+
+    assert title in answer
+    for literal in (
+        "0.38", "81.5%", "10.1000/article.v2.5",
+        "https://doi.org/10.1000/article.v2.5",
+        "https://example.org/evaluate?version=2.5&f1=0.38",
+    ):
+        assert literal in answer
+    verification = verify_answer_citations(answer, ["S1"])
+    assert verification.status == "verified"
+    assert verification.claim_count == 4
+    assert verification.coverage == 1.0
+
+
+def test_verifier_counts_decimal_sentences_without_hiding_uncited_claims():
+    result = verify_answer_citations(
+        "The F1 score was 0.38. [S1] Precision was 81.5%.", ["S1"],
+    )
+    assert result.status == "partial"
+    assert result.claim_count == 2
+    assert result.uncited_claim_count == 1
 
 
 def test_verifier_accepts_complete_valid_citations() -> None:

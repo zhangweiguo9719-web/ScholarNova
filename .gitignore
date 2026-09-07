@@ -31,6 +31,7 @@ env/
 
 # pytest
 .pytest_cache/
+pytest-of-*/
 .coverage
 htmlcov/
 
@@ -101,6 +102,8 @@ temp/
 
 # Config files with secrets
 backend/model_config.json
+scholarnova/
+backend/scholarnova/
 backend/model_capability_probes.json
 backend/network_config.json
 backend/generated/
@@ -124,3 +127,4 @@ backend/alembic/versions/*.pyc
 # Coverage reports
 coverage.xml
 *.cover
+outputs/release-qa/

@@ -280,7 +280,12 @@ def load_saved_model_config():
                             or (default_model if same_provider else existing.get("model"))
                         ),
                         "api_key": task_config.get("api_key")
-                        or (default_api_key if same_provider else existing.get("api_key")),
+                        or (default_api_key if same_provider else (
+                            existing.get("api_key")
+                            if existing.get("provider") == task_provider
+                            and existing.get("api_key") != "ENV"
+                            else None
+                        )),
                         "base_url": task_config.get("base_url")
                         or (default_base_url if same_provider else existing.get("base_url")),
                     }

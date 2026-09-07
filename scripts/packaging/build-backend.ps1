@@ -5,6 +5,14 @@ $Venv = Join-Path $Root "desktop\.venv-build"
 $Python = Join-Path $Venv "Scripts\python.exe"
 $ReleaseBackend = Join-Path $Root "desktop\release\backend\ScholarNovaBackend"
 $DistBackend = Join-Path $Root "dist\ScholarNovaBackend"
+foreach ($Target in @($Venv, $ReleaseBackend)) {
+    $ResolvedTarget = [IO.Path]::GetFullPath($Target)
+    $ExpectedRoot = [IO.Path]::GetFullPath((Join-Path $Root "desktop")) + [IO.Path]::DirectorySeparatorChar
+    if (-not $ResolvedTarget.StartsWith($ExpectedRoot, [StringComparison]::OrdinalIgnoreCase)) {
+        throw "Refusing to replace a build path outside desktop: $ResolvedTarget"
+    }
+}
+Set-Location -LiteralPath $Root
 
 function Invoke-Checked {
     param(

@@ -10,7 +10,10 @@ if not os.path.exists(SRC):
     raise SystemExit(f"PyInstaller output not found: {SRC}")
 
 if os.path.exists(DST):
+    if not os.path.realpath(DST).startswith(os.path.realpath(os.path.join(ROOT, "desktop", "release")) + os.sep):
+        raise SystemExit("Refusing to replace a path outside desktop/release")
     shutil.rmtree(DST)
 os.makedirs(os.path.dirname(DST), exist_ok=True)
-shutil.copytree(SRC, DST)
+# PyInstaller's macOS framework bundles require their relative symlinks intact.
+shutil.copytree(SRC, DST, symlinks=True)
 print(f"staged backend -> {DST}")

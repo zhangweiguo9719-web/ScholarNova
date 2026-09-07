@@ -1,4 +1,4 @@
-/** 搜索历史：localStorage 持久化，供首页/搜索页展示与回访。 */
+/** Recent query shortcuts live only in the current window session. */
 const STORAGE_KEY = 'scholarnova-search-history'
 const MAX_ITEMS = 10
 
@@ -9,7 +9,8 @@ export interface SearchHistoryItem {
 
 export function getSearchHistory(): SearchHistoryItem[] {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
+    window.localStorage.removeItem(STORAGE_KEY)
+    const raw = window.sessionStorage.getItem(STORAGE_KEY)
     if (!raw) return []
     const parsed = JSON.parse(raw)
     if (!Array.isArray(parsed)) return []
@@ -33,7 +34,7 @@ export function addSearchHistory(query: string): SearchHistoryItem[] {
   const rest = getSearchHistory().filter((item) => item.query !== trimmed)
   const next = [{ query: trimmed, at: Date.now() }, ...rest].slice(0, MAX_ITEMS)
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+    window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(next))
   } catch {
     /* localStorage 不可用时静默降级 */
   }
@@ -43,6 +44,7 @@ export function addSearchHistory(query: string): SearchHistoryItem[] {
 export function clearSearchHistory(): void {
   try {
     window.localStorage.removeItem(STORAGE_KEY)
+    window.sessionStorage.removeItem(STORAGE_KEY)
   } catch {
     /* ignore */
   }

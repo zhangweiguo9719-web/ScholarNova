@@ -4,12 +4,21 @@
 
 import pytest
 from httpx import AsyncClient
+from unittest.mock import Mock
+
+
+@pytest.fixture(autouse=True)
+def isolate_search_worker(monkeypatch):
+    """Endpoint contract tests must not start a worker against the user's DB/APIs."""
+    worker = Mock()
+    monkeypatch.setattr("app.api.v1.search._start_search_task", worker)
+    return worker
 
 
 class TestCreateSearch:
     """POST /api/v1/search 测试套件"""
 
-    async def test_search_normal_query(self, client: AsyncClient):
+    async def test_search_normal_query(self, client: AsyncClient, isolate_search_worker):
         """正常查询应返回 200 和 SearchResponse"""
         response = await client.post(
             "/api/v1/search",
@@ -21,6 +30,8 @@ class TestCreateSearch:
         assert "status" in data
         assert data["status"] == "pending"
         assert "message" in data
+        isolate_search_worker.assert_called_once()
+        assert isolate_search_worker.call_args.args[0] == data["run_id"]
 
     async def test_search_with_all_fields(self, client: AsyncClient):
         """包含所有可选字段的请求应成功"""

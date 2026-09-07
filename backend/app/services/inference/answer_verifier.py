@@ -12,9 +12,13 @@ if TYPE_CHECKING:
 VerificationStatus = Literal["verified", "partial", "failed", "not_applicable"]
 
 _CITATION = re.compile(r"\[(s\d+)\]", re.IGNORECASE)
-_CLAIM_SPLIT = re.compile(r"(?<=[。！？.!?])|\n+")
+# English punctuation only ends a sentence at a token boundary. Decimal
+# values, model versions, DOI suffixes and URL punctuation must remain intact.
+_CLAIM_SPLIT = re.compile(r"(?<=[。！？])|(?<=[.!?])(?=\s|$)|\n+")
 _TRAILING_CITATIONS = re.compile(
-    r"([。！？.!?])\s*((?:\[s\d+\]\s*)+)",
+    # Leave whitespace after the last marker in place so the next English
+    # sentence still has its boundary after markers move before punctuation.
+    r"([。！？.!?])\s*(\[s\d+\](?:\s*\[s\d+\])*)",
     re.IGNORECASE,
 )
 _MARKUP_PREFIX = re.compile(r"^(?:[-*#>]+|\d+[.)、])\s*")
@@ -167,23 +171,33 @@ def verify_answer_citations(
 def build_retrieval_fallback(
     question: str,
     evidence: Sequence[tuple[str, str, str]],
+    *,
+    reason: str = "model_unavailable",
 ) -> str:
     """Return bounded, directly traceable evidence when the model is offline."""
     is_chinese = bool(re.search(r"[\u4e00-\u9fff]", question))
     if is_chinese:
         lines = [
-            "回答模型暂时不可用，以下内容为检索到的原始证据：",
+            ("说明：回答未通过引用完整性检查，以下为原始证据摘录："
+             if reason == "citation_verification"
+             else "回答模型暂时不可用，以下内容为检索到的原始证据："),
             "",
         ]
     else:
         lines = [
-            "The answer model is temporarily unavailable. "
-            "The following items are retrieved evidence:",
+            ("Note: The answer did not pass citation checks; retrieved evidence follows:"
+             if reason == "citation_verification"
+             else "The answer model is temporarily unavailable. "
+             "The following items are retrieved evidence:"),
             "",
         ]
     for index, (source_id, title, content) in enumerate(evidence[:6], start=1):
-        snippet = " ".join(content.split())[:240].rstrip(" ,，.;；")
-        lines.append(f"{index}. {title}: {snippet} [{source_id}]")
+        # Treat source text as quoted data. Remove embedded model-style markers
+        # and cite every sentence, including punctuation inside paper titles.
+        excerpt = _CITATION.sub("", f"{title}: {' '.join(content.split())[:240]}")
+        segments = [part.strip() for part in _CLAIM_SPLIT.split(excerpt) if part.strip()]
+        cited = " ".join(f"{part} [{source_id}]" for part in segments)
+        lines.append(f"{index}. {cited}")
     lines.extend(
         [
             "",

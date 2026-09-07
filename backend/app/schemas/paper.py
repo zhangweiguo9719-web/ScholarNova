@@ -81,6 +81,7 @@ class Paper(BaseModel):
         None, description="Semantic Scholar CorpusId（官方评测对齐用）"
     )
     relevance_score: Optional[float] = Field(None, description="相关性分数", ge=0, le=1)
+    ranking_score: Optional[float] = Field(None, description="综合排序分数，非相关性概率", ge=0, le=1)
     is_open_access: bool = Field(False, description="是否开放获取")
     quality: Optional[PaperQuality] = Field(None, description="论文质量分析")
 

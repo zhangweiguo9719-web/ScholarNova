@@ -32,13 +32,29 @@ async def _check_redis() -> str:
 
 
 async def _check_llm() -> str:
-    """检查 LLM 服务状态"""
-    try:
-        from app.config import settings
+    """Check configured text routes without calling a model or spending tokens.
 
-        # 检查是否有配置的 API Key
-        if settings.OPENAI_API_KEY or settings.ANTHROPIC_API_KEY:
-            return "available"
+    ``available`` retains the public health schema and means configuration is
+    present, not that the provider's credentials or live connection passed.
+    """
+    try:
+        from app.config import get_model_for_task, settings
+
+        for task in ("assistant", "analysis", "query_planning", "translation", "recommendation"):
+            profile = get_model_for_task(task)
+            if not str(profile.get("model") or "").strip():
+                continue
+            provider = profile.get("provider")
+            if provider in ("ollama", "custom"):
+                if str(profile.get("base_url") or "").strip():
+                    return "available"
+                continue
+            api_key = profile.get("api_key")
+            # The Anthropic gateway also supports its dedicated env setting.
+            if provider == "anthropic" and not api_key:
+                api_key = settings.ANTHROPIC_API_KEY
+            if str(api_key or "").strip() not in ("", "ENV"):
+                return "available"
         return "unavailable"
     except Exception:
         return "unavailable"
@@ -85,7 +101,7 @@ async def liveness_check(db: AsyncSession = Depends(get_db)) -> dict:
 
     return {
         "status": "ok" if database == "connected" else "degraded",
-        "version": "1.2.0",
+        "version": "1.2.1",
         "timestamp": datetime.utcnow().isoformat(),
         "services": {"database": database},
     }
@@ -169,7 +185,7 @@ async def health_check(
 
     return HealthResponse(
         status=status,
-        version="1.2.0",
+        version="1.2.1",
         timestamp=datetime.utcnow(),
         services=services,
     )

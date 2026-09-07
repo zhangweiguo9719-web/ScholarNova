@@ -339,3 +339,53 @@ class TestLLMGateway:
 
         call_kwargs = mock_client.messages.create.call_args
         assert call_kwargs.kwargs["system"] == "Be concise"
+
+    @pytest.mark.parametrize("status_code", [200, 529])
+    async def test_anthropic_internal_retry_budget_is_not_sent_to_messages(self, status_code):
+        """Use the real SDK on a fake transport to exercise its strict signature."""
+        import json
+
+        import anthropic
+        import httpx
+
+        requests = []
+
+        def respond(request):
+            requests.append(json.loads(request.content))
+            if status_code != 200:
+                return httpx.Response(
+                    status_code,
+                    json={"type": "error", "error": {"type": "overloaded_error", "message": "busy"}},
+                )
+            return httpx.Response(200, json={
+                "id": "test-message", "type": "message", "role": "assistant",
+                "model": "test-model", "content": [{"type": "text", "text": "Grounded answer [S1]"}],
+                "stop_reason": "end_turn", "stop_sequence": None,
+                "usage": {"input_tokens": 12, "output_tokens": 4},
+            })
+
+        async with httpx.AsyncClient(transport=httpx.MockTransport(respond)) as http_client:
+            async with anthropic.AsyncAnthropic(
+                api_key="test-key", base_url="https://anthropic.test", http_client=http_client,
+                max_retries=2,
+            ) as sdk_client:
+                gateway = LLMGateway(provider="anthropic")
+                gateway._client = sdk_client
+                gateway._model_name = "test-model"
+                request = gateway.chat(
+                    [{"role": "user", "content": "Summarize [S1]"}],
+                    max_tokens=100, _max_retries=0,
+                )
+                if status_code == 200:
+                    assert await request == "Grounded answer [S1]"
+                    assert gateway.usage["total_tokens"] == 16
+                else:
+                    with pytest.raises(anthropic.APIStatusError) as error:
+                        await request
+                    assert error.value.status_code == 529
+                # A request-local cap must not mutate later callers' defaults.
+                assert sdk_client.max_retries == 2
+
+        assert len(requests) == 1
+        assert "_max_retries" not in requests[0]
+        assert requests[0]["model"] == "test-model"

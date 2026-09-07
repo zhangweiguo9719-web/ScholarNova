@@ -6,6 +6,73 @@ import pytest
 from httpx import AsyncClient
 
 
+class TestLLMConfigurationHealth:
+    """Health checks must use task routes and never invoke a paid model."""
+
+    @pytest.mark.parametrize("provider", ["zhipu", "qwen", "siliconflow", "openai", "anthropic"])
+    async def test_saved_provider_route_is_available_without_network(self, monkeypatch, provider):
+        from app import config
+        from app.api.v1.health import _check_llm
+        from app.services.llm.gateway import LLMGateway
+
+        def no_model_call(*args, **kwargs):
+            raise AssertionError("Health must not instantiate a model gateway")
+
+        monkeypatch.setattr(LLMGateway, "__init__", no_model_call)
+        monkeypatch.setattr(config.settings, "OPENAI_API_KEY", None)
+        monkeypatch.setattr(config.settings, "ANTHROPIC_API_KEY", None)
+        monkeypatch.setattr(config, "get_model_for_task", lambda task: {
+            "provider": provider,
+            "model": "test-model",
+            "api_key": "test-only-key" if task == "analysis" else None,
+            "base_url": "https://provider.example/v1",
+        })
+        assert await _check_llm() == "available"
+
+    @pytest.mark.parametrize("api_key", [None, "", "  ", "ENV"])
+    async def test_missing_cloud_key_is_unavailable(self, monkeypatch, api_key):
+        from app import config
+        from app.api.v1.health import _check_llm
+
+        monkeypatch.setattr(config, "get_model_for_task", lambda task: {
+            "provider": "zhipu", "model": "test-model", "api_key": api_key,
+        })
+        assert await _check_llm() == "unavailable"
+
+    @pytest.mark.parametrize("provider", ["ollama", "custom"])
+    @pytest.mark.parametrize("base_url, expected", [
+        ("http://127.0.0.1:11434", "available"), ("", "unavailable"),
+    ])
+    async def test_keyless_local_route_needs_endpoint(self, monkeypatch, provider, base_url, expected):
+        from app import config
+        from app.api.v1.health import _check_llm
+
+        monkeypatch.setattr(config, "get_model_for_task", lambda task: {
+            "provider": provider, "model": "test-model", "api_key": None,
+            "base_url": base_url,
+        })
+        assert await _check_llm() == expected
+
+    async def test_anthropic_route_uses_its_dedicated_env_key(self, monkeypatch):
+        from app import config
+        from app.api.v1.health import _check_llm
+
+        monkeypatch.setattr(config.settings, "ANTHROPIC_API_KEY", "test-only-key")
+        monkeypatch.setattr(config, "get_model_for_task", lambda task: {
+            "provider": "anthropic", "model": "test-model", "api_key": None,
+        })
+        assert await _check_llm() == "available"
+
+    async def test_credential_alone_without_model_is_not_configured(self, monkeypatch):
+        from app import config
+        from app.api.v1.health import _check_llm
+
+        monkeypatch.setattr(config, "get_model_for_task", lambda task: {
+            "provider": "qwen", "model": "", "api_key": "test-only-key",
+        })
+        assert await _check_llm() == "unavailable"
+
+
 class TestHealthCheck:
     """健康检查端点测试套件"""
 
@@ -31,10 +98,10 @@ class TestHealthCheck:
         assert data["status"] in ("healthy", "degraded", "unhealthy")
 
     async def test_health_version(self, client: AsyncClient):
-        """版本号应为 1.2.0"""
+        """版本号应为 1.2.1"""
         response = await client.get("/api/v1/health")
         data = response.json()
-        assert data["version"] == "1.2.0"
+        assert data["version"] == "1.2.1"
 
     async def test_health_services_dict(self, client: AsyncClient):
         """services 字段应为字典类型"""

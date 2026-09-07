@@ -114,7 +114,7 @@ def _request_options(provider: str) -> dict[str, Any]:
 def _route_timeout(task: str) -> float | None:
     # QueryPlanner owns a 12-second end-to-end planning budget. Bounding each
     # route leaves time for the explicit fallback before its rule-based plan.
-    return 5.5 if task == "query_planning" else None
+    return {"query_planning": 5.5, "assistant": 25.0}.get(task)
 
 
 async def chat_with_fallback(
@@ -124,9 +124,12 @@ async def chat_with_fallback(
     temperature: float,
     max_tokens: int,
     gateway_factory: Callable[..., Any] = LLMGateway,
+    profile: dict[str, Any] | None = None,
+    allow_fallback: bool = True,
+    timeout_seconds: float | None = None,
 ) -> RoutedChatResult:
     """Call the primary route, then one explicitly enabled text fallback."""
-    primary = get_model_for_task(task)
+    primary = profile or get_model_for_task(task)
     routes: list[tuple[str, dict[str, Any]]] = [("primary", primary)]
     fallback = get_fallback_model_config()
     same_route = (
@@ -134,7 +137,7 @@ async def chat_with_fallback(
         and fallback.get("model") == primary.get("model")
         and fallback.get("base_url") == primary.get("base_url")
     )
-    if task in TEXT_TASKS and fallback.get("enabled") and not same_route:
+    if allow_fallback and task in TEXT_TASKS and fallback.get("enabled") and not same_route:
         routes.append(("fallback", fallback))
 
     attempts: list[ModelAttempt] = []
@@ -151,9 +154,10 @@ async def chat_with_fallback(
                 messages=messages,
                 temperature=temperature,
                 max_tokens=max_tokens,
+                **({"_max_retries": 0} if task == "assistant" else {}),
                 **_request_options(str(profile.get("provider") or "")),
             )
-            timeout = _route_timeout(task)
+            timeout = timeout_seconds if timeout_seconds is not None else _route_timeout(task)
             content = (
                 await asyncio.wait_for(request, timeout=timeout)
                 if timeout is not None

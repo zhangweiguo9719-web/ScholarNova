@@ -3,128 +3,134 @@ name: Desktop Release (Windows & macOS)
 on:
   workflow_dispatch:
   push:
-    tags:
-      - "v*"
+    tags: ["v*"]
 
 permissions:
-  contents: write
+  contents: read
+
+concurrency:
+  group: desktop-release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  build-windows:
-    name: Build Windows installer and portable app
-    runs-on: windows-latest
-
+  verify:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Node.js 20
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: "20"
-          cache: npm
-          cache-dependency-path: |
-            package-lock.json
-            frontend/package-lock.json
-
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v5
+          node-version: "22"
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-          cache: pip
-          cache-dependency-path: requirements-lock.txt
-
-      - name: Install dependencies
-        shell: pwsh
+      - run: npm --prefix frontend ci
+      - run: npm --prefix frontend test
+      - run: npm --prefix frontend run build
+      - run: node --test desktop/security.test.cjs
+      - run: pip install -e "./backend[dev]"
+      - run: python -m pytest backend/tests -q --tb=short
+      - name: Check release version
+        shell: bash
         run: |
-          npm ci
-          npm --prefix frontend ci
+          python scripts/packaging/check_version.py
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            test "$GITHUB_REF_NAME" = "v$(node -p 'require("./package.json").version')"
+          fi
 
-      - name: Build Windows desktop artifacts
-        shell: pwsh
-        run: npm run dist:win
-
-      - name: Upload workflow artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ScholarNova-Windows-${{ github.ref_name }}
-          path: desktop/dist/*.exe
-          if-no-files-found: error
-
-  build-macos:
-    name: Build macOS app (${{ matrix.arch }})
-    runs-on: macos-latest
+  build:
+    needs: verify
+    name: Build ${{ matrix.os }} ${{ matrix.arch }}
     strategy:
       fail-fast: false
       matrix:
-        arch: [x64, arm64]
-
+        include:
+          - os: windows
+            runner: windows-latest
+            arch: x64
+          - os: macos
+            runner: macos-15-intel
+            arch: x64
+          - os: macos
+            runner: macos-15
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Node.js 20
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: npm
           cache-dependency-path: |
             package-lock.json
             frontend/package-lock.json
-
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: requirements-lock.txt
-
-      - name: Install dependencies
+      - name: Install and verify native architecture
+        shell: bash
         run: |
           npm ci
           npm --prefix frontend ci
+          python -c "import platform; expected='${{ matrix.arch }}'; actual=platform.machine().lower(); assert actual in ({'amd64', 'x86_64'} if expected == 'x64' else {'arm64', 'aarch64'}), (expected, actual)"
           python -m pip install -r requirements-lock.txt
           python -m pip install -e backend --no-deps
           python -m pip install pyinstaller
-
-      - name: Build frontend
-        run: npm run build:frontend
-
-      - name: Build and stage backend
+      - name: Build frontend and packaged backend
+        shell: bash
         run: |
+          npm run build:frontend
           python -m PyInstaller scripts/packaging/ScholarNovaBackend.spec --noconfirm --clean
           python scripts/packaging/stage_backend.py
-
-      - name: Package macOS app (${{ matrix.arch }})
+      - name: Package Windows
+        if: matrix.os == 'windows'
+        run: npx electron-builder --win nsis portable --x64 --publish never
+      - name: Package macOS
+        if: matrix.os == 'macos'
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
         run: npx electron-builder --mac --${{ matrix.arch }} --publish never
-
-      - name: Upload workflow artifact
-        uses: actions/upload-artifact@v4
+      - name: Smoke test Windows app
+        if: matrix.os == 'windows'
+        run: python scripts/packaging/smoke_desktop.py desktop/dist/win-unpacked/ScholarNova.exe
+      - name: Smoke test macOS app
+        if: matrix.os == 'macos'
+        shell: bash
+        run: |
+          app=$(find desktop/dist -path '*/ScholarNova.app/Contents/MacOS/ScholarNova' -type f | head -n 1)
+          test -n "$app"
+          python scripts/packaging/smoke_desktop.py "$app"
+      - uses: actions/upload-artifact@v4
         with:
-          name: ScholarNova-macOS-${{ matrix.arch }}-${{ github.ref_name }}
+          name: ScholarNova-${{ matrix.os }}-${{ matrix.arch }}
           path: |
+            desktop/dist/*.exe
             desktop/dist/*.dmg
             desktop/dist/*.zip
           if-no-files-found: error
 
   publish:
-    name: Publish GitHub Release
-    needs: [build-windows, build-macos]
+    name: Publish verified desktop release
+    needs: build
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
         with:
           path: artifacts
           merge-multiple: true
-
-      - name: Publish tagged GitHub Release
+      - name: Produce checksums and publish
         env:
           GH_TOKEN: ${{ github.token }}
+        shell: bash
         run: |
-          gh release create "${{ github.ref_name }}" \
-            artifacts/*.exe artifacts/*.dmg artifacts/*.zip \
-            --repo "${{ github.repository }}" \
-            --title "ScholarNova ${{ github.ref_name }}" \
-            --generate-notes
+          cd artifacts
+          sha256sum *.exe *.dmg *.zip > SHA256SUMS.txt
+          gh release create "$GITHUB_REF_NAME" *.exe *.dmg *.zip SHA256SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" --verify-tag \
+            --title "ScholarNova $GITHUB_REF_NAME" \
+            --notes-file "../docs/releases/${GITHUB_REF_NAME}.md"

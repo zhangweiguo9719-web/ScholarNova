@@ -5,6 +5,8 @@ FastAPI 应用入口
 """
 
 from contextlib import asynccontextmanager
+import os
+import secrets
 from typing import AsyncGenerator
 
 from fastapi import FastAPI, Request, Response
@@ -73,6 +75,26 @@ class SecurityHeadersMiddleware:
         await self.app(scope, receive, send_with_headers)
 
 
+class DesktopSessionMiddleware:
+    """Only the owning Electron proxy can access its private local backend."""
+
+    def __init__(self, app):
+        self.app = app
+        self.token = os.environ.get("SCHOLARNOVA_DESKTOP_TOKEN", "").encode("ascii")
+
+    async def __call__(self, scope, receive, send):
+        supplied = dict(scope.get("headers", [])).get(b"x-scholarnova-session", b"")
+        if not self.token or not secrets.compare_digest(supplied, self.token):
+            if scope["type"] == "websocket":
+                await send({"type": "websocket.close", "code": 1008})
+            elif scope["type"] == "http":
+                await JSONResponse({"detail": "Desktop session required"}, status_code=403)(scope, receive, send)
+            else:
+                await self.app(scope, receive, send)
+            return
+        await self.app(scope, receive, send)
+
+
 class RequestValidationMiddleware:
     """
     请求验证中间件
@@ -127,7 +149,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """
     # 启动时执行
     setup_logging()
-    logger.info("Starting ScholarNova API", version="1.2.0", env=settings.APP_ENV)
+    logger.info("Starting ScholarNova API", version="1.2.1", env=settings.APP_ENV)
 
     # 初始化数据库
     await init_db()
@@ -163,7 +185,7 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title=settings.APP_NAME,
         description="ScholarNova - 智能学术论文搜索与推荐 API",
-        version="1.2.0",
+        version="1.2.1",
         docs_url="/docs" if settings.DEBUG else None,
         redoc_url="/redoc" if settings.DEBUG else None,
         openapi_url="/openapi.json" if settings.DEBUG else None,
@@ -189,6 +211,8 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    if settings.APP_ENV == "desktop":
+        app.add_middleware(DesktopSessionMiddleware)
 
     # -----------------------------------------------------------------------
     # 异常处理器

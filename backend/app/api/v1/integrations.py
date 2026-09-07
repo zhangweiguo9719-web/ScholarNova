@@ -136,7 +136,9 @@ async def zotero_status() -> dict[str, Any]:
             "connected": status.connected,
             "server_id": status.server_id,
             "zotero_version": status.zotero_version,
-            "mode": "local_read_write",
+            # A successful GET proves read access, not write permission.
+            "mode": "local_read_only",
+            "write_support": "requires_explicit_request",
         }
     except Exception as exc:
         _raise_zotero_error(exc)

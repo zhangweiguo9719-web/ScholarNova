@@ -1,6 +1,6 @@
 {
   "name": "scholarnova-desktop",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "private": true,
   "description": "ScholarNova desktop packaging for Windows and macOS.",
   "author": "Zhang Weiguo and ScholarNova contributors",
@@ -26,6 +26,7 @@
     },
     "files": [
       "desktop/main.cjs",
+      "desktop/security.cjs",
       "desktop/assets/icon.ico",
       "package.json",
       "desktop/assets/icon.png",
@@ -68,14 +69,16 @@
         "dmg",
         "zip"
       ],
-      "icon": "desktop/assets/icon.png",
+      "icon": "desktop/assets/icon-1024.png",
+      "identity": "-",
+      "hardenedRuntime": false,
       "category": "public.app-category.productivity",
       "artifactName": "${productName}-${version}-${arch}.${ext}"
     }
   },
   "devDependencies": {
-    "electron": "^31.7.7",
-    "electron-builder": "^24.13.3",
+    "electron": "44.2.0",
+    "electron-builder": "26.15.3",
     "glob": "^13.0.6",
     "rcedit": "^5.0.2"
   }

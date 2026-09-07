@@ -1,79 +1,53 @@
-# ScholarNova Windows 桌面版发布说明
+# Windows / macOS 桌面构建与发布
 
-桌面版用于降低普通用户的本地部署成本。发布者在 Windows 上执行打包命令后，GitHub Releases 可以提供 `.exe` 安装包和便携版，使用者下载后直接运行。
+面向使用者的下载入口与签名提示见 [中文 README](../README.zh-CN.md)。桌面包包含 Electron、前端产物和 PyInstaller 后端；用户无需安装开发依赖。
 
-## 使用者怎么用
+## 构建前准备
 
-1. 从 [GitHub Releases](https://github.com/zhangweiguo9719-web/ScholarNova/releases/latest) 下载 `ScholarNova-Setup-版本号-x64.exe`，或下载无需安装的 `ScholarNova-Portable-版本号-x64.exe`。
-2. 安装并启动 ScholarNova；便携版直接双击运行。
-3. 打开“设置”，填写自己的模型服务 API Key，例如 OpenAI 兼容接口、MiMo、SenseNova、Semantic Scholar Key 等。
-4. 回到搜索页开始检索、分析、保存知识库和生成研究路线。
+- Node.js 22、Python 3.12；在目标系统与目标处理器架构原生构建。
+- Windows 10/11 x64；macOS Intel 使用 Intel runner，Apple Silicon 使用 ARM64 runner。
+- 不交叉复制后端二进制。Electron 的 `--arm64` 不会把 x64 Python 后端转成 ARM64。
+- `npm ci`、`npm --prefix frontend ci` 安装锁定版本。
 
-首次启动时需要解压内置运行时，便携版窗口通常会在 10–30 秒内出现；后续启动更快。
-
-桌面版不会内置作者本人的 API Key，也不会内置受限数据集。
-
-## 发布者怎么打包
-
-环境要求：
-
-- Windows 10/11
-- Node.js 18+
-- Python 3.11+
-- 项目依赖已可正常安装
-
-首次准备：
-
-```powershell
-npm ci
-npm --prefix frontend ci
-```
-
-构建 Windows 安装包和便携版：
+## Windows
 
 ```powershell
 npm run dist:win
+python scripts/packaging/smoke_desktop.py desktop/dist/win-unpacked/ScholarNova.exe
 ```
 
-如果当前 Python 环境被 Anaconda 或旧依赖污染，可以单独使用隔离构建命令：
+输出 `desktop/dist/ScholarNova-Setup-版本-x64.exe` 与 `ScholarNova-Portable-版本-x64.exe`。安装版包含卸载程序、开始菜单和桌面快捷方式。
 
-```powershell
-npm run build:backend:venv
+## macOS
+
+```bash
+python -m pip install -r requirements-lock.txt
+python -m pip install -e backend --no-deps
+python -m pip install pyinstaller
+npm run dist:mac
+# Intel 默认为 mac，ARM64 通常为 mac-arm64；以实际输出目录为准
+python scripts/packaging/smoke_desktop.py desktop/dist/mac-arm64/ScholarNova.app/Contents/MacOS/ScholarNova
 ```
 
-产物位置：
+输出 `ScholarNova-版本-arm64.dmg/.zip` 或 `ScholarNova-版本-x64.dmg/.zip`。macOS 图标使用 1024px 资源，不能使用 256px Windows 图标代替。
 
-```text
-desktop/dist/
-```
+## 自动验收与版本控制
 
-生成文件：
+1. 修改源代码、测试和文档，完成一个可复核改动再提交；不要重写已经发布的标签。
+2. 统一根 package、前端 package、两个 npm lock、后端 pyproject 和后端应用版本，执行：
+   `python scripts/packaging/check_version.py`。
+3. 后端非在线集成测试、前端测试/构建、桌面边界测试先通过。
+4. 推送 main 与一个新的 `vX.Y.Z` 标签。
+5. Desktop Release 工作流先运行回归，再在 Windows x64、macOS Intel、macOS ARM64 分别构建。
+6. 每个已打包应用都要使用全新临时用户目录启动，打开五个页面并检查内置服务；失败不发布。
+7. 三个平台产物齐全后生成 SHA256SUMS 并发布。手动运行只产生工作流附件，不创建 Release。
 
-- `ScholarNova-Setup-版本号-x64.exe`：带卸载程序、桌面快捷方式和开始菜单入口。
-- `ScholarNova-Portable-版本号-x64.exe`：无需安装，适合临时体验或移动存储。
+包启动检查不会使用开发者 Key、论文库或桌面快捷方式。它验证独立运行与页面加载，不等价于人工视觉验收、付费模型全量测试或 Apple 公证。
 
-## GitHub 自动发布
+## 签名、更新与备份
 
-仓库内的 `Windows Desktop Release` 工作流支持手动构建和版本标签发布。推送 `v*` 标签后，GitHub Actions 会在 Windows 环境重新构建两个 `.exe`，创建对应 Release 并上传文件：
+当前发布流程为未配置商业证书的社区构建，macOS 未配置 Developer ID 公证。普通用户仍可能遇到系统来源确认；正式商业分发须由发布者提供有效的 Windows 签名与 Apple Developer ID/公证凭据，并在真实目标机验收。不要将“成功生成 DMG”写成“通过公证”。
 
-```powershell
-git tag v1.1.0
-git push origin v1.1.0
-```
+目前更新方式是从 Releases 下载新版，退出旧应用后安装。尚未实现后台自动更新。数据与 API 配置位于系统用户目录，升级不会主动删除；备份/迁移时先退出应用，复制完整目录。日志位于其 logs 子目录。
 
-公开 Release 使用干净的 GitHub 构建环境，不会读取开发者电脑中的 `.env` 或 API Key。
-
-## 桌面版运行机制
-
-- Electron 作为桌面应用外壳。
-- 应用启动时自动拉起内置 FastAPI 后端。
-- 前端静态资源由本地 127.0.0.1 服务加载。
-- `/api/*` 和 `/generated/*` 请求会转发到内置后端。
-- 数据库、模型配置和生成图片保存在用户 AppData 目录，不写入安装目录。
-
-## 注意事项
-
-- GitHub 公开仓库不要提交 `.env`、数据库、个人 API Key、授权数据集。
-- 如果用户需要调用付费模型，必须在设置页填自己的 Key。
-- Windows Defender 可能会对未签名 exe 提示风险，这是未做代码签名的常见情况；正式发布建议配置代码签名证书。
-- 本地构建不要求管理员权限；项目使用独立资源编辑步骤写入应用图标和版本信息。
+源代码中的 `.env`、运行时数据库和授权数据不进入打包资源。运行时仅监听 loopback；外部页面不能导航进入拥有桌面权限的窗口。服务丢失时明确提示重新安装，打包版不会依赖系统 Python。

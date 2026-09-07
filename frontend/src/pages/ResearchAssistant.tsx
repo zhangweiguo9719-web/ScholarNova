@@ -392,7 +392,9 @@ function AgentTrace({ result, copy, isChinese }: { result: AgentChatResponse; co
   const isProductHelp = result.response_type === 'product_help'
   const verificationStatus = result.verification_status || (result.grounded ? 'verified' : 'not_applicable')
   const statusLabel = result.fallback_used
-    ? copy.fallback
+    ? result.fallback_reason === 'citation_verification'
+      ? (isChinese ? '引用未通过 · 原文证据摘录' : 'Citation check failed · source excerpts')
+      : copy.fallback
     : result.model_fallback_used
       ? copy.modelFallback
     : verificationStatus === 'verified'

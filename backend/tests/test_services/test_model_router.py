@@ -43,6 +43,29 @@ class RoutedGateway:
 
 
 @pytest.mark.asyncio
+async def test_repair_timeout_stops_without_calling_fallback(monkeypatch):
+    class SlowGateway(RoutedGateway):
+        async def chat(self, messages, **kwargs):
+            assert kwargs["_max_retries"] == 0
+            await asyncio.sleep(10)
+    SlowGateway.profiles = []
+    monkeypatch.setattr(
+        "app.services.inference.model_router.get_fallback_model_config",
+        lambda: {"enabled": True, "provider": "qwen", "model": "qwen-plus"},
+    )
+    with pytest.raises(AllModelsUnavailableError) as caught:
+        await chat_with_fallback(
+            task="assistant", messages=[{"role": "user", "content": "repair"}],
+            temperature=0, max_tokens=900, gateway_factory=SlowGateway,
+            profile={"provider": "zhipu", "model": "test"},
+            allow_fallback=False, timeout_seconds=0.01,
+        )
+    assert len(caught.value.attempts) == 1
+    assert caught.value.attempts[0].error_type == "TimeoutError"
+    assert len(SlowGateway.profiles) == 1
+
+
+@pytest.mark.asyncio
 async def test_primary_success_does_not_call_fallback(monkeypatch) -> None:
     RoutedGateway.profiles = []
     RoutedGateway.fail_providers = set()

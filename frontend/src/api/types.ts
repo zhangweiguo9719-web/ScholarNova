@@ -201,6 +201,7 @@ export interface Paper {
   source: DataSource
   corpus_id?: string | null
   relevance_score: number | null
+  ranking_score?: number | null
   is_open_access: boolean
   quality?: {
     quality_score: number
@@ -450,6 +451,7 @@ export interface AgentChatResponse {
   total_tokens: number
   retrieval_mode: 'bm25' | 'hybrid'
   inference_mode: 'model' | 'deterministic_fallback' | 'none'
+  fallback_reason?: 'model_unavailable' | 'citation_verification' | null
   verification_status: 'verified' | 'partial' | 'failed' | 'not_applicable'
   citation_coverage: number
   uncited_claim_count: number

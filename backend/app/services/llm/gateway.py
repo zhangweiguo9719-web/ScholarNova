@@ -398,10 +398,18 @@ class LLMGateway:
         """调用 Anthropic Messages API"""
         import anthropic
 
+        retry_override = kwargs.pop("_max_retries", None)
         if self._client is None:
             self._client = anthropic.AsyncAnthropic(
                 api_key=self._api_key or settings.ANTHROPIC_API_KEY,
             )
+        # Internal retry controls belong to the SDK client, not the Messages
+        # payload. Keep the override request-local when reusing the gateway.
+        client = (
+            self._client.with_options(max_retries=max(0, int(retry_override)))
+            if retry_override is not None
+            else self._client
+        )
 
         # Anthropic 的 system 消息是独立参数，需要从 messages 中提取
         system_text = None
@@ -422,7 +430,7 @@ class LLMGateway:
             call_kwargs["system"] = system_text
         call_kwargs.update(kwargs)
 
-        response = await self._client.messages.create(**call_kwargs)
+        response = await client.messages.create(**call_kwargs)
         usage = getattr(response, "usage", None)
         self._record_usage(
             prompt_tokens=self._usage_value(usage, "input_tokens", "prompt_tokens"),

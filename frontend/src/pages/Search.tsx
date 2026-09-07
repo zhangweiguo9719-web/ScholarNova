@@ -27,7 +27,7 @@ export default function Search() {
     selectedPaper, analysis, analysisLoading, evidenceSpans, evidenceLoading,
     setSearchRun, setIsLoading, setError, setQuery,
     setSelectedPaper, setAnalysis, setAnalysisLoading,
-    setEvidenceSpans,
+    setEvidenceSpans, clearSearch,
   } = useSearchStore()
 
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -42,16 +42,22 @@ export default function Search() {
     return Number.isFinite(saved) && saved >= 360 ? saved : 440
   })
   const [isResizing, setIsResizing] = useState(false)
+  const generationRef = useRef(0)
+  const selectionRef = useRef(0)
   const [searchHistory, setSearchHistory] = useState<ReturnType<typeof getSearchHistory>>(() => getSearchHistory())
 
-  // 卸载时只清理轮询与缓存，保留 store 中的搜索状态，切页返回不空白
+  // A late request must never repopulate a closed or replaced search session.
   useEffect(() => {
+    const cache = analysisCacheRef.current
     return () => {
+      generationRef.current++
+      selectionRef.current++
       if (pollTimerRef.current) clearTimeout(pollTimerRef.current)
-      analysisCacheRef.current.clear()
+      cache.clear()
+      clearSearch()
       lastStartedQueryRef.current = null
     }
-  }, [])
+  }, [clearSearch])
 
   useEffect(() => {
     if (!isLoading || searchStartedAtRef.current == null) return
@@ -110,6 +116,10 @@ export default function Search() {
   }, [queryParam])
 
   const performSearch = async (searchQuery: string) => {
+    const generation = ++generationRef.current
+    selectionRef.current++
+    setQuery(searchQuery)
+    setAnalysisLoading(false)
     lastStartedQueryRef.current = searchQuery
     setSearchHistory(addSearchHistory(searchQuery))
     if (pollTimerRef.current) clearTimeout(pollTimerRef.current)
@@ -125,18 +135,21 @@ export default function Search() {
 
     try {
       const response = await searchApi.create({ query: searchQuery })
-      pollSearchStatus(response.data.run_id)
+      if (generation !== generationRef.current) return
+      pollSearchStatus(response.data.run_id, generation)
     } catch (err: any) {
+      if (generation !== generationRef.current) return
       setError(err.response?.data?.detail || (t('common.error') + '. ' + t('common.retry')))
       setIsLoading(false)
     }
   }
 
-  const pollSearchStatus = (runId: string) => {
+  const pollSearchStatus = (runId: string, generation: number) => {
     let attempts = 0
     const poll = async () => {
       try {
         const response = await searchApi.getRun(runId)
+        if (generation !== generationRef.current) return
         setSearchRun(response.data)
         if (response.data.status === 'completed' || response.data.status === 'failed') {
           setIsLoading(false)
@@ -149,6 +162,7 @@ export default function Search() {
         if (attempts < 350) pollTimerRef.current = setTimeout(poll, 850)
         else { setError('搜索超时'); setIsLoading(false) }
       } catch (err: any) {
+        if (generation !== generationRef.current) return
         setError(err.response?.data?.detail || '获取搜索状态失败')
         setIsLoading(false)
       }
@@ -165,12 +179,17 @@ export default function Search() {
   }
 
   const handlePaperClick = useCallback(async (paper: any) => {
+    const selection = ++selectionRef.current
+    const generation = generationRef.current
+    selectedPaperIdRef.current = paper.id
     setAnalysis(analysisCacheRef.current.get(paper.id) || null)
     setEvidenceSpans([])
     try {
       const response = await papersApi.get(paper.id)
+      if (generation !== generationRef.current || selection !== selectionRef.current) return
       setSelectedPaper(response.data)
     } catch {
+      if (generation !== generationRef.current || selection !== selectionRef.current) return
       setSelectedPaper({
         ...paper, references: [], citations: [], fields_of_study: [],
         keywords: [], publication_date: null, volume: null, issue: null, pages: null,
@@ -178,28 +197,37 @@ export default function Search() {
     }
   }, [searchRun?.run_id])
 
+  const renderedGeneration = generationRef.current
+  const renderedSelection = selectionRef.current
   const handleAnalyze = useCallback(async (customQuery?: string) => {
-    if (!selectedPaper) return
+    if (!selectedPaper || renderedGeneration !== generationRef.current ||
+        renderedSelection !== selectionRef.current || selectedPaperIdRef.current !== selectedPaper.id) return
     const paperId = selectedPaper.id
+    const generation = generationRef.current
     setAnalysisLoading(true)
     try {
       const response = await papersApi.analyze(paperId, {
         query: customQuery || query || t('search.placeholder'),
         analysis_type: 'full',
       })
+      if (generation !== generationRef.current) return
       analysisCacheRef.current.set(paperId, response.data)
       if (selectedPaperIdRef.current === paperId) setAnalysis(response.data)
     } catch {
+      if (generation !== generationRef.current) return
       toast.error(t('common.error') + '. ' + t('common.retry'))
-    } finally { setAnalysisLoading(false) }
-  }, [selectedPaper, query])
+    } finally {
+      if (generation === generationRef.current) setAnalysisLoading(false)
+    }
+  }, [selectedPaper, query, renderedGeneration, renderedSelection])
 
   const handleFulltextUploaded = useCallback(() => {
-    if (!selectedPaper) return
+    if (!selectedPaper || renderedGeneration !== generationRef.current ||
+        renderedSelection !== selectionRef.current || selectedPaperIdRef.current !== selectedPaper.id) return
     analysisCacheRef.current.delete(selectedPaper.id)
     setAnalysis(null)
     void handleAnalyze()
-  }, [selectedPaper, handleAnalyze])
+  }, [selectedPaper, handleAnalyze, renderedGeneration, renderedSelection])
 
   const beginPanelResize = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (window.innerWidth < 768) return
@@ -231,7 +259,11 @@ export default function Search() {
     }
   }
 
-  const handleCloseDetail = () => { setSelectedPaper(null); setAnalysis(null); setEvidenceSpans([]) }
+  const handleCloseDetail = () => {
+    selectionRef.current++
+    selectedPaperIdRef.current = null
+    setSelectedPaper(null); setAnalysis(null); setEvidenceSpans([])
+  }
 
   const progress = searchRun?.progress
   const progressPercent = progress
