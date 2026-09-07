@@ -72,6 +72,7 @@
       "icon": "desktop/assets/icon-1024.png",
       "identity": "-",
       "hardenedRuntime": false,
+      "minimumSystemVersion": "13.0.0",
       "category": "public.app-category.productivity",
       "artifactName": "${productName}-${version}-${arch}.${ext}"
     }

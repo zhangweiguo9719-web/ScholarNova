@@ -14,10 +14,12 @@
 | --- | --- | --- |
 | Windows 10/11，64 位 | `ScholarNova-Setup-版本-x64.exe` | 运行安装向导，创建桌面与开始菜单快捷方式 |
 | Windows 免安装 | `ScholarNova-Portable-版本-x64.exe` | 放在固定目录后双击运行 |
-| Mac，Apple Silicon（M 系列） | `ScholarNova-版本-arm64.dmg` | 拖入“应用程序” |
-| Mac，Intel | `ScholarNova-版本-x64.dmg` | 拖入“应用程序” |
+| macOS 13+，Apple Silicon（M 系列） | `ScholarNova-版本-arm64.dmg` | 拖入“应用程序” |
+| macOS 13+，Intel | `ScholarNova-版本-x64.dmg` | 拖入“应用程序” |
 
 桌面版自带界面、本地后端和 SQLite，无需安装 Python、Node.js 或 Docker。首次启动可能因解压运行时稍慢。升级前退出应用，安装新版本；个人数据位于用户目录，不在安装目录内。
+
+本版要求 macOS 13 或更新系统，依据 [Electron 44 官方平台要求](https://www.electronjs.org/blog/electron-44-0)。
 
 **签名状态：当前构建未配置商业代码签名与 Apple 公证。** Windows 可能显示 SmartScreen 提示；macOS 可能需要在“系统设置 → 隐私与安全性”允许打开。仅在确认下载来源和校验值后操作，不需要关闭系统安全保护。正式零干预安装体验仍需要发布者完成签名与公证。
 

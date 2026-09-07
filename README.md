@@ -14,10 +14,12 @@ Open **[GitHub Releases](https://github.com/zhangweiguo9719-web/ScholarNova/rele
 | --- | --- | --- |
 | Windows 10/11, 64-bit | `ScholarNova-Setup-VERSION-x64.exe` | Run the installer; desktop and Start menu shortcuts are included |
 | Windows portable | `ScholarNova-Portable-VERSION-x64.exe` | Keep it in a permanent folder and launch |
-| Mac, Apple Silicon (M-series) | `ScholarNova-VERSION-arm64.dmg` | Drag into Applications |
-| Mac, Intel | `ScholarNova-VERSION-x64.dmg` | Drag into Applications |
+| macOS 13+, Apple Silicon (M-series) | `ScholarNova-VERSION-arm64.dmg` | Drag into Applications |
+| macOS 13+, Intel | `ScholarNova-VERSION-x64.dmg` | Drag into Applications |
 
 The desktop app bundles the interface, local backend and SQLite. No Python, Node.js or Docker is required. First launch may take longer while the portable runtime extracts. Quit before upgrading; personal data is stored outside the installation directory.
+
+This build requires macOS 13 or later, following [Electron 44's platform requirements](https://www.electronjs.org/blog/electron-44-0).
 
 **Signing: commercial code signing and Apple notarization are not configured.** Windows may show SmartScreen; macOS may require approval in System Settings → Privacy & Security. Verify the source and checksum first. Do not disable system-wide protections. Frictionless installation still requires the publisher to complete signing and notarization.
 
