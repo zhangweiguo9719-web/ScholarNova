@@ -27,6 +27,7 @@
     "files": [
       "desktop/main.cjs",
       "desktop/security.cjs",
+      "desktop/proxy.cjs",
       "desktop/assets/icon.ico",
       "package.json",
       "desktop/assets/icon.png",

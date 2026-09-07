@@ -17,6 +17,7 @@ No changes pending after the v1.2.1 release candidate.
 - Fix cross-provider placeholder credential inheritance and accurately report Zotero's read-only detection versus explicit write requests.
 - Fix the macOS minimum icon size and build Intel/Apple Silicon backends on matching native runners.
 - Escape untrusted research-route text and image attributes in Word/PDF exports, and disable scripts in export documents.
+- Handle interrupted desktop proxy streams without sending duplicate headers or leaving an error dialog on exit.
 
 ### Release and documentation
 

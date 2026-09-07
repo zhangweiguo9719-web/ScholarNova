@@ -128,3 +128,4 @@ backend/alembic/versions/*.pyc
 coverage.xml
 *.cover
 outputs/release-qa/
+outputs/desktop-audit/

@@ -6,6 +6,7 @@ const path = require('path')
 const { spawn } = require('child_process')
 const { randomBytes } = require('crypto')
 const { safeExternalUrl, resolveStaticPath } = require('./security.cjs')
+const { proxyToBackend } = require('./proxy.cjs')
 
 let mainWindow = null
 let backendProcess = null
@@ -176,33 +177,6 @@ function contentTypeFor(filePath) {
   return 'application/octet-stream'
 }
 
-function proxyToBackend(req, res, backendPort) {
-  const proxyReq = http.request(
-    {
-      hostname: '127.0.0.1',
-      port: backendPort,
-      method: req.method,
-      path: req.url,
-      headers: {
-        ...req.headers,
-        host: `127.0.0.1:${backendPort}`,
-        'x-scholarnova-session': backendSessionToken,
-      },
-    },
-    (proxyRes) => {
-      res.writeHead(proxyRes.statusCode || 500, proxyRes.headers)
-      proxyRes.pipe(res)
-    }
-  )
-
-  proxyReq.on('error', (error) => {
-    res.writeHead(502, { 'content-type': 'application/json; charset=utf-8' })
-    res.end(JSON.stringify({ detail: `Backend proxy failed: ${error.message}` }))
-  })
-
-  req.pipe(proxyReq)
-}
-
 function startStaticServer(uiPort, backendPort) {
   const frontendDist = getFrontendDistPath()
   staticServer = http.createServer((req, res) => {
@@ -215,7 +189,7 @@ function startStaticServer(uiPort, backendPort) {
       return
     }
     if (req.url.startsWith('/api/') || req.url.startsWith('/generated/')) {
-      proxyToBackend(req, res, backendPort)
+      proxyToBackend(req, res, backendPort, backendSessionToken)
       return
     }
 

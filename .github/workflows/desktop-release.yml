@@ -26,7 +26,7 @@ jobs:
       - run: npm --prefix frontend ci
       - run: npm --prefix frontend test
       - run: npm --prefix frontend run build
-      - run: node --test desktop/security.test.cjs
+      - run: node --test desktop/security.test.cjs desktop/proxy.test.cjs
       - run: pip install -c requirements-lock.txt -e "./backend[dev]"
       - run: python -m pytest backend/tests -q --tb=short
       - name: Check release version
@@ -95,6 +95,10 @@ jobs:
         if: matrix.os == 'windows'
         run: |
           python scripts/packaging/smoke_desktop.py desktop/dist/win-unpacked/ScholarNova.exe
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $version = (Get-Content package.json | ConvertFrom-Json).version
+          python scripts/packaging/smoke_desktop.py "desktop/dist/ScholarNova-Portable-$version-x64.exe"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python scripts/packaging/smoke_backend.py desktop/dist/win-unpacked/resources/backend/ScholarNovaBackend/ScholarNovaBackend.exe
       - name: Smoke test macOS app
         if: matrix.os == 'macos'
