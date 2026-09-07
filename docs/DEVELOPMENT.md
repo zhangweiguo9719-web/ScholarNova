@@ -86,7 +86,7 @@ source .venv/bin/activate
 
 ```bash
 python -m pip install --upgrade pip
-pip install -e ".[dev]"
+pip install -c ../requirements-lock.txt -e ".[dev]"
 cp .env.example .env
 uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```

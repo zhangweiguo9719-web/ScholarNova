@@ -343,28 +343,39 @@ class TestLLMGateway:
     @pytest.mark.parametrize("status_code", [200, 529])
     async def test_anthropic_internal_retry_budget_is_not_sent_to_messages(self, status_code):
         """Use the real SDK on a fake transport to exercise its strict signature."""
+        from importlib import import_module
         import json
 
         import anthropic
-        import httpx
+
+        # New SDKs can use httpx2 even when this application also has httpx.
+        # Match the SDK's actual client base, not whichever package is installed.
+        http_client_base = next(
+            base for base in anthropic.DefaultAsyncHttpxClient.__mro__
+            if base.__name__ == "AsyncClient"
+            and base.__module__.split(".", 1)[0] in {"httpx", "httpx2"}
+        )
+        sdk_http = import_module(http_client_base.__module__.split(".", 1)[0])
 
         requests = []
 
         def respond(request):
             requests.append(json.loads(request.content))
             if status_code != 200:
-                return httpx.Response(
+                return sdk_http.Response(
                     status_code,
                     json={"type": "error", "error": {"type": "overloaded_error", "message": "busy"}},
                 )
-            return httpx.Response(200, json={
+            return sdk_http.Response(200, json={
                 "id": "test-message", "type": "message", "role": "assistant",
                 "model": "test-model", "content": [{"type": "text", "text": "Grounded answer [S1]"}],
                 "stop_reason": "end_turn", "stop_sequence": None,
                 "usage": {"input_tokens": 12, "output_tokens": 4},
             })
 
-        async with httpx.AsyncClient(transport=httpx.MockTransport(respond)) as http_client:
+        async with anthropic.DefaultAsyncHttpxClient(
+            transport=sdk_http.MockTransport(respond),
+        ) as http_client:
             async with anthropic.AsyncAnthropic(
                 api_key="test-key", base_url="https://anthropic.test", http_client=http_client,
                 max_retries=2,

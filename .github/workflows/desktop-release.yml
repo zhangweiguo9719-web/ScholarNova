@@ -27,7 +27,7 @@ jobs:
       - run: npm --prefix frontend test
       - run: npm --prefix frontend run build
       - run: node --test desktop/security.test.cjs
-      - run: pip install -e "./backend[dev]"
+      - run: pip install -c requirements-lock.txt -e "./backend[dev]"
       - run: python -m pytest backend/tests -q --tb=short
       - name: Check release version
         shell: bash
@@ -93,7 +93,9 @@ jobs:
         run: npx electron-builder --mac --${{ matrix.arch }} --publish never
       - name: Smoke test Windows app
         if: matrix.os == 'windows'
-        run: python scripts/packaging/smoke_desktop.py desktop/dist/win-unpacked/ScholarNova.exe
+        run: |
+          python scripts/packaging/smoke_desktop.py desktop/dist/win-unpacked/ScholarNova.exe
+          python scripts/packaging/smoke_backend.py desktop/dist/win-unpacked/resources/backend/ScholarNovaBackend/ScholarNovaBackend.exe
       - name: Smoke test macOS app
         if: matrix.os == 'macos'
         shell: bash
@@ -101,6 +103,7 @@ jobs:
           app=$(find desktop/dist -path '*/ScholarNova.app/Contents/MacOS/ScholarNova' -type f | head -n 1)
           test -n "$app"
           python scripts/packaging/smoke_desktop.py "$app"
+          python scripts/packaging/smoke_backend.py "$(dirname "$app")/../Resources/backend/ScholarNovaBackend/ScholarNovaBackend"
       - uses: actions/upload-artifact@v4
         with:
           name: ScholarNova-${{ matrix.os }}-${{ matrix.arch }}
