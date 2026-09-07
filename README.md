@@ -80,7 +80,7 @@ Open full-size screenshots without expanding long images on this page.
 
 ## Data and privacy
 
-Data lives in `%APPDATA%/ScholarNova` on Windows or `~/Library/Application Support/ScholarNova` on macOS. Quit before copying the entire user-data directory for backup or migration.
+Data lives in `%APPDATA%/scholarnova-desktop` on Windows or `~/Library/Application Support/scholarnova-desktop` on macOS. Quit before copying the entire user-data directory for backup or migration.
 
 Keys remain in the local backend configuration and are excluded from browser persistence, the public repository and installers. Configuration is not currently encrypted with an OS keychain; protect backups. Cloud calls send the current query and relevant selected material to your chosen provider, along with authentication credentials to the configured endpoint. Review third-party endpoint policies before use.
 

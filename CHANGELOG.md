@@ -23,7 +23,7 @@ No changes pending after the v1.2.1 release candidate.
 - Add clean-profile packaged-app startup checks, desktop URL/path isolation tests, consistent version checks, and release checksums.
 - Prevent missing bundled backends from silently using a developer Python environment; restrict external protocols and cross-origin desktop requests.
 - Reorganize the bilingual README with one compact four-panel gallery and separate installation, API-key, and source-development guides.
-- See [consumer readiness report](docs/reports/v1.2.1-consumer-readiness.zh-CN.md) for verified results and remaining release boundaries. Packages remain unsigned/not notarized.
+- See [consumer readiness report](docs/reports/v1.2.1-consumer-readiness.zh-CN.md) for verified results and remaining release boundaries. Windows remains unsigned; macOS uses ad-hoc signing, not Developer ID or notarization.
 
 ## [1.2.0] - 2026-09-07
 

@@ -80,7 +80,7 @@
 
 ## 本地数据与隐私
 
-数据位于 Windows 的 `%APPDATA%/ScholarNova` 或 macOS 的 `~/Library/Application Support/ScholarNova`。迁移或备份前退出应用，并复制完整用户数据目录。Key 保存在本机后端配置，不写入浏览器持久存储、公开仓库或安装包；当前配置文件不是系统钥匙串加密存储，请保护好备份。
+数据位于 Windows 的 `%APPDATA%/scholarnova-desktop` 或 macOS 的 `~/Library/Application Support/scholarnova-desktop`。迁移或备份前退出应用，并复制完整用户数据目录。Key 保存在本机后端配置，不写入浏览器持久存储、公开仓库或安装包；当前配置文件不是系统钥匙串加密存储，请保护好备份。
 
 调用云模型会把当前操作所需的问题和选中材料发给所选提供商；Key 也会随认证请求发送到所配置的服务地址。使用第三方或自定义地址前应核对来源与隐私政策。
 
