@@ -26,6 +26,7 @@ No changes pending after the v1.2.1 release candidate.
 - Prevent missing bundled backends from silently using a developer Python environment; restrict external protocols and cross-origin desktop requests.
 - Reorganize the bilingual README with one compact four-panel gallery and separate installation, API-key, and source-development guides.
 - See [consumer readiness report](docs/reports/v1.2.1-consumer-readiness.zh-CN.md) for verified results and remaining release boundaries. Windows remains unsigned; macOS uses ad-hoc signing, not Developer ID or notarization.
+- Hold public binary artifacts/releases pending the owner's PDF dependency licensing decision; preserve source history and test logs without changing the project's existing license.
 
 ## [1.2.0] - 2026-09-07
 

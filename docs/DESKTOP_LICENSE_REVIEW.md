@@ -25,6 +25,6 @@ This is a bounded metadata/package inspection, not a complete audit of every nat
 
 ## Release gate / 发布闸门
 
-Manual desktop builds can still run for validation. A version-tag build must fail until repository variable `DESKTOP_LICENSE_REVIEWED` is `true`. Set it only after recording the selected licensing route and completing its required notices/source distribution or dependency replacement—not simply to bypass the check. Keep the review evidence in version control and recheck whenever bundled dependencies change.
+Manual desktop builds can still run for validation, but binary artifact uploads are also disabled while review is pending. A version-tag build must fail until repository variable `DESKTOP_LICENSE_REVIEWED` is `true`. Set it only after recording the selected licensing route and completing its required notices/source distribution or dependency replacement—not simply to bypass the check. Keep the review evidence in version control and recheck whenever bundled dependencies change.
 
 Windows commercial code signing and Apple notarization are separate from dependency licensing. Passing build/startup tests proves neither legal clearance nor platform signing.

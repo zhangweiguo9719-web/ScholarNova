@@ -118,6 +118,7 @@ jobs:
           python scripts/packaging/smoke_desktop.py "$app"
           python scripts/packaging/smoke_backend.py "$(dirname "$app")/../Resources/backend/ScholarNovaBackend/ScholarNovaBackend"
       - uses: actions/upload-artifact@v4
+        if: vars.DESKTOP_LICENSE_REVIEWED == 'true'
         with:
           name: ScholarNova-${{ matrix.os }}-${{ matrix.arch }}
           path: |

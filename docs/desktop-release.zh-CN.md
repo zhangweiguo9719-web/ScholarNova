@@ -40,7 +40,7 @@ python scripts/packaging/smoke_desktop.py desktop/dist/mac-arm64/ScholarNova.app
 4. 先完成 [桌面发行许可检查](DESKTOP_LICENSE_REVIEW.md)，落实对应许可证、源码材料或依赖替换，并记录所有者选择。确认完成后才设置仓库变量 `DESKTOP_LICENSE_REVIEWED=true`；不可仅为了跳过检查而开启。随后推送 main 与一个新的 `vX.Y.Z` 标签。
 5. Desktop Release 工作流先运行回归，再在 Windows x64、macOS Intel、macOS ARM64 分别构建。
 6. 每个已打包应用都要使用全新临时用户目录启动，打开五个页面并检查内置服务；失败不发布。
-7. 三个平台产物齐全后生成 SHA256SUMS 并发布。手动运行只产生工作流附件，不创建 Release。
+7. 三个平台产物齐全后生成 SHA256SUMS 并发布。许可确认后，手动运行只产生工作流附件，不创建 Release；许可确认前，手动运行仅做验证、不上传二进制附件。
 
 包启动检查不会使用开发者 Key、论文库或桌面快捷方式。它验证独立运行与页面加载，不等价于人工视觉验收、付费模型全量测试或 Apple 公证。
 
