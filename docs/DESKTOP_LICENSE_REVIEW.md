@@ -6,6 +6,15 @@ ScholarNova's own code retains its existing MIT license. This does not relicense
 
 The desktop package bundles a Python runtime and PDF libraries, rather than asking end users to install those dependencies separately. Do not describe the complete binary bundle as MIT-only or assume that an MIT source repository resolves all dependency obligations. No commercial PyMuPDF license has been verified for this release.
 
+## Observed package evidence / 实际包核对
+
+- Locked build environment: PyMuPDF `1.26.3`, binding version `1.26.3`, embedded MuPDF `1.26.3`.
+- Packaged Windows backend contains `_mupdf.pyd`, `_extra.pyd` and `mupdfcpp64.dll`. This is not merely an unused optional dependency.
+- Current backend packaging does not collect PyMuPDF's distribution `COPYING` or certifi's MPL license file. The local PyMuPDF wheel's `COPYING` is only a short dual-license notice, not the complete AGPL text. Required notices/source materials still need to be assembled after selecting the distribution route.
+- Electron's `LICENSE.electron.txt` and `LICENSES.chromium.html` are present and must be retained. PyInstaller's license includes a bundling exception; do not treat its build-tool license as identical to the PyMuPDF runtime issue.
+
+This is a bounded metadata/package inspection, not a complete audit of every native library or a legal opinion.
+
 ## Decision needed / 需要确认的路线
 
 - Continue open-source distribution: review the combined distribution's applicable terms, include license notices and the required corresponding source/build information, retaining existing authorship notices.
