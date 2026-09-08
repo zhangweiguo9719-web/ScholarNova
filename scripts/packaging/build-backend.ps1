@@ -52,6 +52,7 @@ Invoke-Checked { & $Python -m pip install --upgrade pip }
 Invoke-Checked { & $Python -m pip install -r (Join-Path $Root "requirements-lock.txt") }
 Invoke-Checked { & $Python -m pip install -e (Join-Path $Root "backend") --no-deps }
 Invoke-Checked { & $Python -m pip install pyinstaller }
+Invoke-Checked { & $Python scripts/packaging/build_corresponding_source.py --check-runtime-only }
 Invoke-Checked { & $Python -m PyInstaller (Join-Path $Root "scripts\packaging\ScholarNovaBackend.spec") --noconfirm --clean }
 
 if (Test-Path $ReleaseBackend) {
@@ -59,3 +60,4 @@ if (Test-Path $ReleaseBackend) {
 }
 New-Item -ItemType Directory -Force -Path (Split-Path $ReleaseBackend) | Out-Null
 Copy-Item -LiteralPath $DistBackend -Destination $ReleaseBackend -Recurse -Force
+Invoke-Checked { & $Python scripts/packaging/collect_notices.py }

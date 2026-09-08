@@ -27,6 +27,7 @@ jobs:
       - run: npm --prefix frontend test
       - run: npm --prefix frontend run build
       - run: node --test desktop/security.test.cjs desktop/proxy.test.cjs
+      - run: python -m unittest discover -s scripts/packaging -p "test_*.py"
       - run: pip install -c requirements-lock.txt -e "./backend[dev]"
       - run: python -m pytest backend/tests -q --tb=short
       - name: Check release version
@@ -46,8 +47,28 @@ jobs:
             exit 1
           fi
 
-  build:
+  corresponding-source:
     needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/cache@v4
+        with:
+          path: outputs/source-cache
+          key: corresponding-source-${{ hashFiles('scripts/packaging/corresponding-source-lock.json') }}
+      - name: Assemble exact-commit corresponding source
+        run: python scripts/packaging/build_corresponding_source.py --ref "$GITHUB_SHA"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ScholarNova-corresponding-source
+          path: desktop/dist/*-corresponding-source.zip
+          if-no-files-found: error
+
+  build:
+    needs: [verify, corresponding-source]
     name: Build ${{ matrix.os }} ${{ matrix.arch }}
     strategy:
       fail-fast: false
@@ -86,12 +107,14 @@ jobs:
           python -m pip install -r requirements-lock.txt
           python -m pip install -e backend --no-deps
           python -m pip install pyinstaller
+          python scripts/packaging/build_corresponding_source.py --check-runtime-only
       - name: Build frontend and packaged backend
         shell: bash
         run: |
           npm run build:frontend
           python -m PyInstaller scripts/packaging/ScholarNovaBackend.spec --noconfirm --clean
           python scripts/packaging/stage_backend.py
+          python scripts/packaging/collect_notices.py
       - name: Package Windows
         if: matrix.os == 'windows'
         run: npx electron-builder --win nsis portable --x64 --publish never
@@ -103,6 +126,8 @@ jobs:
       - name: Smoke test Windows app
         if: matrix.os == 'windows'
         run: |
+          python scripts/packaging/collect_notices.py --verify desktop/dist/win-unpacked/resources/legal
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python scripts/packaging/smoke_desktop.py desktop/dist/win-unpacked/ScholarNova.exe
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $version = (Get-Content package.json | ConvertFrom-Json).version
@@ -115,6 +140,7 @@ jobs:
         run: |
           app=$(find desktop/dist -path '*/ScholarNova.app/Contents/MacOS/ScholarNova' -type f | head -n 1)
           test -n "$app"
+          python scripts/packaging/collect_notices.py --verify "$(dirname "$app")/../Resources/legal"
           python scripts/packaging/smoke_desktop.py "$app"
           python scripts/packaging/smoke_backend.py "$(dirname "$app")/../Resources/backend/ScholarNovaBackend/ScholarNovaBackend"
       - uses: actions/upload-artifact@v4
@@ -129,7 +155,7 @@ jobs:
 
   publish:
     name: Publish verified desktop release
-    needs: build
+    needs: [build, corresponding-source]
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     permissions:
@@ -146,6 +172,8 @@ jobs:
         shell: bash
         run: |
           cd artifacts
+          version="${GITHUB_REF_NAME#v}"
+          test -s "ScholarNova-${version}-corresponding-source.zip"
           sha256sum *.exe *.dmg *.zip > SHA256SUMS.txt
           gh release create "$GITHUB_REF_NAME" *.exe *.dmg *.zip SHA256SUMS.txt \
             --repo "$GITHUB_REPOSITORY" --verify-tag \

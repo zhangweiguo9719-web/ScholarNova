@@ -143,6 +143,8 @@ def main():
             payload = json.loads(result.read_text(encoding="utf-8"))
             if not payload.get("success") or payload.get("pages") != ["/", "/search", "/knowledge", "/assistant", "/settings"]:
                 raise RuntimeError("Incomplete packaged application smoke result")
+            if not payload.get("legal_notices") or not payload.get("source_download_entry"):
+                raise RuntimeError("Packaged application license/source entry missing")
             print(json.dumps({**payload, "elapsed_seconds": round(time.monotonic() - started, 2)}))
         except Exception:
             for log in (directory / "logs").glob("*.log"):

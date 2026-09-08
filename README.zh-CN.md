@@ -1,6 +1,6 @@
 <p align="center"><img src="docs/assets/scholarnova-cover-en.svg" width="800" alt="ScholarNova — AI Research Workspace"></p>
 <p align="center"><a href="https://github.com/zhangweiguo9719-web/ScholarNova/releases/latest">Download / 下载</a> · <a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="CHANGELOG.md">Changelog</a></p>
-<p align="center"><a href="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/ci.yml"><img src="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/ci.yml/badge.svg" alt="CI"></a> <a href="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/desktop-release.yml"><img src="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/desktop-release.yml/badge.svg" alt="Desktop builds"></a> <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-d4a84f" alt="MIT"></a></p>
+<p align="center"><a href="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/ci.yml"><img src="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/ci.yml/badge.svg" alt="CI"></a> <a href="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/desktop-release.yml"><img src="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/desktop-release.yml/badge.svg" alt="Desktop builds"></a> <a href="LICENSE"><img src="https://img.shields.io/badge/Own_source-MIT-d4a84f" alt="项目自有源代码：MIT"></a> <a href="docs/DESKTOP_LICENSE_REVIEW.md"><img src="https://img.shields.io/badge/Desktop_combination-AGPLv3-536b82" alt="桌面发行组合：AGPLv3"></a></p>
 
 # ScholarNova
 
@@ -10,7 +10,7 @@
 
 到 **[GitHub Releases 下载已发布安装包](https://github.com/zhangweiguo9719-web/ScholarNova/releases/latest)**，展开 Assets，按你的电脑选择。源码中的版本号或 Git 标签不代表安装包已经发布；以 Release 中实际存在的文件为准。
 
-**v1.2.1 当前为验收候选版，尚未发布安装包。** Windows、Intel Mac 与 Apple Silicon Mac 的原生构建已通过；正式分发还需确认 PDF 依赖的许可方案，见 [桌面发行许可检查](docs/DESKTOP_LICENSE_REVIEW.md)。旧 Release 不等于已经包含本轮修复。
+**v1.2.1 当前为验收候选版，尚未发布安装包。** Windows、Intel Mac 与 Apple Silicon Mac 的原生构建已通过。维护者已选择 AGPL 开源桌面发行路线，目前正在准备与核验配套许可声明、相应源码和最终安装包，见 [发行准备记录](docs/DESKTOP_LICENSE_REVIEW.md)。旧 Release 不等于已经包含本轮修复。
 
 | 你的电脑 | 选择文件 | 安装方法 |
 | --- | --- | --- |
@@ -103,4 +103,8 @@ React + TypeScript 构建界面，Electron 提供桌面外壳，FastAPI 编排�
 
 欢迎通过 [Issues](https://github.com/zhangweiguo9719-web/ScholarNova/issues) 提交使用问题，附上系统版本、应用版本、操作步骤和脱敏错误信息。不要附上 API Key 或私有论文。开发贡献见 [CONTRIBUTING](CONTRIBUTING.md)，安全反馈见 [SECURITY](SECURITY.md)。
 
-[MIT License](LICENSE) 适用于项目自有代码。打包的第三方库（特别是 PyMuPDF / MuPDF）、模型、数据源和论文受各自条款约束，详见 [桌面发行许可检查](docs/DESKTOP_LICENSE_REVIEW.md)。
+## 开源许可
+
+项目自有代码继续采用 [MIT 许可证并保留原作者声明](LICENSE)。包含 PyMuPDF / MuPDF 的完整桌面发行组合按 GNU AGPL v3 的适用条款提供；其他独立组件保留各自许可声明。不添加“仅非商业使用”限制。详见 [第三方声明](THIRD_PARTY_NOTICES.md) 与 [桌面发行记录](docs/DESKTOP_LICENSE_REVIEW.md)。
+
+每个已发布桌面版本应在安装包旁提供 `ScholarNova-版本-corresponding-source.zip` 与 `SHA256SUMS.txt`，源码归档中的 `SOURCE_MANIFEST.json` 记录来源，应用资源目录 `legal/` 保存逐包许可声明。当前下载情况以 Release 实际附件为准；GitHub 自动生成的“Source code”仓库 ZIP 不等同于完整依赖源码包。模型服务、学术数据和论文仍遵循各自条款。

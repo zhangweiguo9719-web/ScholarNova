@@ -174,11 +174,13 @@ function contentTypeFor(filePath) {
   if (ext === '.png') return 'image/png'
   if (ext === '.ico') return 'image/x-icon'
   if (ext === '.json') return 'application/json; charset=utf-8'
+  if (ext === '.txt' || ext === '.md') return 'text/plain; charset=utf-8'
   return 'application/octet-stream'
 }
 
 function startStaticServer(uiPort, backendPort) {
   const frontendDist = getFrontendDistPath()
+  const legalRoot = isPackaged ? path.join(process.resourcesPath, 'legal') : path.join(__dirname, 'release', 'legal')
   staticServer = http.createServer((req, res) => {
     // Reject DNS rebinding and cross-origin requests to the desktop service.
     const origin = req.headers.origin
@@ -193,14 +195,25 @@ function startStaticServer(uiPort, backendPort) {
       return
     }
 
-    let filePath = resolveStaticPath(frontendDist, req.url)
+    const legalRequest = req.url === '/legal' || req.url.startsWith('/legal/')
+    let filePath = resolveStaticPath(legalRequest ? legalRoot : frontendDist,
+      legalRequest ? req.url.slice('/legal'.length) || '/index.html' : req.url)
     if (!filePath) {
       res.writeHead(403)
       res.end('Forbidden')
       return
     }
 
-    if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
+    if (legalRequest) {
+      if (fs.existsSync(filePath) && fs.statSync(filePath).isDirectory()) filePath = path.join(filePath, 'index.html')
+      if (!fs.existsSync(filePath)) {
+        res.writeHead(404)
+        res.end('License document not found')
+        return
+      }
+      res.setHeader('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'")
+      res.setHeader('X-Content-Type-Options', 'nosniff')
+    } else if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
       filePath = path.join(frontendDist, 'index.html')
     }
 
@@ -272,8 +285,14 @@ async function createWindow(uiPort) {
     }
     const response = await fetch(origin + '/api/v1/health/live')
     if (!response.ok || (await response.json()).status !== 'ok') throw new Error('Desktop backend health failed')
+    const legalResponse = await fetch(origin + '/legal/index.html')
+    if (!legalResponse.ok || !(await legalResponse.text()).includes('AGPL')) throw new Error('Offline license notices missing')
+    const sourceLinkPresent = await mainWindow.webContents.executeJavaScript(
+      `!!document.querySelector('a[href$="ScholarNova-${app.getVersion()}-corresponding-source.zip"]')`
+    )
+    if (!sourceLinkPresent) throw new Error('Corresponding source download entry missing')
     fs.writeFileSync(path.join(app.getPath('userData'), 'smoke-result.json'),
-      JSON.stringify({ success: true, version: app.getVersion(), platform: process.platform, arch: process.arch, pages }))
+      JSON.stringify({ success: true, version: app.getVersion(), platform: process.platform, arch: process.arch, pages, legal_notices: true, source_download_entry: true }))
     app.quit()
   }
 }

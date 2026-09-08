@@ -1,6 +1,6 @@
 <p align="center"><img src="docs/assets/scholarnova-cover-en.svg" width="800" alt="ScholarNova — AI Research Workspace"></p>
 <p align="center"><a href="https://github.com/zhangweiguo9719-web/ScholarNova/releases/latest">Download / 下载</a> · <a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="CHANGELOG.md">Changelog</a></p>
-<p align="center"><a href="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/ci.yml"><img src="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/ci.yml/badge.svg" alt="CI"></a> <a href="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/desktop-release.yml"><img src="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/desktop-release.yml/badge.svg" alt="Desktop builds"></a> <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-d4a84f" alt="MIT"></a></p>
+<p align="center"><a href="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/ci.yml"><img src="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/ci.yml/badge.svg" alt="CI"></a> <a href="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/desktop-release.yml"><img src="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/desktop-release.yml/badge.svg" alt="Desktop builds"></a> <a href="LICENSE"><img src="https://img.shields.io/badge/Own_source-MIT-d4a84f" alt="Project-owned source: MIT"></a> <a href="docs/DESKTOP_LICENSE_REVIEW.md"><img src="https://img.shields.io/badge/Desktop_combination-AGPLv3-536b82" alt="Desktop combination: AGPLv3"></a></p>
 
 # ScholarNova
 
@@ -10,7 +10,7 @@ A desktop research workspace for individuals: **find papers → read full text �
 
 Open **[GitHub Releases](https://github.com/zhangweiguo9719-web/ScholarNova/releases/latest)** and choose an existing asset for your computer. A source version or Git tag does not mean downloadable binaries have been published; the release assets are authoritative.
 
-**v1.2.1 is a release candidate, not a published binary release.** Native Windows, Intel Mac and Apple Silicon builds have passed validation; public distribution awaits the PDF dependency licensing decision described in [Desktop license review](docs/DESKTOP_LICENSE_REVIEW.md). Older releases do not include the latest fixes.
+**v1.2.1 is a release candidate, not a published binary release.** Native Windows, Intel Mac and Apple Silicon builds have passed validation. The owner has chosen the AGPL open-source desktop distribution route; matching notices, corresponding source and final packages are being prepared and verified. See [release preparation](docs/DESKTOP_LICENSE_REVIEW.md). Older releases do not include the latest fixes.
 
 | Computer | Download | Install |
 | --- | --- | --- |
@@ -101,4 +101,10 @@ Historical Asta results: **F1 0.341379** on an 18-query validation subset; **F1 
 
 ## Feedback
 
-Report reproducible issues with OS, app version and sanitized error details in [Issues](https://github.com/zhangweiguo9719-web/ScholarNova/issues). Do not attach API keys or private papers. See [CONTRIBUTING](CONTRIBUTING.md), [SECURITY](SECURITY.md) and the [MIT License](LICENSE) for project-owned code. Bundled libraries (especially PyMuPDF / MuPDF), models, data sources and papers retain their own terms; see [Desktop license review](docs/DESKTOP_LICENSE_REVIEW.md).
+Report reproducible issues with OS, app version and sanitized error details in [Issues](https://github.com/zhangweiguo9719-web/ScholarNova/issues). Do not attach API keys or private papers. See [CONTRIBUTING](CONTRIBUTING.md) and [SECURITY](SECURITY.md).
+
+## Open-source licenses
+
+Project-owned code retains its [MIT License and author notice](LICENSE). The combined desktop distribution including PyMuPDF / MuPDF follows the applicable GNU AGPL v3 terms; independent bundled components keep their own notices. No noncommercial restriction is added. See [third-party notices](THIRD_PARTY_NOTICES.md) and the [distribution record](docs/DESKTOP_LICENSE_REVIEW.md).
+
+Each published desktop version is to provide `ScholarNova-VERSION-corresponding-source.zip` and `SHA256SUMS.txt` alongside its installers, with source provenance in `SOURCE_MANIFEST.json`. Package-specific notices are in the app resources `legal/` folder. Check the actual Release assets for availability; the generic GitHub “Source code” ZIP alone is not the full dependency-source bundle. Models, scholarly data and papers retain their own terms.

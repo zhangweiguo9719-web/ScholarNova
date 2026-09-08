@@ -6,6 +6,7 @@ import { useLocaleStore } from '@/stores/localeStore'
 import ModelConfig from '@/components/ModelConfig/ModelConfig'
 import NetworkConfig from '@/components/NetworkConfig'
 import ZoteroIntegration from '@/components/ZoteroIntegration'
+import OpenSourceInfo from '@/components/OpenSourceInfo'
 
 export default function Settings() {
   const { t } = useLocaleStore()
@@ -150,6 +151,7 @@ export default function Settings() {
         <div className="mt-6">
           <NetworkConfig />
         </div>
+        <OpenSourceInfo />
       </div>
     </div>
   )

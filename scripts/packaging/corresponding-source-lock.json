@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "artifacts": [
+    {
+      "name": "PyMuPDF",
+      "version": "1.26.3",
+      "filename": "pymupdf-1.26.3.tar.gz",
+      "url": "https://files.pythonhosted.org/packages/6d/d4/70a265e4bcd43e97480ae62da69396ef4507c8f9cfd179005ee731c92a04/pymupdf-1.26.3.tar.gz",
+      "sha256": "b7d2c3ffa9870e1e4416d18862f5ccd356af5fe337b4511093bbbce2ca73b7e5",
+      "size": 75990308,
+      "metadata_url": "https://pypi.org/pypi/pymupdf/1.26.3/json",
+      "source_url": "https://github.com/pymupdf/PyMuPDF/tree/1.26.3",
+      "license": "AGPL v3 distribution or Artifex commercial license; preserve individual-file notices (including GPL-3.0-only headers)"
+    },
+    {
+      "name": "MuPDF",
+      "version": "1.26.3",
+      "filename": "mupdf-1.26.3-source.tar.gz",
+      "url": "https://mupdf.com/downloads/archive/mupdf-1.26.3-source.tar.gz",
+      "sha256": "ab467fc2d888cd8424cdce4bc6dd7ec61f34820582ddf3769a336e6909d9a48e",
+      "size": 64525703,
+      "metadata_url": "https://raw.githubusercontent.com/pymupdf/PyMuPDF/1.26.3/setup.py",
+      "source_url": "https://github.com/ArtifexSoftware/mupdf/tree/1.26.3",
+      "license": "AGPL-3.0-or-later OR Artifex commercial license; bundled third-party notices also apply",
+      "omitted_nested_submodules": [
+        {
+          "path": "thirdparty/freetype/subprojects/dlg",
+          "repository": "https://github.com/nyorain/dlg.git",
+          "commit": "72dfcc858c040c54a6a0b88fcb7e70ee186d3167",
+          "reason": "Optional FreeType FT_DEBUG_LOGGING dependency; default MuPDF build does not enable this option.",
+          "gitlink_source": "https://github.com/ArtifexSoftware/thirdparty-freetype2/tree/42608f77f20749dd6ddc9e0536788eaad70ea4b5/subprojects"
+        },
+        {
+          "path": "thirdparty/tesseract/test",
+          "repository": "https://github.com/tesseract-ocr/test.git",
+          "commit": "2761899921c08014cf9dbf3b63592237fb9e6ecb",
+          "reason": "Tesseract upstream test data; not part of MuPDF library compilation.",
+          "gitlink_source": "https://github.com/ArtifexSoftware/thirdparty-tesseract/tree/a3a7bfaba8b1b575142f9752dba7540ac204f437"
+        },
+        {
+          "path": "thirdparty/tesseract/unittest/third_party/googletest",
+          "repository": "https://github.com/google/googletest.git",
+          "commit": "b514bdc898e2951020cbdca1304b75f5950d1f59",
+          "reason": "Tesseract upstream unit test framework; not part of MuPDF library compilation.",
+          "gitlink_source": "https://github.com/ArtifexSoftware/thirdparty-tesseract/tree/a3a7bfaba8b1b575142f9752dba7540ac204f437/unittest/third_party"
+        },
+        {
+          "path": "thirdparty/zxing-cpp/zint",
+          "repository": "https://github.com/zint/zint.git",
+          "commit": "7a9fdd6cd00cd5bfd0082705d934c13ef84f25e1",
+          "reason": "ZXing standalone CMake bundled-zint option; MuPDF's Makethird instead builds the populated top-level thirdparty/zint sources.",
+          "gitlink_source": "https://github.com/ArtifexSoftware/thirdparty-zxing-cpp/tree/e455eccbb93e6b5eab5cb3b0f9b5e9707973246b"
+        }
+      ]
+    },
+    {
+      "name": "certifi",
+      "version": "2025.6.15",
+      "filename": "certifi-2025.6.15.tar.gz",
+      "url": "https://files.pythonhosted.org/packages/73/f7/f14b46d4bcd21092d7d3ccef689615220d8a08fb25e564b65d20738e672e/certifi-2025.6.15.tar.gz",
+      "sha256": "d747aa5a8b9bbbb1bb8c22bb13e22bd1f18e9796defa16bab421f7f7a317323b",
+      "size": 158753,
+      "metadata_url": "https://pypi.org/pypi/certifi/2025.6.15/json",
+      "source_url": "https://github.com/certifi/python-certifi/tree/2025.06.15",
+      "license": "MPL-2.0"
+    }
+  ]
+}

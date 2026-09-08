@@ -1,0 +1,17 @@
+{
+  "AGPL-3.0.txt": {
+    "url": "https://raw.githubusercontent.com/ArtifexSoftware/mupdf/1.26.3/COPYING",
+    "sha256": "57c8ff33c9c0cfc3ef00e650a1cc910d7ee479a8bc509f6c9209a7c2a11399d6",
+    "note": "Complete AGPL v3 text from the upstream MuPDF 1.26.3 release; copied without modification."
+  },
+  "MPL-2.0.txt": {
+    "url": "https://www.mozilla.org/media/MPL/2.0/index.txt",
+    "sha256": "3f3d9e0024b1921b067d6f7f88deb4a60cbe7a78e76c64e3f1d7fc3b779b9d04",
+    "note": "Complete Mozilla Public License 2.0 from Mozilla; copied without modification."
+  },
+  "jiter-0.10.0-MIT.txt": {
+    "url": "https://raw.githubusercontent.com/pydantic/jiter/v0.10.0/LICENSE",
+    "sha256": "7c7134b9f7b978c03fca875517cf398db91f19bbb8109b6685e742aa3f57468e",
+    "note": "The installed jiter 0.10.0 wheel omits its license; exact-version upstream MIT text."
+  }
+}
