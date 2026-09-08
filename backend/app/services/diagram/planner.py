@@ -145,6 +145,11 @@ async def plan_modules_with_llm(
         modules = plan.get("modules")
         if not isinstance(modules, list) or not modules:
             plan["modules"] = []
+        for module in plan["modules"]:
+            if isinstance(module, dict) and "formula" in module:
+                formula = module["formula"]
+                if not isinstance(formula, str) or not formula.strip() or formula not in knowledge_text:
+                    module["formula"] = ""
         return plan
     except (json.JSONDecodeError, ValueError, AttributeError) as exc:
         logger.warning("LLM diagram planning failed: %s", exc)

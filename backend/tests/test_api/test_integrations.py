@@ -6,7 +6,11 @@ import pytest
 from sqlalchemy import select
 
 from app.models.paper import PaperEntity
-from app.services.integrations.zotero import ZoteroAccessDeniedError, ZoteroStatus
+from app.services.integrations.zotero import (
+    ZoteroAccessDeniedError,
+    ZoteroStatus,
+    ZoteroWriteUnverifiedError,
+)
 
 
 @pytest.mark.asyncio
@@ -96,3 +100,16 @@ async def test_zotero_import_is_idempotent(client, db_session, monkeypatch) -> N
     assert papers[0].author_names == ["Ada Lovelace"]
     assert papers[0].source == "zotero"
     assert papers[0].extra_metadata["zotero"]["key"] == "ITEM1234"
+
+
+@pytest.mark.asyncio
+async def test_zotero_push_reports_unverified_write_without_success(client, monkeypatch):
+    monkeypatch.setattr(
+        "app.api.v1.integrations.ZoteroLocalClient.create_paper",
+        AsyncMock(side_effect=ZoteroWriteUnverifiedError("请检查 Zotero，避免重复同步。")),
+    )
+    response = await client.post("/api/v1/integrations/zotero/push", json={"title": "Test"})
+    assert response.status_code == 502
+    assert response.json()["detail"]["code"] == "zotero_write_unverified"
+    assert response.json()["detail"]["may_have_saved"] is True
+    assert "success" not in response.json()

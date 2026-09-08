@@ -256,7 +256,7 @@ Output JSON with this exact schema:
       "name": "short English label (2-3 words)",
       "desc": "what this module covers, one short phrase",
       "sub_modules": ["2-4 short internal sub-modules giving this module depth, e.g. stacked layers or components"],
-      "formula": "optional minimal math notation for this module, e.g. Attention(Q,K,V) or L(theta)"
+      "formula": "exact formula copied from verified knowledge items only; empty string if none"
     }}
   ],
   "flow": "a short phrase describing the visual flow"
@@ -271,7 +271,8 @@ Additional rules:
 - Every module SHOULD include 2-4 sub_modules describing its internal structure
   (e.g. a convolution module -> ["Conv 3x3", "BN", "ReLU", "Pooling"]) so the
   figure has top-tier-journal depth instead of being a flat strip of boxes
-- Optionally include one short formula per module when it is natural"""
+- Never invent, infer, or complete a formula. Copy it verbatim from the verified knowledge items or leave formula empty.
+- Route analysis is AI-generated planning, not evidence for formulas or established paper facts."""
 
 
 def build_planning_user_prompt(

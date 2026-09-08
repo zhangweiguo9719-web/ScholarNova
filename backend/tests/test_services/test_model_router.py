@@ -256,3 +256,30 @@ async def test_query_planning_timeout_leaves_time_for_fallback(monkeypatch) -> N
         "unavailable",
         "completed",
     ]
+
+
+@pytest.mark.asyncio
+async def test_gateway_adapter_disables_thinking_and_preserves_failed_usage(monkeypatch):
+    class PlanningGateway(RoutedGateway):
+        async def chat(self, messages, **kwargs):
+            assert kwargs["extra_body"] == {"thinking": {"type": "disabled"}}
+            return await super().chat(messages, **kwargs)
+
+    PlanningGateway.profiles = []
+    PlanningGateway.fail_providers = set()
+    monkeypatch.setattr("app.services.inference.model_router.get_model_for_task", lambda task: {
+        "provider": "zhipu", "model": "glm-5.2", "api_key": "test", "base_url": "https://example.test",
+    })
+    monkeypatch.setattr("app.services.inference.model_router.get_fallback_model_config", lambda: {"enabled": False})
+    gateway = RoutedLLMGateway("analysis", gateway_factory=PlanningGateway)
+    await gateway.chat([{"role": "user", "content": "plan"}])
+    assert gateway.last_result is not None
+    PlanningGateway.fail_providers = {"zhipu"}
+
+    with pytest.raises(AllModelsUnavailableError):
+        await gateway.chat([{"role": "user", "content": "plan again"}])
+
+    assert gateway.last_result is None
+    assert gateway.last_usage["total_tokens"] == 15
+    assert gateway.usage["total_tokens"] == 30
+    assert gateway.usage["requests"] == 2

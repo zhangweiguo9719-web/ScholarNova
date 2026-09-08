@@ -490,6 +490,14 @@ export interface KnowledgeItem {
   notes: string | null
   created_at: string
   updated_at: string
+  polish_status?: 'skipped' | 'completed' | 'invalid_response' | 'model_unavailable' | null
+  model_completed?: boolean | null
+  provider?: string | null
+  model?: string | null
+  fallback_used?: boolean
+  prompt_tokens?: number
+  completion_tokens?: number
+  total_tokens?: number
 }
 
 export interface KnowledgeListResponse {

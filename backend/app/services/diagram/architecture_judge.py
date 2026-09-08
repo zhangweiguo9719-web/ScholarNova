@@ -17,7 +17,7 @@ import json
 import re
 from typing import Any
 
-from app.services.inference.model_router import chat_with_fallback
+from app.services.inference.model_router import AllModelsUnavailableError, chat_with_fallback
 
 ARCH_JSON_TAG = "ARCH_JSON"
 
@@ -59,7 +59,7 @@ _USER_PROMPT_TEMPLATE = """请对下面的研究架构进行"评判式提炼"：
 
 研究架构原文如下：
 ----- 原文开始 -----
-{{analysis}}
+{analysis}
 ----- 原文结束 -----
 """
 
@@ -155,8 +155,10 @@ def _normalize_arch(raw: dict[str, Any] | None) -> dict[str, Any] | None:
 async def judge_architecture(
     knowledge_text: str,
     analysis_text: str,
+    *,
+    usage: dict[str, int] | None = None,
 ) -> dict[str, Any] | None:
-    """AI 中间评判：把主分析提炼成统一架构 JSON。失败返回 None（前端文字兜底）。"""
+    """提炼架构 JSON；可将成功或失败调用的供应商用量累加到 usage。"""
     analysis_snippet = (analysis_text or "")[:6000]
     if not analysis_snippet.strip():
         return None
@@ -170,6 +172,7 @@ async def judge_architecture(
         {"role": "system", "content": _SYSTEM_PROMPT},
         {"role": "user", "content": prompt},
     ]
+    reported_usage: dict[str, int] = {}
     try:
         routed = await chat_with_fallback(
             task="analysis",
@@ -177,6 +180,14 @@ async def judge_architecture(
             temperature=0.2,
             max_tokens=2048,
         )
+        reported_usage = routed.usage
         return _normalize_arch(_extract_arch_json(routed.content))
+    except AllModelsUnavailableError as exc:
+        reported_usage = exc.usage
+        return None
     except Exception:  # noqa: BLE001 - 评判失败不影响主流程
         return None
+    finally:
+        if usage is not None:
+            for key in ("prompt_tokens", "completion_tokens", "total_tokens", "requests"):
+                usage[key] = usage.get(key, 0) + reported_usage.get(key, 0)

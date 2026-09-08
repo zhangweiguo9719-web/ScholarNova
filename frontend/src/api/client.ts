@@ -224,6 +224,9 @@ export const zoteroApi = {
     item_key: string
     attachment_key: string
     collection_key?: string
+    collection_verified: boolean
+    pdf_imported: boolean
+    warnings: string[]
   }>('/integrations/zotero/push', data),
 }
 

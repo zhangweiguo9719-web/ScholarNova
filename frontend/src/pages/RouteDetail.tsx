@@ -115,15 +115,34 @@ export default function RouteDetail() {
       setGenerateElapsed(Math.floor((Date.now() - startedAt) / 1000))
     }, 500)
     try {
+      let streamError: string | null = null
+      let completed = false
+      let diagramGenerated = false
+      let roadmapGenerated = false
+      let planningFallback = false
       await knowledgeApi.generateRouteAnalysisStream(id, (evt) => {
         if (evt.progress != null) setGenerateProgress(evt.progress)
         if (evt.stage) setGenerateStage(evt.stage)
         if (evt.event === 'error') {
-          toast.error(evt.message || t('common.error'))
+          streamError = evt.message || t('common.error')
         }
+        if (evt.event === 'done') completed = true
+        if (evt.stage === 'diagram' && evt.data) diagramGenerated = Boolean(evt.data.image_url)
+        if (evt.stage === 'roadmap' && evt.data) roadmapGenerated = Boolean(evt.data.roadmap_url)
+        if (evt.data?.plan_source && evt.data.plan_source !== 'model') planningFallback = true
       })
+      if (streamError || !completed) {
+        toast.error(streamError || (isChinese ? '生成连接已中断，请重试' : 'Generation ended before completion. Please retry.'))
+        return
+      }
       await fetchRoute()
-      toast.success(isChinese ? '分析生成成功' : 'Analysis generated successfully')
+      if (!diagramGenerated || !roadmapGenerated) {
+        toast.error(isChinese ? '分析已保存，部分图像未生成，请查看结果后重试' : 'Analysis saved, but some images were not generated. Review the results and retry.')
+      } else if (planningFallback) {
+        toast.error(isChinese ? '图像已生成，但部分规划为规则回退，尚非完整定制方案' : 'Images generated, but some plans use generic fallback templates, not a fully tailored plan.')
+      } else {
+        toast.success(isChinese ? '分析生成成功' : 'Analysis generated successfully')
+      }
     } catch {
       toast.error(t('common.error'))
     } finally {

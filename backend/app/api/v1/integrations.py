@@ -16,6 +16,7 @@ from app.services.integrations.zotero import (
     ZoteroClientError,
     ZoteroLocalClient,
     ZoteroUnavailableError,
+    ZoteroWriteUnverifiedError,
 )
 
 router = APIRouter()
@@ -110,6 +111,11 @@ def _venue(data: dict[str, Any]) -> str | None:
 
 
 def _raise_zotero_error(exc: Exception) -> None:
+    if isinstance(exc, ZoteroWriteUnverifiedError):
+        raise HTTPException(
+            status_code=502,
+            detail={"code": "zotero_write_unverified", "message": str(exc), "may_have_saved": True},
+        ) from exc
     if isinstance(exc, ZoteroAccessDeniedError):
         raise HTTPException(
             status_code=503,
@@ -157,11 +163,7 @@ async def zotero_collections() -> dict[str, Any]:
 
 @router.post("/zotero/push")
 async def push_to_zotero(request: ZoteroPushRequest) -> dict[str, Any]:
-    """Push the current paper (and its local PDF) into the user's Zotero library.
-
-    Requires Zotero running with local API enabled; writes may require an
-    API key (Settings → Advanced → create one for ScholarNova).
-    """
+    """Save paper metadata and verify its destination; report unsupported PDFs."""
     from app.services.integrations.zotero import ZoteroLocalClient
 
     creators = []

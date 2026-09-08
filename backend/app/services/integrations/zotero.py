@@ -1,8 +1,9 @@
-"""Read-only client for Zotero's local Web API."""
+"""Local Zotero reads and explicitly requested, verified Connector writes."""
 
 from __future__ import annotations
 
 import re
+import uuid
 from dataclasses import dataclass
 from typing import Any
 
@@ -26,6 +27,10 @@ class ZoteroClientError(RuntimeError):
     """Raised when Zotero returns an invalid or unsuccessful response."""
 
 
+class ZoteroWriteUnverifiedError(ZoteroClientError):
+    """A write was attempted, but its final destination could not be verified."""
+
+
 @dataclass(slots=True)
 class ZoteroStatus:
     connected: bool
@@ -34,7 +39,7 @@ class ZoteroStatus:
 
 
 class ZoteroLocalClient:
-    """A deliberately small, read-only wrapper around the fixed localhost API."""
+    """A small wrapper around fixed localhost Web API and Connector endpoints."""
 
     def __init__(self, timeout: float = 4.0) -> None:
         self.timeout = timeout
@@ -107,23 +112,19 @@ class ZoteroLocalClient:
         return response
 
 
-    async def _connector_save_items(
+    async def _connector_post(
         self,
-        items: list[dict[str, Any]],
-    ) -> None:
-        """Save items via the Zotero Connector endpoint (write-capable).
-
-        In Zotero 9 the /api prefix is read-only; writes must go through
-        /connector/saveItems, the same endpoint the browser extension uses.
-        Returns 201 with an empty body on success.
-        """
+        path: str,
+        payload: dict[str, Any],
+        expected_status: int = 200,
+    ) -> httpx.Response:
         try:
             async with httpx.AsyncClient(
                 base_url=ZOTERO_CONNECTOR_API,
                 timeout=10.0,
                 trust_env=False,
             ) as client:
-                response = await client.post("/saveItems", json={"items": items})
+                response = await client.post(path, json=payload)
         except (httpx.ConnectError, httpx.ConnectTimeout, httpx.ReadTimeout) as exc:
             raise ZoteroUnavailableError(
                 "未检测到 Zotero。请先启动 Zotero，并在设置 → 高级中启用本地 API。"
@@ -133,42 +134,65 @@ class ZoteroLocalClient:
                 "Zotero 拒绝了写入请求。请在 Zotero 设置 → 高级中启用"
                 "“允许此计算机上的其他应用程序与 Zotero 通讯”。"
             )
-        if response.status_code != 201:
+        if response.status_code != expected_status:
             raise ZoteroClientError(
                 f"Zotero Connector 写入失败: HTTP {response.status_code} "
                 f"{response.text[:160]}"
             )
+        return response
 
-    async def _find_item_key_by_title(
-        self,
-        title: str,
-        *,
-        doi: str | None = None,
-    ) -> str:
-        """Look up a recently-created item's key by title (and optional DOI).
+    async def _save_target(self, collection_key: str | None) -> str:
+        """Resolve a unique full collection path, never a guessed name or ID."""
+        if collection_key and not _COLLECTION_KEY.fullmatch(collection_key):
+            raise ValueError("Zotero 文件夹标识不合法")
+        response = await self._connector_post("/getSelectedCollection", {})
+        try:
+            selected = response.json()
+            targets = selected["targets"]
+            # Zotero Libraries.getAll() orders My Library before group libraries.
+            root = targets[0]
+            root_id = root["id"]
+            if root.get("level") != 0 or not re.fullmatch(r"L\d+", root_id):
+                raise ValueError
+            if selected.get("libraryID") != int(root_id[1:]):
+                raise ZoteroClientError("请先在 Zotero 中选择个人文库，再同步；不会写入群组文库。")
+        except (ValueError, KeyError, IndexError, TypeError) as exc:
+            raise ZoteroClientError("无法确认 Zotero 个人文库，未写入任何条目。") from exc
+        if not collection_key:
+            return root_id
 
-        /connector/saveItems returns 201 with an empty body, so we retrieve
-        the key via the read-only search API.
-        """
-        results = await self.search_items(title, limit=10)
-        target_title = title.strip().casefold()
-        target_doi = (doi or "").strip().casefold()
-        for item in results:
-            data = item.get("data") or {}
-            if str(data.get("title") or "").strip().casefold() != target_title:
-                continue
-            if target_doi and str(data.get("DOI") or "").strip().casefold() != target_doi:
-                continue
-            key = str(item.get("key") or data.get("key") or "").strip()
-            if key:
-                return key
-        for item in results:
-            data = item.get("data") or {}
-            if str(data.get("title") or "").strip().casefold() == target_title:
-                key = str(item.get("key") or data.get("key") or "").strip()
-                if key:
-                    return key
-        return ""
+        collections = await self.collections()
+        by_key = {item["key"]: item for item in collections}
+
+        def collection_path(key: str) -> tuple[str, ...]:
+            names: list[str] = []
+            seen: set[str] = set()
+            while key:
+                if key in seen or key not in by_key:
+                    raise ZoteroClientError("无法确认 Zotero 文件夹层级，未写入任何条目。")
+                seen.add(key)
+                item = by_key[key]
+                names.append(item["name"])
+                key = item.get("parent_collection")
+            return tuple(reversed(names))
+
+        wanted = collection_path(collection_key)
+        if sum(collection_path(item["key"]) == wanted for item in collections) != 1:
+            raise ZoteroClientError("Zotero 中存在同路径同名文件夹，请先重命名后同步；未写入任何条目。")
+        path: list[str] = []
+        matches: list[str] = []
+        for target in targets[1:]:
+            level = target.get("level")
+            if level == 0:
+                break  # Do not match collections from a group library.
+            if not isinstance(level, int) or level < 1 or level > len(path) + 1:
+                raise ZoteroClientError("Zotero 文件夹树无法解析，未写入任何条目。")
+            path = path[:level - 1] + [target.get("name", "")]
+            if tuple(path) == wanted and re.fullmatch(r"C\d+", target.get("id", "")):
+                matches.append(target["id"])
+        if len(matches) != 1:
+            raise ZoteroClientError("无法唯一确认所选 Zotero 文件夹，未写入任何条目。")
+        return matches[0]
 
     async def status(self) -> ZoteroStatus:
         response = await self._get(
@@ -310,12 +334,9 @@ class ZoteroLocalClient:
         abstract: str | None = None,
         collection_key: str | None = None,
         pdf_path: str | None = None,
-        api_key: str | None = None,
+        api_key: str | None = None,  # noqa: ARG002 - legacy parameter; local Connector uses no API key
     ) -> dict[str, Any]:
-        """Create a journalArticle item (and optionally link a local PDF) in Zotero.
-
-        Returns the created Zotero item key and attachment key.
-        """
+        """Save metadata, move this Connector session, and verify its collection."""
         clean_title = (title or "").strip()
         if not clean_title:
             raise ValueError("标题不能为空")
@@ -344,45 +365,45 @@ class ZoteroLocalClient:
             item["url"] = url.strip()[:1000]
         if abstract:
             item["abstractNote"] = abstract.strip()[:5000]
-        if collection_key and _COLLECTION_KEY.fullmatch(collection_key):
-            item["collections"] = [collection_key]
-
-        # Write via the Connector endpoint (the /api prefix is read-only in Zotero 9).
-        # This is the same mechanism the Zotero Connector browser extension uses.
-        await self._connector_save_items([item])
-
-        # /connector/saveItems returns 201 with an empty body; look up the key via search.
-        parent_key = await self._find_item_key_by_title(clean_title, doi=doi)
-
-        attachment_key = ""
-        if parent_key and pdf_path:
-            attachment = {
-                "itemType": "attachment",
-                "parentItem": parent_key,
-                "linkMode": "linked_file",
-                "path": str(pdf_path),
-                "title": f"{clean_title[:200]}.pdf",
-                "contentType": "application/pdf",
-            }
-            try:
-                await self._connector_save_items([attachment])
-                children_resp = await self._get(
-                    f"/users/0/items/{parent_key}/children",
-                    params={"format": "json"},
-                )
-                for child in children_resp.json():
-                    cdata = child.get("data") or {}
-                    if cdata.get("itemType") == "attachment":
-                        attachment_key = str(
-                            child.get("key") or cdata.get("key") or ""
-                        ).strip()
-                        break
-            except ZoteroClientError:
-                # 附件失败不回滚条目，返回时说明
-                pass
+        target = await self._save_target(collection_key)
+        previous_keys = {
+            entry.get("key") or entry["data"].get("key")
+            for entry in await self.search_items(item["title"], limit=20)
+        }
+        session_id = str(uuid.uuid4())
+        item["id"] = session_id
+        try:
+            await self._connector_post(
+                "/saveItems", {"sessionID": session_id, "items": [item]}, 201,
+            )
+            # saveItems uses the Zotero UI selection, not item.collections.
+            # updateSession changes only items created in this exact session.
+            await self._connector_post(
+                "/updateSession", {"sessionID": session_id, "target": target, "tags": []},
+            )
+            new_items = [
+                entry for entry in await self.search_items(item["title"], limit=20)
+                if (entry.get("key") or entry["data"].get("key")) not in previous_keys
+                and entry["data"].get("title", "").strip() == item["title"]
+                and (not doi or str(entry["data"].get("DOI") or "").casefold() == item["DOI"].casefold())
+            ]
+            expected_collections = [collection_key] if collection_key else []
+            if len(new_items) != 1 or new_items[0]["data"].get("collections", []) != expected_collections:
+                raise ZoteroClientError("新增条目或目标文件夹未通过回读确认")
+            parent_key = str(new_items[0].get("key") or new_items[0]["data"].get("key") or "")
+            if not parent_key:
+                raise ZoteroClientError("新增条目缺少标识")
+        except (ZoteroClientError, ZoteroUnavailableError, ZoteroAccessDeniedError, httpx.RequestError) as exc:
+            raise ZoteroWriteUnverifiedError(
+                "Zotero 条目可能已经写入，但无法确认已保存到指定位置。"
+                "请先检查 Zotero，避免重复同步。" + str(exc)
+            ) from exc
 
         return {
             "item_key": parent_key,
-            "attachment_key": attachment_key,
+            "attachment_key": "",
             "collection_key": collection_key,
+            "collection_verified": True,
+            "pdf_imported": False,
+            "warnings": ["已同步论文元数据；PDF 未导入，请在 Zotero 中手动添加附件。"] if pdf_path else [],
         }

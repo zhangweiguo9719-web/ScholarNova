@@ -99,6 +99,11 @@ async def create_knowledge(
     content = request.content
     research_points = list(request.research_points)
     tags = list(request.tags)
+    polish_status = "skipped"
+    model_completed = None
+    polish_profile = {}
+    polish_usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+    polish_fallback = False
 
     # AI 润色：精炼内容、提取研究点、生成标签
     if request.auto_polish and request.content:
@@ -121,6 +126,10 @@ async def create_knowledge(
                 max_tokens=1024,
             )
             result = routed.content
+            model_completed = True
+            polish_profile = routed.profile
+            polish_usage = routed.usage
+            polish_fallback = routed.fallback_used
 
             # 解析 LLM 结果
             import json as json_mod
@@ -129,15 +138,25 @@ async def create_knowledge(
                 if cleaned.startswith("```"):
                     cleaned = cleaned.split("\n", 1)[1].rsplit("```", 1)[0]
                 polished = json_mod.loads(cleaned)
-                content = polished.get("polished_content", content)
-                if polished.get("research_points"):
-                    research_points = polished["research_points"]
-                if polished.get("tags"):
-                    tags = polished["tags"]
+                polished_content = polished.get("polished_content")
+                new_points = polished.get("research_points") or research_points
+                new_tags = polished.get("tags") or tags
+                if not isinstance(polished_content, str) or not polished_content.strip():
+                    raise ValueError("Missing polished content")
+                if not all(isinstance(items, list) and all(isinstance(item, str) for item in items)
+                           for items in (new_points, new_tags)):
+                    raise ValueError("Invalid research points or tags")
+                content, research_points, tags = polished_content, new_points, new_tags
+                polish_status = "completed"
             except Exception:
-                pass  # 解析失败就用原内容
+                polish_status = "invalid_response"  # 保留原文，仍记录模型已报告用量
+        except AllModelsUnavailableError as exc:
+            polish_usage = exc.usage
+            model_completed = False
+            polish_status = "model_unavailable"
         except Exception:
-            pass  # LLM 失败就用原内容
+            model_completed = False
+            polish_status = "model_unavailable"  # LLM 失败就用原内容
 
     knowledge = KnowledgeBase(
         title=request.title,
@@ -171,6 +190,14 @@ async def create_knowledge(
         notes=knowledge.notes,
         created_at=knowledge.created_at,
         updated_at=knowledge.updated_at,
+        polish_status=polish_status,
+        model_completed=model_completed,
+        provider=polish_profile.get("provider"),
+        model=polish_profile.get("model"),
+        fallback_used=polish_fallback,
+        prompt_tokens=polish_usage.get("prompt_tokens", 0),
+        completion_tokens=polish_usage.get("completion_tokens", 0),
+        total_tokens=polish_usage.get("total_tokens", 0),
     )
 
 
@@ -560,8 +587,9 @@ async def ai_analyze_research(
 
         # AI 中间评判：把主分析提炼成统一架构 JSON（失败则 None，前端文字兜底）
         arch_json = None
+        usage = dict(routed.usage)
         try:
-            arch_json = await judge_architecture(knowledge_text, routed.content)
+            arch_json = await judge_architecture(knowledge_text, routed.content, usage=usage)
         except Exception:
             arch_json = None
 
@@ -573,9 +601,9 @@ async def ai_analyze_research(
             model=routed.profile.get("model"),
             model_completed=True,
             fallback_used=routed.fallback_used,
-            prompt_tokens=routed.usage["prompt_tokens"],
-            completion_tokens=routed.usage["completion_tokens"],
-            total_tokens=routed.usage["total_tokens"],
+            prompt_tokens=usage["prompt_tokens"],
+            completion_tokens=usage["completion_tokens"],
+            total_tokens=usage["total_tokens"],
             created_at=datetime.utcnow(),
         )
     except AllModelsUnavailableError as exc:

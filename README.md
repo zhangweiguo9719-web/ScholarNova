@@ -80,6 +80,7 @@ Open full-size screenshots without expanding long images on this page.
 
 - [API application links and setup](docs/API_PROVIDERS.md): GLM, Qwen / Bailian, SiliconFlow, MiMo, SenseNova, OpenAI and Ollama.
 - **Zotero**: start Zotero and enable “Allow other applications on this computer to communicate with Zotero” under Settings → Advanced. Detect the connection and select a collection in ScholarNova. Read access does not prove write permission; use bibliographic export if direct writing is unavailable.
+- **Current-source Zotero sync** verifies the complete personal-library collection path and reads back the saved destination. Metadata is supported; PDF attachments are not guaranteed. Group libraries, ambiguous paths and unconfirmed writes are reported explicitly—do not blindly retry a possibly completed write.
 - **Institutional libraries**: portal handoff and query transfer are available. Users still handle SSO, campus access or their institution's VPN. Automatic login and bulk subscription downloads are not implemented.
 - **Journal quartiles**: open citation metrics are available. JCR / CAS quartiles require a licensed, year-labelled dataset; missing values remain unknown.
 - **Network**: API services, libraries and local Zotero can have different routing needs. Bypass proxies for `localhost` and `127.0.0.1`; check the endpoint, model access, quota and network when diagnosing failures.
@@ -98,6 +99,7 @@ React / TypeScript provides the interface; Electron hosts the desktop app; FastA
 - [Desktop builds, smoke tests and release process (中文)](docs/desktop-release.zh-CN.md)
 - [FTI architecture (中文)](docs/FTI_PIPELINE_ARCHITECTURE.zh-CN.md) · [Product roadmap (中文)](docs/AI_APPLICATION_ROADMAP.zh-CN.md)
 - [This release's acceptance report (中文)](docs/reports/v1.2.1-consumer-readiness.zh-CN.md) · [Changelog](CHANGELOG.md)
+- [Real-provider workflow validation, 2026-09-08 (中文)](docs/reports/2026-09-08-live-api-validation.zh-CN.md): model completion, deterministic fallbacks, image quality and unverified items are distinguished. Subsequent fixes are **Unreleased**, not silently included in the v1.2.1 installers.
 
 Historical Asta results: **F1 0.341379** on an 18-query validation subset; **F1 0.283713** on the 27 binary-labelled queries within a 66-query file. These are not full competition scores or a like-for-like SPAR comparison. They have not been rerun for these product fixes. [Original evaluation report](outputs/competition-benchmark-report-2026-07-02.md)
 

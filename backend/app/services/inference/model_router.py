@@ -234,13 +234,19 @@ class RoutedLLMGateway:
         max_tokens: int = 4096,
         **_: Any,
     ) -> str:
-        result = await chat_with_fallback(
-            task=self.task,
-            messages=messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            gateway_factory=self.gateway_factory,
-        )
+        try:
+            result = await chat_with_fallback(
+                task=self.task,
+                messages=messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                gateway_factory=self.gateway_factory,
+            )
+        except AllModelsUnavailableError as exc:
+            self.last_result = None
+            self.last_usage = dict(exc.usage)
+            _add_usage(self._usage, exc.usage)
+            raise
         self.last_result = result
         self.last_usage = dict(result.usage)
         _add_usage(self._usage, result.usage)

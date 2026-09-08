@@ -147,19 +147,20 @@ async def plan_stages_with_llm(
             logger.warning("Stage planning returned non-dict: %r", plan)
             return None
         stages = plan.get("stages")
-        if not isinstance(stages, list) or not stages:
-            plan["stages"] = _fallback_stages(route_title, knowledge_text)
+        if not isinstance(stages, list) or len(stages) != 5:
+            return None
         # 校验并归一化每个阶段
         for i, s in enumerate(stages):
-            if not isinstance(s, dict):
-                stages[i] = _fallback_stages(route_title, knowledge_text)[i]
-                continue
-            for key in ("name", "zh", "tasks", "deliverable", "gate"):
-                if key not in s:
-                    s[key] = _fallback_stages(route_title, knowledge_text)[i].get(key)
+            if not isinstance(s, dict) or any(
+                not isinstance(s.get(key), str) or not s[key].strip()
+                for key in ("name", "zh", "deliverable", "gate")
+            ):
+                return None
+            if not isinstance(s.get("tasks"), list) or not s["tasks"] or any(
+                not isinstance(task, str) or not task.strip() for task in s["tasks"]
+            ):
+                return None
             s["id"] = i + 1
-            if not isinstance(s.get("tasks"), list):
-                s["tasks"] = []
             # evidence_status：优先采用 LLM 标注，非法/缺失时交给规则兜底
             status = s.get("evidence_status")
             if status not in ("grounded", "partial", "unverified"):
@@ -295,6 +296,7 @@ async def build_roadmap_for_route(
     plan = await plan_stages_with_llm(
         llm_gateway, route_title, knowledge_text, text_analysis
     )
+    plan_source = "model" if plan is not None else "rule_fallback"
     if plan is None:
         plan = {
             "current_stage": 1,
@@ -302,6 +304,7 @@ async def build_roadmap_for_route(
                 _fallback_stages(route_title, knowledge_text), knowledge_text
             ),
         }
+    plan["plan_source"] = plan_source
 
     # 整体时效性 / 幻觉防线报告
     stages = plan["stages"]

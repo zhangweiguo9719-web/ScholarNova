@@ -84,9 +84,8 @@ async def stream_route_analysis(
     """
     from app.config import get_model_for_task, runtime_path
     from app.schemas.knowledge import RouteResponse
-    from app.services.diagram.planner import build_prompt_for_route
     from app.services.diagram.route_planner import build_roadmap_for_route
-    from app.services.inference import AllModelsUnavailableError, chat_with_fallback
+    from app.services.inference import AllModelsUnavailableError, RoutedLLMGateway, chat_with_fallback
     from app.services.llm.gateway import LLMGateway
 
     ctx = await _resolve_route_context(route_id, db)
@@ -137,6 +136,9 @@ async def stream_route_analysis(
     diagram_label = f"{diagram_config.get('provider')}/{diagram_config.get('model')}"
     image_result: Dict[str, Any] = {"status": "error", "error": "diagram not started"}
     image_url = ""
+    planner_gw = RoutedLLMGateway(task="analysis")
+    architecture_plan_source = "unavailable"
+    roadmap_plan_source = "unavailable"
     try:
         yield {
             "event": "stage", "stage": "diagram", "progress": 40,
@@ -148,7 +150,6 @@ async def stream_route_analysis(
             base_url=diagram_config["base_url"],
             model_name=diagram_config["model"],
         )
-        planner_gw = LLMGateway(task="analysis")
         from app.services.diagram import prompt_engine as pe
         from app.services.diagram.planner import plan_modules_with_llm, _fallback_modules
         _plan = await plan_modules_with_llm(
@@ -157,10 +158,12 @@ async def stream_route_analysis(
             knowledge_text=knowledge_text or "No linked knowledge details",
             text_analysis=text_analysis or "",
         )
-        if _plan is not None:
+        if _plan is not None and _plan.get("modules"):
+            architecture_plan_source = "model"
             _layout = _plan.get("layout", "pipeline")
-            _modules = _plan.get("modules") or _fallback_modules(route.title, knowledge_text)
+            _modules = _plan["modules"]
         else:
+            architecture_plan_source = "rule_fallback"
             _layout = pe.select_layout(route.title, text_analysis, knowledge_text)
             _modules = _fallback_modules(route.title, knowledge_text)
         image_prompt = pe.build_render_prompt(
@@ -186,7 +189,7 @@ async def stream_route_analysis(
     yield {
         "event": "stage", "stage": "diagram", "progress": 60,
         "message": "研究架构图完成" if image_url else f"研究架构图失败：{image_result.get('error', '')}",
-        "data": {"image_url": image_url, "diagram_label": diagram_label},
+        "data": {"image_url": image_url, "diagram_label": diagram_label, "plan_source": architecture_plan_source},
     }
 
     # ---- Step 3: 科研阶段路线图 ----
@@ -204,6 +207,7 @@ async def stream_route_analysis(
         )
         roadmap_prompt = roadmap["prompt"]
         roadmap_plan = roadmap["plan"]
+        roadmap_plan_source = roadmap_plan.get("plan_source", "unavailable")
         stage_lines = []
         for s in roadmap_plan.get("stages", []):
             tasks = "、".join(s.get("tasks", []))
@@ -213,6 +217,8 @@ async def stream_route_analysis(
                 f"决策门：{s.get('gate', '')}"
             )
         roadmap_md = "\n".join(stage_lines)
+        if roadmap_plan_source != "model":
+            roadmap_md = "> ⚠️ 阶段规划已降级为规则通用骨架，并非模型定制路线。\n\n" + roadmap_md
         # 时效性 / 幻觉防线报告（若规划器已生成）
         evidence_summary = roadmap_plan.get("evidence_summary", "")
         if evidence_summary:
@@ -233,14 +239,24 @@ async def stream_route_analysis(
         roadmap_result = None
 
     roadmap_md = (roadmap_result or {}).get("md", "> 路线图生成暂不可用。")
+    roadmap_url = (roadmap_result or {}).get("url", "")
     yield {
         "event": "stage", "stage": "roadmap", "progress": 85,
-        "message": "科研阶段路线图完成",
-        "data": {"roadmap_md": roadmap_md, "roadmap_url": (roadmap_result or {}).get("url", "")},
+        "message": "科研阶段路线图完成" if roadmap_url else "科研阶段路线图图片未生成",
+        "data": {"roadmap_md": roadmap_md, "roadmap_url": roadmap_url, "plan_source": roadmap_plan_source},
     }
 
     # ---- 合并结果 ----
+    if roadmap_url:
+        roadmap_md += f"\n\n![科研阶段路线图]({roadmap_url})\n\n[查看大图]({roadmap_url})"
+    else:
+        roadmap_md += "\n\n> ⚠️ 科研阶段路线图图片未生成；以上仅保留文字规划。"
     arch_text = arch_text if "arch_text" in dir() else ""
+    arch_plan_note = (
+        "> 架构规划来源：模型定制建议，不等于论文事实，需回原文核验。"
+        if architecture_plan_source == "model"
+        else "> ⚠️ 架构规划已降级为规则通用模块，并非模型定制架构。"
+    )
     # AI 评判：把架构提炼成统一 JSON（前端优先渲染，层名统一为中文；失败静默跳过）
     arch_json_block = ""
     try:
@@ -258,6 +274,8 @@ async def stream_route_analysis(
 ---
 
 ## 研究架构图（{diagram_label}）
+{arch_plan_note}
+
 {arch_text}{arch_json_block}
 
 ![研究架构图]({image_url})
@@ -276,6 +294,8 @@ async def stream_route_analysis(
 ---
 
 ## 研究架构图（{diagram_label}）
+{arch_plan_note}
+
 {arch_text}{arch_json_block}
 
 > ⚠️ 图像生成暂不可用：{fallback_msg}
@@ -285,6 +305,11 @@ async def stream_route_analysis(
 ## 科研阶段路线图
 {roadmap_md}"""
 
+    planning_usage = planner_gw.usage
+    combined += (
+        f"\n\n> 规划模型 Token：{planning_usage.get('total_tokens', 0)}"
+        "（仅架构与阶段规划，不含文字分析、架构评判及图像生成）。"
+    )
     try:
         route.ai_analysis = combined
         await db.commit()
@@ -301,6 +326,11 @@ async def stream_route_analysis(
         }
         # 显式转成 schema 以触发序列化校验
         payload = RouteResponse(**data).model_dump()
+        payload["planning"] = {
+            "architecture": architecture_plan_source,
+            "roadmap": roadmap_plan_source,
+            "usage": planning_usage,
+        }
         yield {"event": "done", "progress": 100, "message": "分析完成", "data": payload}
     except Exception as e:
         logger.exception("Save route analysis failed", extra={"route_id": route_id})

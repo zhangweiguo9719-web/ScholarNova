@@ -169,7 +169,7 @@ export default function PaperDetailPanel({
   const handleConfirmZoteroPush = async () => {
     setZoteroSyncing(true)
     try {
-      await zoteroApi.push({
+      const { data } = await zoteroApi.push({
         title: paper.title,
         creators: paper.authors.map((name) => {
           const parts = name.trim().split(/\s+/)
@@ -185,11 +185,15 @@ export default function PaperDetailPanel({
         abstract: paper.abstract || undefined,
         collection_key: zoteroSelectedCollection || undefined,
       })
-      toast.success(isChinese
-        ? (zoteroSelectedCollection
-            ? `已同步到 Zotero「${zoteroCollections.find((c) => c.key === zoteroSelectedCollection)?.name || ''}」`
-            : '已同步到 Zotero 我的文库')
-        : 'Pushed to Zotero')
+      if (data.warnings?.length) {
+        toast(data.warnings.join(' '), { icon: '⚠️', duration: 7000 })
+      } else {
+        toast.success(isChinese
+          ? (zoteroSelectedCollection
+              ? `论文元数据已同步到 Zotero「${zoteroCollections.find((c) => c.key === zoteroSelectedCollection)?.name || ''}」`
+              : '论文元数据已同步到 Zotero 我的文库')
+          : 'Paper metadata saved to Zotero')
+      }
       setZoteroPickerOpen(false)
     } catch (err: any) {
       const detail = err?.response?.data?.detail
@@ -286,7 +290,7 @@ export default function PaperDetailPanel({
           className="paper-link"
           disabled={zoteroSyncing}
           onClick={handleSyncToZotero}
-          title={isChinese ? '将本条文献（含已导入的 PDF）同步到本地 Zotero' : 'Push this item (with its PDF) into local Zotero'}
+          title={isChinese ? '将论文元数据同步到本地 Zotero；PDF 需手动添加' : 'Save paper metadata to Zotero; add PDFs manually'}
         >
           {zoteroSyncing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <BookMarked className="w-3.5 h-3.5" />}
           {isChinese ? '同步到 Zotero' : 'Push to Zotero'}

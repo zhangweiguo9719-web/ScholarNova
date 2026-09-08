@@ -1,4 +1,5 @@
 from types import SimpleNamespace
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -6,6 +7,7 @@ from app.api.v1 import analysis as analysis_api
 from app.api.v1 import knowledge as knowledge_api
 from app.schemas.knowledge import AIAnalyzeRequest, RecommendRequest
 from app.schemas.query import AnalysisRequest
+from app.services.diagram import architecture_judge
 from app.services.inference import AllModelsUnavailableError
 
 
@@ -150,6 +152,8 @@ async def test_knowledge_analysis_uses_fallback_model_metadata(monkeypatch):
         )
 
     monkeypatch.setattr(knowledge_api, "chat_with_fallback", routed)
+    judge = AsyncMock(return_value=None)
+    monkeypatch.setattr(knowledge_api, "judge_architecture", judge)
     result = await knowledge_api.ai_analyze_research(
         AIAnalyzeRequest(knowledge_ids=["knowledge-1"]),
         _KnowledgeDB(_knowledge_item()),
@@ -158,6 +162,40 @@ async def test_knowledge_analysis_uses_fallback_model_metadata(monkeypatch):
     assert result.provider == "qwen"
     assert result.fallback_used is True
     assert result.total_tokens == 100
+    judge.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("judge_unavailable", [False, True])
+async def test_knowledge_analysis_counts_primary_and_judge_usage(monkeypatch, judge_unavailable):
+    primary = AsyncMock(return_value=SimpleNamespace(
+        content="Grounded analysis",
+        profile={"provider": "test", "model": "analysis"},
+        fallback_used=False,
+        usage={"prompt_tokens": 2000, "completion_tokens": 476, "total_tokens": 2476},
+    ))
+    reported = {"prompt_tokens": 2500, "completion_tokens": 785, "total_tokens": 3285}
+    judge = (
+        AsyncMock(side_effect=AllModelsUnavailableError([], reported))
+        if judge_unavailable else AsyncMock(return_value=SimpleNamespace(
+            content='{"layers": [{"name": "编码层", "modules": [{"name": "频域编码"}]}]}',
+            usage=reported,
+        ))
+    )
+    monkeypatch.setattr(knowledge_api, "chat_with_fallback", primary)
+    monkeypatch.setattr(architecture_judge, "chat_with_fallback", judge)
+
+    result = await knowledge_api.ai_analyze_research(
+        AIAnalyzeRequest(knowledge_ids=["knowledge-1"]), _KnowledgeDB(_knowledge_item()),
+    )
+
+    assert result.model_completed is True
+    assert result.prompt_tokens == 4500
+    assert result.completion_tokens == 1261
+    assert result.total_tokens == 5761
+    assert (result.architecture_json is None) is judge_unavailable
+    primary.assert_awaited_once()
+    judge.assert_awaited_once()
 
 
 @pytest.mark.asyncio

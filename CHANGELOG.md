@@ -4,7 +4,21 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 
 ## [Unreleased]
 
-No additional changes recorded.
+### Fixed
+
+- Verify local Zotero saves using an explicit Connector session and full collection path; distinguish metadata sync from unsupported PDF attachment import and warn on unconfirmed writes.
+- Retry the configured institutional-library portal directly after a proxy connection failure, retaining URL and redirect safety checks.
+- Include the actual research analysis in architecture extraction instead of a literal template placeholder.
+- Persist roadmap image links and report interrupted/partial image generation instead of an unconditional success notification.
+- Route both diagram planners through the shared model gateway, expose rule-based fallback, and omit formulas absent from the supplied knowledge material.
+- Count architecture-extraction tokens in knowledge analysis; expose automatic-polish outcomes and usage instead of treating every saved item as a successful model response.
+- Mock the secondary architecture call in offline tests to prevent accidental provider requests.
+
+### Validation
+
+- Run real configured GLM text/vision and SenseNova U1 workflows in an isolated research database, and real Zotero writes in a separate empty profile. See [the live API report](docs/reports/2026-09-08-live-api-validation.zh-CN.md) for evidence and limitations.
+- Pass 395 backend and 41 frontend regression tests and the frontend production build; generated images still require manual label and content review.
+- These changes are not yet part of a new downloadable installer; v1.2.1 remains an immutable released build.
 
 ## [1.2.1] - 2026-09-08
 

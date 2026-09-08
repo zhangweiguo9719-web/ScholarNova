@@ -5,7 +5,7 @@
 """
 
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -57,6 +57,14 @@ class KnowledgeResponse(BaseModel):
     notes: Optional[str] = None
     created_at: datetime
     updated_at: datetime
+    polish_status: Optional[Literal["skipped", "completed", "invalid_response", "model_unavailable"]] = Field(None, description="仅本次创建请求的润色状态，非持久化字段")
+    model_completed: Optional[bool] = Field(None, description="本次润色模型是否返回结果；未调用时为空")
+    provider: Optional[str] = None
+    model: Optional[str] = None
+    fallback_used: bool = False
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+    total_tokens: int = 0
 
     class Config:
         from_attributes = True

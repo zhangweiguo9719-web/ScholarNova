@@ -80,6 +80,7 @@
 
 - [API Key 申请入口与配置说明](docs/API_PROVIDERS.md)：GLM、千问 / 百炼、硅基流动、MiMo、SenseNova、OpenAI、Ollama 等。
 - **Zotero**：先启动 Zotero，在“设置 → 高级”打开“允许此计算机上的其他应用程序与 Zotero 通讯”，然后到 ScholarNova 设置中检测并选择集合。读取成功不等于写入授权；写入失败时请按提示使用标准文献导出。
+- **当前源码的 Zotero 同步**：个人文库的文件夹通过完整层级确认，写入后回读核验目标。当前只保证论文元数据，不保证 PDF 附件同步；群组库、同路径同名文件夹或未确认的写入会明确报错，请勿盲目重复点击。
 - **学校图书馆**：提供门户跳转和检索词传递。统一身份认证、校园网或学校认可的 VPN 仍由用户完成，当前不自动代登录或批量下载订阅全文。
 - **期刊分区**：开放引用指标可直接展示；JCR / 中科院分区需要导入有授权且注明年份的数据。缺失显示未知，不能用引用次数猜分区。
 - **代理与网络**：不同 API、图书馆和本机 Zotero 的网络需求不同。确保 `localhost`、`127.0.0.1` 不走代理；按实际报错检查地址、模型权限、额度与网络。
@@ -98,6 +99,7 @@ React + TypeScript 构建界面，Electron 提供桌面外壳，FastAPI 编排�
 - [Windows / macOS 打包、测试和版本发布](docs/desktop-release.zh-CN.md)
 - [FTI 流水线架构](docs/FTI_PIPELINE_ARCHITECTURE.zh-CN.md) · [产品路线图](docs/AI_APPLICATION_ROADMAP.zh-CN.md)
 - [本轮改进与验收报告](docs/reports/v1.2.1-consumer-readiness.zh-CN.md) · [版本记录](CHANGELOG.md)
+- [真实 API 全流程测试（2026-09-08）](docs/reports/2026-09-08-live-api-validation.zh-CN.md)：区分模型完成、规则降级、图像质量与未验证项；后续修复属于 `Unreleased`，不冒充已包含在 v1.2.1 安装包中。
 
 历史 Asta 18 题验证子集 F1 为 **0.341379**；66 题中具备二元标签的 27 题 F1 为 **0.283713**。这不是完整竞赛成绩，也不表示超过其他数据集上的 SPAR。此次产品修复不把历史分数当成新版本测评结果。[原始评测报告](outputs/competition-benchmark-report-2026-07-02.md)
 

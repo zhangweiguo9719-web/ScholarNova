@@ -83,10 +83,23 @@ async def _check_url(
     url: str,
     *,
     reachable_statuses: set[int] | None = None,
+    validate_redirects: bool = False,
 ) -> tuple[str, bool, dict[str, Any]]:
     started = time.monotonic()
     try:
-        response = await client.get(url)
+        if validate_redirects:
+            for _ in range(6):
+                valid, error = validate_url(url)
+                if not valid:
+                    return name, False, {"status_code": None, "error": "UnsafeURL", "message": error}
+                response = await client.get(url, follow_redirects=False)
+                if not response.has_redirect_location:
+                    break
+                url = str(response.url.join(response.headers["location"]))
+            else:
+                return name, False, {"status_code": None, "error": "TooManyRedirects"}
+        else:
+            response = await client.get(url)
         status = response.status_code
         ok = (
             status in reachable_statuses
@@ -105,6 +118,22 @@ async def _check_url(
             "latency_ms": round((time.monotonic() - started) * 1000, 1),
             "error": type(exc).__name__,
         }
+
+
+async def _check_library_url(
+    client: httpx.AsyncClient, url: str,
+) -> tuple[str, bool, dict[str, Any]]:
+    """Retry the campus portal directly if the inherited proxy cannot connect."""
+    initial = await _check_url(client, "library", url, validate_redirects=True)
+    if initial[1] or initial[2].get("error") not in {
+        "ConnectError", "ConnectTimeout", "ProxyError", "ReadTimeout",
+    }:
+        return initial
+    async with httpx.AsyncClient(timeout=8, trust_env=False) as direct_client:
+        name, ok, detail = await _check_url(
+            direct_client, "library", url, validate_redirects=True,
+        )
+    return name, ok, {**detail, "direct_retry": True, "initial_error": initial[2]["error"]}
 
 
 async def _check_semantic_scholar() -> tuple[str, bool, dict[str, Any]]:
@@ -182,7 +211,7 @@ async def detect_network() -> dict[str, Any]:
             _check_semantic_scholar(),
             _check_url(client, "crossref", "https://api.crossref.org/works?rows=1"),
             _check_url(client, "openalex", "https://api.openalex.org/works?per-page=1"),
-            _check_url(client, "library", library_url),
+            _check_library_url(client, library_url),
         ]
         detected = await asyncio.gather(*checks)
 
