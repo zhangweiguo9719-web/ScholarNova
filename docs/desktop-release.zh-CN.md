@@ -2,7 +2,7 @@
 
 面向使用者的下载入口与签名提示见 [中文 README](../README.zh-CN.md)。桌面包包含 Electron、前端产物和 PyInstaller 后端；用户无需安装开发依赖。
 
-**v1.2.1 发行状态**：已选择包含 PyMuPDF 的 AGPL 开源桌面发行路线，正在补齐并核验许可声明、对应源码和最终产物；本文不是安装包已公开下载的声明。以 GitHub Release 实际附件为准。
+**发行规则**：包含 PyMuPDF 的社区桌面版采用 AGPL 开源发行路线。每个版本须携带逐包许可声明、匹配的相应源码，并通过源码、声明及三平台启动检查后才能发布。可下载版本以 GitHub Release 实际附件为准。
 
 ## 构建前准备
 
@@ -39,14 +39,16 @@ python scripts/packaging/smoke_desktop.py desktop/dist/mac-arm64/ScholarNova.app
 2. 统一根 package、前端 package、两个 npm lock、后端 pyproject 和后端应用版本，执行：
    `python scripts/packaging/check_version.py`。
 3. 后端非在线集成测试、前端测试/构建、桌面边界测试先通过。
-4. 本轮已选择 AGPL 开源发行；完成 [桌面发行许可检查](DESKTOP_LICENSE_REVIEW.md) 中的声明、相应源码与最终包内容核验。只有材料验收完成后，才可通过工作流的许可闸门（当前使用 `DESKTOP_LICENSE_REVIEWED=true`），不能只凭选择开源就跳过检查。随后推送 main 与一个新的 `vX.Y.Z` 标签。
+4. AGPL 开源发行路线已记录，仓库许可闸门 `DESKTOP_LICENSE_REVIEWED=true` 已开启；每次仍须通过 [桌面发行许可检查](DESKTOP_LICENSE_REVIEW.md) 中的声明、相应源码与最终包内容核验，不能跳过材料检查。推送 main 与一个新的 `vX.Y.Z` 标签启动版本验证。
 5. Desktop Release 工作流先运行回归，再在 Windows x64、macOS Intel、macOS ARM64 分别构建。
 6. 每个已打包应用都要使用全新临时用户目录启动，打开五个页面并检查内置服务；失败不发布。
-7. 三个平台产物与同版本对应源码齐全后，生成覆盖全部公开文件的 `SHA256SUMS.txt` 再发布。许可材料验收前，手动运行仅用于验证，不公开二进制附件；验收后手动运行是否上传附件与标签发布的区别，以工作流为准。
+7. 三个平台产物与同版本对应源码齐全且验证通过后，生成覆盖全部公开文件的 `SHA256SUMS.txt` 再发布。手动验证与标签发布的触发条件以工作流为准；一次验证通过不表示另一个版本已发布。
 
 包启动检查不会使用开发者 Key、论文库或桌面快捷方式。它验证独立运行与页面加载，不等价于人工视觉验收、付费模型全量测试或 Apple 公证。
 
 ## 许可与相应源码材料
+
+Electron 44 的 npm 包不再依靠安装后脚本自动准备运行文件。打包脚本会先执行 `npm run desktop:runtime`；手工搭建时也要运行它，再收集声明，不能把运行时尚未下载误判为原始许可证不存在。
 
 根目录 [LICENSE](../LICENSE) 的 MIT 条款与作者声明保持不变，适用于项目自有代码。包含 PyMuPDF / MuPDF 的完整桌面发行组合按 GNU AGPL v3 的适用条款提供，独立第三方组件保留原许可。维护者暂不商业运营不构成禁止他人商用的许可条款。
 

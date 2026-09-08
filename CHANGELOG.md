@@ -4,7 +4,7 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 
 ## [Unreleased]
 
-No changes pending after the v1.2.1 release candidate.
+No additional changes recorded.
 
 ## [1.2.1] - 2026-09-08
 
@@ -26,7 +26,8 @@ No changes pending after the v1.2.1 release candidate.
 - Prevent missing bundled backends from silently using a developer Python environment; restrict external protocols and cross-origin desktop requests.
 - Reorganize the bilingual README with one compact four-panel gallery and separate installation, API-key, and source-development guides.
 - See [consumer readiness report](docs/reports/v1.2.1-consumer-readiness.zh-CN.md) for verified results and remaining release boundaries. Windows remains unsigned; macOS uses ad-hoc signing, not Developer ID or notarization.
-- Hold public binary artifacts/releases pending the owner's PDF dependency licensing decision; preserve source history and test logs without changing the project's existing license.
+- Add offline third-party notices and exact-version corresponding-source downloads for the AGPL desktop distribution; retain the project's own MIT license and original authorship.
+- Explicitly install Electron 44's runtime before collecting notices; validate source versions and notice checksums before publishing all three native builds.
 
 ## [1.2.0] - 2026-09-07
 

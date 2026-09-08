@@ -102,19 +102,20 @@ jobs:
         shell: bash
         run: |
           npm ci
+          npm run desktop:runtime
           npm --prefix frontend ci
           python -c "import platform; expected='${{ matrix.arch }}'; actual=platform.machine().lower(); assert actual in ({'amd64', 'x86_64'} if expected == 'x64' else {'arm64', 'aarch64'}), (expected, actual)"
           python -m pip install -r requirements-lock.txt
           python -m pip install -e backend --no-deps
           python -m pip install pyinstaller
           python scripts/packaging/build_corresponding_source.py --check-runtime-only
+          python scripts/packaging/collect_notices.py
       - name: Build frontend and packaged backend
         shell: bash
         run: |
           npm run build:frontend
           python -m PyInstaller scripts/packaging/ScholarNovaBackend.spec --noconfirm --clean
           python scripts/packaging/stage_backend.py
-          python scripts/packaging/collect_notices.py
       - name: Package Windows
         if: matrix.os == 'windows'
         run: npx electron-builder --win nsis portable --x64 --publish never

@@ -10,7 +10,7 @@ A desktop research workspace for individuals: **find papers â†’ read full text â
 
 Open **[GitHub Releases](https://github.com/zhangweiguo9719-web/ScholarNova/releases/latest)** and choose an existing asset for your computer. A source version or Git tag does not mean downloadable binaries have been published; the release assets are authoritative.
 
-**v1.2.1 is a release candidate, not a published binary release.** Native Windows, Intel Mac and Apple Silicon builds have passed validation. The owner has chosen the AGPL open-source desktop distribution route; matching notices, corresponding source and final packages are being prepared and verified. See [release preparation](docs/DESKTOP_LICENSE_REVIEW.md). Older releases do not include the latest fixes.
+**Community desktop builds follow the selected AGPL open-source distribution route.** Each release must include package-specific notices and matching corresponding source, and pass the automated source checks and Windows / macOS smoke tests before publication. See the [distribution requirements](docs/DESKTOP_LICENSE_REVIEW.md) and each release's assets for available versions; older releases do not automatically contain the latest source changes.
 
 | Computer | Download | Install |
 | --- | --- | --- |

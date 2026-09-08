@@ -10,7 +10,7 @@
 
 到 **[GitHub Releases 下载已发布安装包](https://github.com/zhangweiguo9719-web/ScholarNova/releases/latest)**，展开 Assets，按你的电脑选择。源码中的版本号或 Git 标签不代表安装包已经发布；以 Release 中实际存在的文件为准。
 
-**v1.2.1 当前为验收候选版，尚未发布安装包。** Windows、Intel Mac 与 Apple Silicon Mac 的原生构建已通过。维护者已选择 AGPL 开源桌面发行路线，目前正在准备与核验配套许可声明、相应源码和最终安装包，见 [发行准备记录](docs/DESKTOP_LICENSE_REVIEW.md)。旧 Release 不等于已经包含本轮修复。
+**社区桌面版采用已选择的 AGPL 开源发行路线。** 每个版本须包含逐包许可声明和相应源码，并通过自动源码检查及 Windows / macOS 启动测试后才能发布。详见 [发行要求](docs/DESKTOP_LICENSE_REVIEW.md)；可下载版本以同版本 Release 的实际附件为准，旧安装包不会自动包含最新源码改动。
 
 | 你的电脑 | 选择文件 | 安装方法 |
 | --- | --- | --- |

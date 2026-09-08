@@ -1,6 +1,6 @@
 # Desktop distribution license review / 桌面发行许可检查
 
-Status on 2026-09-08: **the owner selected open-source distribution under the applicable GNU AGPL v3 terms for the combined desktop app. Release notices and corresponding-source materials are being prepared and verified; v1.2.1 binaries are not published yet.**
+Distribution route selected on 2026-09-08: **the combined desktop app follows the applicable GNU AGPL v3 terms. Every release must include verified package notices and matching corresponding-source materials. Download availability is determined by that version's actual GitHub Release assets.**
 
 ScholarNova's own code retains its existing MIT license. This does not relicense bundled third-party components. In particular, the PDF implementation depends on `pymupdf==1.26.3` in `requirements-lock.txt`. PyMuPDF and MuPDF have open-source AGPL and commercial licensing options; see the [official license explanation](https://pymupdf.readthedocs.io/en/latest/about.html#license-and-copyright).
 
@@ -12,8 +12,9 @@ The desktop package bundles a Python runtime and PDF libraries, rather than aski
 
 - Locked build environment: PyMuPDF `1.26.3`, binding version `1.26.3`, embedded MuPDF `1.26.3`.
 - Packaged Windows backend contains `_mupdf.pyd`, `_extra.pyd` and `mupdfcpp64.dll`. This is not merely an unused optional dependency.
-- Initial package inspection found missing PyMuPDF `COPYING` and certifi MPL notices; the wheel's short dual-license notice alone did not include the full AGPL. The revised packaging must include original notices, full applicable license texts and an inventory, and the final packages must be checked again.
+- Initial inspection found missing PyMuPDF `COPYING` and certifi MPL notices; the revised collector includes original notices, full applicable license texts and a checked inventory. Each packaged release is checked again, because the wheel's short dual-license notice alone does not include the full AGPL.
 - Electron's `LICENSE.electron.txt` and `LICENSES.chromium.html` are present and must be retained. PyInstaller's license includes a bundling exception; do not treat its build-tool license as identical to the PyMuPDF runtime issue.
+- Local verification on 2026-09-08: the updated Windows unpacked app passed five-page startup, legal/source entry and exit checks in 21.94 seconds. The source archive had 397 members, with all 396 manifest-listed file hashes verified. These observations do not establish macOS results or public release availability; see the [acceptance report](reports/v1.2.1-consumer-readiness.zh-CN.md) for per-run evidence.
 
 This is a bounded metadata/package inspection, not a complete audit of every native library or a legal opinion.
 
@@ -21,7 +22,7 @@ This is a bounded metadata/package inspection, not a complete audit of every nat
 
 The release is to carry the combined desktop app's AGPL terms, original third-party notices and matching source/build materials. Users must be able to obtain the corresponding source alongside the binary downloads without an extra charge. For modified versions made available to remote network users, review AGPL section 13 and provide the required prominent source access. These are release requirements, not a claim that uploading an MIT repository alone satisfies them. See [GNU AGPL v3, sections 1, 6 and 13](https://www.gnu.org/licenses/agpl-3.0.html.en).
 
-采用同一 Release 提供安装包与相应源码的路线，不依赖“以后再索取源码”的承诺。当前仍须完成材料生成、内容核对及包内检查；本记录不是法律认证，构建测试通过也不等于许可义务已经全部满足。
+采用同一 Release 提供安装包与相应源码的路线，不依赖“以后再索取源码”的承诺。每次发布均执行材料生成、内容核对及包内检查；本记录不是法律认证，构建测试通过也不等于许可义务已经全部满足。
 
 ## Source and notice locations / 源码与声明位置
 
@@ -41,6 +42,6 @@ These are the agreed release filenames and locations, not a statement that the a
 
 ## Release gate / 发布闸门
 
-Manual desktop builds may run for validation. Keep public binary distribution gated until the matching notices/source bundle and final packaged resources have been verified. If the workflow uses `DESKTOP_LICENSE_REVIEWED`, set it to `true` only after recording that evidence; the owner's route selection alone does not complete the material checks. Recheck this inventory when bundled dependencies change. A release is available only when its assets actually appear on GitHub Releases.
+The repository's `DESKTOP_LICENSE_REVIEWED` gate records the accepted open-source distribution route and has been enabled. It does not waive verification: every release still must pass source-bundle checks, notice checks and native Windows x64 / macOS x64 / macOS arm64 packaged-app smoke tests. Recheck the inventory when bundled dependencies change. A release is available only when its assets actually appear on GitHub Releases.
 
 Windows commercial code signing and Apple notarization are separate from dependency licensing. Passing build/startup tests proves neither legal clearance nor platform signing.

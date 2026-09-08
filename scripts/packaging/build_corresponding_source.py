@@ -143,6 +143,7 @@ Rebuild the application (Python 3.12, Node 22, platform native toolchain):
   python -m pip install -e backend --no-deps
   python -m pip install pyinstaller
   npm ci
+  npm run desktop:runtime
   npm --prefix frontend ci
   npm run build:frontend
   python -m PyInstaller scripts/packaging/ScholarNovaBackend.spec --noconfirm --clean
