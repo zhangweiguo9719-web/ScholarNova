@@ -1,6 +1,6 @@
 """Tests for the grounded research-assistant prototype."""
 
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -443,19 +443,67 @@ async def test_agent_answers_from_indexed_pdf_chunk(
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "question",
+    [
+        "目前这个智能体怎么使用呢？",
+        "你可以做什么？",
+        "你是谁",
+        "你是个啥",
+        "what can you do?",
+        "Who are you?",
+        "  WHAT   CAN YOU DO?  ",
+        "你可以分析论文中的方法吗？",
+    ],
+)
+@pytest.mark.parametrize("has_knowledge", [False, True], ids=["empty", "populated"])
+@pytest.mark.parametrize("has_history", [False, True], ids=["new", "followup"])
 async def test_agent_answers_product_help_without_search_or_model(
     client,
+    db_session,
     monkeypatch,
+    question,
+    has_knowledge,
+    has_history,
 ) -> None:
-    zotero_search = AsyncMock(return_value=[])
-    monkeypatch.setattr(
-        "app.api.v1.agent.ZoteroLocalClient.search_items",
-        zotero_search,
-    )
+    monkeypatch.setattr("app.api.v1.agent.check_rate_limit", lambda *args, **kwargs: None)
+    if has_knowledge:
+        db_session.add(
+            KnowledgeBase(
+                title="科研智能体能力研究",
+                category="科研智能体",
+                content="论文讨论科研智能体的检索与推理能力。",
+            )
+        )
+        await db_session.flush()
+
+    forbidden_calls = {}
+    for name in (
+        "_knowledge_candidates",
+        "_paper_candidates",
+        "rank_chunks_hybrid",
+        "chat_with_fallback",
+        "ZoteroLocalClient.search_items",
+    ):
+        mock = AsyncMock(side_effect=AssertionError(f"Help must not call {name}"))
+        monkeypatch.setattr(f"app.api.v1.agent.{name}", mock)
+        forbidden_calls[name] = mock
+    for name in ("get_model_for_task", "LLMGateway"):
+        mock = MagicMock(side_effect=AssertionError(f"Help must not call {name}"))
+        monkeypatch.setattr(f"app.api.v1.agent.{name}", mock)
+        forbidden_calls[name] = mock
 
     response = await client.post(
         "/api/v1/agent/chat",
-        json={"question": "目前这个智能体怎么使用呢？"},
+        json={
+            "question": question,
+            "history": [
+                {"role": "user", "content": "分析这篇论文的方法"},
+                {"role": "assistant", "content": "该论文研究检索与推理方法。[S1]"},
+            ] if has_history else [],
+            "use_knowledge": True,
+            "use_zotero": True,
+        },
     )
 
     data = response.json()
@@ -463,10 +511,83 @@ async def test_agent_answers_product_help_without_search_or_model(
     assert data["response_type"] == "product_help"
     assert data["grounded"] is False
     assert data["citations"] == []
-    assert data["total_tokens"] == 0
-    assert data["tool_steps"][0]["tool"] == "product_help"
-    assert "目前这个智能体的使用方式" in data["answer"]
-    zotero_search.assert_not_awaited()
+    assert all(data[key] == 0 for key in (
+        "prompt_tokens", "completion_tokens", "retrieval_tokens", "total_tokens"
+    ))
+    assert data["inference_mode"] == "none"
+    assert data["model_route"] == "none"
+    assert data["model_attempts"] == []
+    assert data["provider"] is None
+    assert data["model"] is None
+    assert [step["tool"] for step in data["tool_steps"]] == ["product_help"]
+    assert "ScholarNova" in data["answer"]
+    for mock in forbidden_calls.values():
+        mock.assert_not_called()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "question",
+    [
+        "分析这篇论文的方法",
+        "论文中智能体能做什么",
+        "什么是RAG",
+        "Who are you studying in this paper?",
+    ],
+)
+@pytest.mark.parametrize("has_history", [False, True], ids=["new", "after-help"])
+async def test_agent_keeps_research_questions_out_of_product_help(
+    client,
+    monkeypatch,
+    question,
+    has_history,
+) -> None:
+    from app.services.retrieval.hybrid import HybridRetrievalResult
+
+    monkeypatch.setattr("app.api.v1.agent.check_rate_limit", lambda *args, **kwargs: None)
+    knowledge_search = AsyncMock(return_value=[])
+    paper_search = AsyncMock(return_value=[])
+    zotero_search = AsyncMock(return_value=[])
+    rank = AsyncMock(return_value=HybridRetrievalResult(
+        ranked=[],
+        mode="bm25",
+        semantic_status="skipped",
+        detail="No local evidence in this isolated test.",
+    ))
+    model = AsyncMock(side_effect=AssertionError("No evidence must not call a model"))
+    gateway = MagicMock(side_effect=AssertionError("External gateways are forbidden"))
+    monkeypatch.setattr("app.api.v1.agent._knowledge_candidates", knowledge_search)
+    monkeypatch.setattr("app.api.v1.agent._paper_candidates", paper_search)
+    monkeypatch.setattr("app.api.v1.agent.ZoteroLocalClient.search_items", zotero_search)
+    monkeypatch.setattr("app.api.v1.agent.rank_chunks_hybrid", rank)
+    monkeypatch.setattr("app.api.v1.agent.chat_with_fallback", model)
+    monkeypatch.setattr("app.api.v1.agent.LLMGateway", gateway)
+
+    response = await client.post(
+        "/api/v1/agent/chat",
+        json={
+            "question": question,
+            "history": [
+                {"role": "user", "content": "你是谁"},
+                {"role": "assistant", "content": "我是 ScholarNova 科研问答助手。"},
+            ] if has_history else [],
+            "use_knowledge": True,
+            "use_zotero": True,
+        },
+    )
+
+    data = response.json()
+    assert response.status_code == 200
+    assert data["response_type"] == "research"
+    assert "product_help" not in {step["tool"] for step in data["tool_steps"]}
+    assert "没有找到" in data["answer"]
+    knowledge_search.assert_awaited_once()
+    paper_search.assert_awaited_once()
+    assert zotero_search.await_count >= 1
+    rank.assert_awaited_once()
+    assert rank.await_args.args[1] == question
+    model.assert_not_called()
+    gateway.assert_not_called()
 
 
 @pytest.mark.asyncio

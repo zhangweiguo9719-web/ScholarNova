@@ -4,8 +4,14 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 
 ## [Unreleased]
 
+## [1.2.2] - 2026-09-09
+
 ### Fixed
 
+- Recognize common Chinese/English identity, capability and usage questions before evidence retrieval; return the built-in ScholarNova guide without requiring papers or a model call.
+- Match the complete help request to keep questions about agents in papers on the research path; prior research or help conversation history does not override the current intent.
+- Cover product-guide rendering and persistence so guide answers do not show misleading missing-evidence or BM25 warnings.
+- Derive the backend's API and startup version from the package version instead of duplicate literals.
 - Verify local Zotero saves using an explicit Connector session and full collection path; distinguish metadata sync from unsupported PDF attachment import and warn on unconfirmed writes.
 - Retry the configured institutional-library portal directly after a proxy connection failure, retaining URL and redirect safety checks.
 - Include the actual research analysis in architecture extraction instead of a literal template placeholder.
@@ -17,8 +23,8 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 ### Validation
 
 - Run real configured GLM text/vision and SenseNova U1 workflows in an isolated research database, and real Zotero writes in a separate empty profile. See [the live API report](docs/reports/2026-09-08-live-api-validation.zh-CN.md) for evidence and limitations.
-- Pass 395 backend and 41 frontend regression tests and the frontend production build; generated images still require manual label and content review.
-- These changes are not yet part of a new downloadable installer; v1.2.1 remains an immutable released build.
+- Pass 434 backend and 43 frontend regression tests, 6 desktop security/proxy checks and 18 packaging checks. The 27 opt-in integration tests are excluded from the offline suite, not counted as passing.
+- See [the assistant-routing validation report](docs/reports/v1.2.2-assistant-help.zh-CN.md) for scope and desktop verification. Generated images still require manual label and content review. v1.2.1 remains immutable; download availability is determined by actual Release assets.
 
 ## [1.2.1] - 2026-09-08
 

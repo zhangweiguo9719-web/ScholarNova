@@ -37,6 +37,8 @@ This build requires macOS 13 or later, following [Electron 44's platform require
 
 Basic keyword retrieval does not require an LLM key. Scholarly-source access depends on source policies, credentials, quota and network. AI operations use your configured provider and its billing.
 
+**New to the Assistant?** Ask “Who are you?”, “What can you do?” or “How do I use this assistant?”. The v1.2.2 source returns built-in product guidance before research retrieval, without requiring papers or a model call; zero tokens are expected here. Research claims still require evidence. Ask again after upgrading: previous conversation messages are not rewritten. See the [fix and validation report](docs/reports/v1.2.2-assistant-help.zh-CN.md).
+
 ## Product preview
 
 Screenshots illustrate the workflow; click to enlarge. Language and theme can be changed in the app.

@@ -113,40 +113,59 @@ _EN_STOP = {
 }
 
 _PRODUCT_HELP_PATTERNS = (
-    re.compile(r"(?:这个|目前|scholarnova).{0,8}(?:智能体|平台|系统).{0,8}(?:怎么|如何|怎样).{0,4}(?:用|使用|操作)"),
-    re.compile(r"(?:怎么|如何|怎样).{0,6}(?:使用|操作).{0,8}(?:这个)?(?:智能体|scholarnova|平台|系统)"),
-    re.compile(r"(?:智能体|scholarnova|平台|系统).{0,8}(?:使用方法|操作流程|使用说明|功能介绍)"),
+    re.compile(r"(?:你|您)(?:到底|究竟)?是(?:谁|什么|啥|个啥|什么助手|什么智能体)[呢呀啊吗么]*"),
+    re.compile(r"(?:你|您)(?:是)?(?:干什么|干啥|做什么|做啥)(?:用的|的)?[呢呀啊吗么]*"),
+    re.compile(r"(?:你|您)(?:都)?(?:能|可以|能够|会)(?:做(?:些|点)?什么|干什么|干啥|做啥|什么)[呢呀啊吗么]*"),
+    re.compile(r"(?:你|您)(?:能|可以)(?:帮(?:助)?我|为我)(?:做)?(?:什么|啥|哪些事)[呢呀啊吗么]*"),
+    re.compile(r"(?:你|您)(?:有)?(?:什么|哪些)(?:功能|能力|用途)[呢呀啊吗么]*"),
+    re.compile(r"(?:介绍|说明)(?:一下|下)?(?:你自己|你|你的功能|你的能力|scholarnova)[呢呀啊吧]*"),
+    re.compile(r"(?:你|您)(?:能|可以)(?:帮我)?(?:分析|总结|比较|解读|阅读)(?:论文|文献)(?:中的(?:方法|结论|研究空白))?(?:吗|么)"),
+    re.compile(r"(?:目前)?(?:这个|本|scholarnova)?(?:智能体|平台|系统|软件|助手)(?:是什么|是啥|能做什么|有什么功能|有哪些功能|(?:怎么|如何|怎样)(?:用|使用|操作))[呢呀啊吗么]*"),
+    re.compile(r"(?:怎么|如何|怎样)(?:用|使用|操作)(?:这个|本)?(?:智能体|scholarnova|平台|系统|软件|助手)[呢呀啊吗么]*"),
+    re.compile(r"(?:scholarnova|这个智能体|本平台)(?:的)?(?:使用方法|操作流程|使用说明|功能介绍|是什么|是啥)[呢呀啊吗么]*"),
+    re.compile(r"(?:who|what) are you"),
+    re.compile(r"what can you (?:do|help(?: me)? with)"),
+    re.compile(r"(?:please )?(?:introduce yourself|tell me about yourself|what is scholarnova)"),
     re.compile(r"how (?:do i|to|can i) use (?:this |the )?(?:assistant|scholarnova|platform|app)"),
-    re.compile(r"(?:scholarnova|this assistant).{0,12}(?:user guide|how .*works|what can .*do)"),
+    re.compile(r"(?:scholarnova|this assistant)(?: user guide| features| capabilities)"),
 )
 
 
 def _is_product_help(question: str) -> bool:
-    normalized = " ".join(question.casefold().split())
-    return any(pattern.search(normalized) for pattern in _PRODUCT_HELP_PATTERNS)
+    normalized = " ".join(question.casefold().split()).strip(" ?？!！。.，,")
+    if normalized in {"你好", "您好", "hello", "hi", "help"}:
+        return True
+    normalized = re.sub(r"^(?:(?:你好|您好|请问|请)[，,\s]*)+", "", normalized)
+    # Match the complete request: a paper discussing an agent's abilities is
+    # still a research question, not a request for this product's user guide.
+    return any(pattern.fullmatch(normalized) for pattern in _PRODUCT_HELP_PATTERNS)
 
 
 def _product_help_answer(question: str) -> str:
     if re.search(r"[\u4e00-\u9fff]", question):
         return (
+            "我是 ScholarNova 的科研问答助手，不是某一篇论文里的智能体。\n\n"
+            "我能基于你的论文材料总结研究内容、解释方法、比较证据、梳理局限，并提出待验证的研究问题；科研回答会附上来源编号，方便你回到原文核对。\n\n"
             "目前这个智能体的使用方式如下：\n\n"
             "1. 准备材料：先在“搜索”页检索论文并完成分析；导入过的授权 PDF 会建立本地全文检索片段，需要长期使用的结论还可以保存到 ScholarNova 知识库；也可以在“设置”中连接已经启动的本机 Zotero。\n"
             "2. 选择来源：进入“智能体”页面后，按需开启“ScholarNova 知识库”和“本机 Zotero”。未连接 Zotero 时可以只使用知识库。\n"
             "3. 提出科研问题：适合询问现有材料的研究共识、方法差异、研究空白、证据对比和可验证研究问题。问题越具体，检索越准确。\n"
             "4. 核验回答：科研回答中的 [S1]、[S2] 对应下方引用材料。重要结论仍应返回原论文核验。\n"
-            "5. 注意边界：智能体只依据实际检索到的本地材料回答；材料不足时会明确说明，不会自动修改 Zotero，也不会用无关论文拼凑答案。\n\n"
+            "5. 注意边界：科研问题只依据实际检索到的本地材料回答；材料不足时会明确说明，不会自动修改 Zotero，也不会用无关论文拼凑答案。询问“你是谁”“你能做什么”不需要先导入论文，也不需要消耗模型 Token。\n\n"
             "可以从这些问题开始：\n"
             "• 总结知识库中关于某个主题的主要研究空白。\n"
             "• 比较 Zotero 文献中两种方法的证据与局限。\n"
             "• 基于现有材料提出三个可验证的研究问题。"
         )
     return (
+        "I'm ScholarNova's research assistant, not an agent described in a paper.\n\n"
+        "I help summarize papers, explain methods, compare evidence, identify limitations, and suggest research questions to test. Research answers cite the retrieved material so you can verify them.\n\n"
         "Here is how to use the assistant:\n\n"
         "1. Prepare evidence: analyze papers from Search; authorized imported PDFs are indexed locally, useful findings can be saved to the ScholarNova knowledge base, and a running local Zotero can be connected from Settings.\n"
         "2. Choose sources: enable the ScholarNova knowledge base, local Zotero, or both on the Assistant page.\n"
         "3. Ask a focused research question about consensus, method differences, research gaps, evidence, or testable next steps.\n"
         "4. Verify the answer: [S1] and [S2] point to the source cards shown below the response. Check important claims against the original paper.\n"
-        "5. Know the boundary: the assistant answers only from retrieved local evidence, reports insufficient material, and never modifies Zotero automatically."
+        "5. Know the boundary: research answers use retrieved local evidence, report insufficient material, and never modify Zotero automatically. Identity and usage questions need no papers or model tokens."
     )
 
 

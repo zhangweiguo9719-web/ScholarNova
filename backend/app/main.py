@@ -14,6 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, ORJSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from app import __version__
 from app.api.v1.router import api_router
 from app.config import runtime_path, settings
 from app.core.cache import CacheManager
@@ -149,7 +150,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """
     # 启动时执行
     setup_logging()
-    logger.info("Starting ScholarNova API", version="1.2.1", env=settings.APP_ENV)
+    logger.info("Starting ScholarNova API", version=__version__, env=settings.APP_ENV)
 
     # 初始化数据库
     await init_db()
@@ -185,7 +186,7 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title=settings.APP_NAME,
         description="ScholarNova - 智能学术论文搜索与推荐 API",
-        version="1.2.1",
+        version=__version__,
         docs_url="/docs" if settings.DEBUG else None,
         redoc_url="/redoc" if settings.DEBUG else None,
         openapi_url="/openapi.json" if settings.DEBUG else None,
