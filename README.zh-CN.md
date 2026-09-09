@@ -8,7 +8,7 @@
 
 ## 下载与安装
 
-**[v1.2.1 已发布](https://github.com/zhangweiguo9719-web/ScholarNova/releases/tag/v1.2.1)**：提供 Windows x64、Intel Mac、Apple Silicon Mac 安装包，以及同版本源码和校验文件。详见 [实际验收报告](docs/reports/v1.2.1-consumer-readiness.zh-CN.md)。
+**[v1.2.2 已发布](https://github.com/wei9719/ScholarNova/releases/tag/v1.2.2)**：提供 Windows x64、Intel Mac、Apple Silicon Mac 安装包，以及同版本源码和校验文件。修复智能体身份/能力问答，并包含研究路线与 Zotero 工作流改进。详见 [实际验收报告](docs/reports/v1.2.2-assistant-help.zh-CN.md)。
 
 到 **[GitHub Releases 下载已发布安装包](https://github.com/zhangweiguo9719-web/ScholarNova/releases/latest)**，展开 Assets，按你的电脑选择。源码中的版本号或 Git 标签不代表安装包已经发布；以 Release 中实际存在的文件为准。
 
@@ -22,6 +22,8 @@
 | macOS 13+，Intel | `ScholarNova-版本-x64.dmg` | 拖入“应用程序” |
 
 桌面版自带界面、本地后端和 SQLite，无需安装 Python、Node.js 或 Docker。首次启动可能因解压运行时稍慢。升级前退出应用，安装新版本；个人数据位于用户目录，不在安装目录内。
+
+Windows 日常使用优先选择 **Setup 安装版**。本次 Portable 虽通过云端启动检查，但在开发者本机冷解压接近两分钟、未通过 120 秒验收；不要据此认为所有 Windows 设备都能快速启动。安装版在同机已完成启动和功能验证。
 
 本版要求 macOS 13 或更新系统，依据 [Electron 44 官方平台要求](https://www.electronjs.org/blog/electron-44-0)。
 
@@ -37,7 +39,7 @@
 
 普通关键词检索不要求 LLM Key；学术源是否可用取决于各源政策、Key、额度与网络。需要 AI 的操作会调用你配置的模型，费用由相应提供商计收。
 
-**不知道智能体怎么用？** 可直接问“你是谁？”“你可以做什么？”“目前这个智能体怎么使用呢？”。v1.2.2 源码会先返回内置产品指南，无需导入论文、无需模型调用；此时 Token 为 0 是正常的。具体科研问题仍需材料支撑。升级后重新发送问题，旧对话不会被自动改写。见 [本次修复与测试](docs/reports/v1.2.2-assistant-help.zh-CN.md)。
+**不知道智能体怎么用？** 可直接问“你是谁？”“你可以做什么？”“目前这个智能体怎么使用呢？”。v1.2.2 桌面版会先返回内置产品指南，无需导入论文、无需模型调用；此时 Token 为 0 是正常的。具体科研问题仍需材料支撑。升级后重新发送问题，旧对话不会被自动改写。见 [本次修复与测试](docs/reports/v1.2.2-assistant-help.zh-CN.md)。
 
 ## 产品预览
 

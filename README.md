@@ -8,7 +8,7 @@ A desktop research workspace for individuals: **find papers → read full text �
 
 ## Download and install
 
-**[v1.2.1 is available](https://github.com/zhangweiguo9719-web/ScholarNova/releases/tag/v1.2.1)** for Windows x64, Intel Mac and Apple Silicon Mac, together with matching source and checksums. See the [verified release report](docs/reports/v1.2.1-consumer-readiness.zh-CN.md).
+**[v1.2.2 is available](https://github.com/wei9719/ScholarNova/releases/tag/v1.2.2)** for Windows x64, Intel Mac and Apple Silicon Mac, together with matching source and checksums. It fixes Assistant identity/capability guidance and includes research-route and Zotero workflow improvements. See the [verified release report](docs/reports/v1.2.2-assistant-help.zh-CN.md).
 
 Open **[GitHub Releases](https://github.com/zhangweiguo9719-web/ScholarNova/releases/latest)** and choose an existing asset for your computer. A source version or Git tag does not mean downloadable binaries have been published; the release assets are authoritative.
 
@@ -22,6 +22,8 @@ Open **[GitHub Releases](https://github.com/zhangweiguo9719-web/ScholarNova/rele
 | macOS 13+, Intel | `ScholarNova-VERSION-x64.dmg` | Drag into Applications |
 
 The desktop app bundles the interface, local backend and SQLite. No Python, Node.js or Docker is required. First launch may take longer while the portable runtime extracts. Quit before upgrading; personal data is stored outside the installation directory.
+
+For everyday Windows use, prefer **Setup**. Portable passed cloud smoke tests but took nearly two minutes to cold-extract on the developer's PC and failed its 120-second local acceptance limit. Fast startup is not guaranteed across Windows devices; the installed build passed startup and functional checks on that same PC.
 
 This build requires macOS 13 or later, following [Electron 44's platform requirements](https://www.electronjs.org/blog/electron-44-0).
 
@@ -37,7 +39,7 @@ This build requires macOS 13 or later, following [Electron 44's platform require
 
 Basic keyword retrieval does not require an LLM key. Scholarly-source access depends on source policies, credentials, quota and network. AI operations use your configured provider and its billing.
 
-**New to the Assistant?** Ask “Who are you?”, “What can you do?” or “How do I use this assistant?”. The v1.2.2 source returns built-in product guidance before research retrieval, without requiring papers or a model call; zero tokens are expected here. Research claims still require evidence. Ask again after upgrading: previous conversation messages are not rewritten. See the [fix and validation report](docs/reports/v1.2.2-assistant-help.zh-CN.md).
+**New to the Assistant?** Ask “Who are you?”, “What can you do?” or “How do I use this assistant?”. The v1.2.2 desktop app returns built-in product guidance before research retrieval, without requiring papers or a model call; zero tokens are expected here. Research claims still require evidence. Ask again after upgrading: previous conversation messages are not rewritten. See the [fix and validation report](docs/reports/v1.2.2-assistant-help.zh-CN.md).
 
 ## Product preview
 
