@@ -69,6 +69,20 @@ def test_standalone_chinese_greetings_still_enter_product_help(question):
     assert _is_product_help(question) is True
 
 
+@pytest.mark.parametrize("question", [
+    "准备论文", "导入论文", "导入PDF", "选择来源", "开启来源", "提出科研问题",
+    "输入问题", "配置模型", "配置API", "我卡在选择来源这一步", "我已经导入论文了", "还没导入PDF",
+])
+@pytest.mark.parametrize("history,expected", [
+    ([], False),
+    ([AgentMessage(role="assistant", content="你卡在准备论文、选择来源，还是提出科研问题这一步？")], False),
+    (history_of("我该如何使用你", "那下一步呢"), True),
+    (history_of("我该如何使用你", "什么是RAG"), False),
+], ids=["empty", "assistant-only", "help-chain", "research-interruption"])
+def test_progress_stage_reply_requires_real_user_help_context(question, history, expected):
+    assert _is_product_help(question, history) is expected
+
+
 @pytest.fixture
 def isolated_help(monkeypatch):
     monkeypatch.setattr("app.api.v1.agent.check_rate_limit", lambda *args, **kwargs: None)
@@ -320,19 +334,148 @@ async def test_help_configuration_errors_return_safe_guide_instead_of_500(
 
 
 @pytest.mark.asyncio
-async def test_feedback_uses_model_without_paper_retrieval_and_does_not_replay_guide(client, isolated_help):
+@pytest.mark.parametrize("question,answer", [
+    ("那下一步呢", "你目前卡在准备论文、选择来源，还是提出科研问题这一步？"),
+    ("这两次回答咋一样", "你现在已经有一篇准备分析的论文了吗？"),
+    ("what next", "Do you already have a paper ready to analyze?"),
+])
+async def test_feedback_uses_model_without_paper_retrieval_and_does_not_replay_guide(
+    client, isolated_help, question, answer,
+):
     chat, _ = isolated_help
     chat.side_effect = None
-    chat.return_value = model_result("你说得对，前文重复了。可以从搜索一篇论文开始，分析后保存重要结论，再提具体问题。")
+    chat.return_value = model_result(answer)
     response = await client.post("/api/v1/agent/chat", json={
-        "question": "这两次回答咋一样",
+        "question": question,
         "history": [message.model_dump() for message in history_of("我该如何使用你", "那下一步呢")],
     })
+    assert response.status_code == 200
     data = response.json()
     assert_product_help_metadata(data)
     assert data["inference_mode"] == "model"
-    assert data["answer"] == chat.return_value.content
-    assert chat.await_args.kwargs["messages"][-1]["content"] == "这两次回答咋一样"
+    assert data["model_route"] == "primary"
+    assert data["fallback_used"] is False
+    assert data["answer"] == answer
+    chat.assert_awaited_once()
+    messages = chat.await_args.kwargs["messages"]
+    assert messages[-1]["content"] == question
+    prompt = messages[0]["content"]
+    assert "用户已在 ScholarNova 智能体页面与你交谈，不要建议再次进入此页面" in prompt
+    assert "本轮任务（优先于上面的通用步骤建议）：仅输出一个具体的进度澄清问句" in prompt
+    assert "以问号结束，不附带操作步骤" in prompt
+    assert "不要假设用户已了解或完成某步" in prompt
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("question", ["你是不是没有调用AI", "你是不是没有用模型"])
+async def test_model_call_status_feedback_does_not_force_a_progress_question(
+    client, isolated_help, question,
+):
+    chat, _ = isolated_help
+    answer = "仅凭聊天正文无法确认之前是否调用成功，请查看回答下方的模型尝试和用量状态。"
+    chat.side_effect = None
+    chat.return_value = model_result(answer)
+    response = await client.post("/api/v1/agent/chat", json={
+        "question": question,
+        "history": [message.model_dump() for message in history_of("我该如何使用你", "那下一步呢")],
+    })
+    assert response.status_code == 200
+    data = response.json()
+    assert_product_help_metadata(data)
+    assert data["answer"] == answer
+    assert data["inference_mode"] == "model"
+    assert data["fallback_used"] is False
+    assert data["fallback_reason"] is None
+    chat.assert_awaited_once()
+    prompt = chat.await_args.kwargs["messages"][0]["content"]
+    assert "聊天正文不能证明之前模型是否调用成功" in prompt
+    assert "本轮任务（优先于上面的通用步骤建议）" not in prompt
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("question,answer", [
+    ("选择来源", "在当前页面按需开启 ScholarNova 知识库来源，再输入你要研究的问题。"),
+    ("还没导入PDF", "先准备一份你有权使用的 PDF，通过应用的导入入口加入材料。"),
+    ("我卡在配置模型", "在设置中填写模型提供商提供的配置并测试连接，不要在聊天中粘贴密钥。"),
+])
+async def test_progress_stage_reply_can_receive_steps_without_another_clarification(
+    client, isolated_help, question, answer,
+):
+    chat, _ = isolated_help
+    chat.side_effect = None
+    chat.return_value = model_result(answer)
+    response = await client.post("/api/v1/agent/chat", json={
+        "question": question,
+        "history": [
+            {"role": "user", "content": "我该如何使用你"},
+            {"role": "assistant", "content": "可以先准备论文、选择来源，再提具体问题。"},
+            {"role": "user", "content": "那下一步呢"},
+            {"role": "assistant", "content": "你卡在准备论文、选择来源，还是提出科研问题这一步？"},
+        ],
+    })
+    assert response.status_code == 200
+    data = response.json()
+    assert_product_help_metadata(data)
+    assert data["answer"] == answer
+    assert data["inference_mode"] == "model"
+    assert data["model_route"] == "primary"
+    assert data["fallback_used"] is False
+    assert data["fallback_reason"] is None
+    assert data["total_tokens"] == HELP_USAGE["total_tokens"]
+    chat.assert_awaited_once()
+    messages = chat.await_args.kwargs["messages"]
+    assert messages[-1]["content"] == question
+    assert "用户已在 ScholarNova 智能体页面与你交谈" in messages[0]["content"]
+    assert "本轮任务（优先于上面的通用步骤建议）" not in messages[0]["content"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("question", ["那下一步呢", "这两次回答咋一样"])
+@pytest.mark.parametrize("answer", [
+    "你说得对，前文重复了。可以从搜索一篇论文开始，分析后保存重要结论，再提具体问题。",
+    "1. 开启资料来源。2. 提出一个具体科研问题。",
+    "你准备好了吗？接下来先选择来源，再提出一个问题。",
+])
+async def test_progress_followup_rejects_steps_and_preserves_reported_usage(
+    client, isolated_help, question, answer,
+):
+    chat, _ = isolated_help
+    usage = {
+        "prompt_tokens": 800, "completion_tokens": 114, "total_tokens": 914,
+        "requests": 1, "request_attempts": 1, "responses_received": 1, "usage_reports": 1,
+    }
+    attempt = ModelAttempt(
+        role="primary", provider=HELP_PROFILE["provider"], model=HELP_PROFILE["model"],
+        status="completed", **usage,
+    )
+    chat.side_effect = None
+    chat.return_value = RoutedChatResult(
+        content=answer, profile=dict(HELP_PROFILE), usage=usage,
+        attempts=(attempt,), fallback_used=False,
+    )
+    response = await client.post("/api/v1/agent/chat", json={
+        "question": question,
+        "history": [
+            {"role": "user", "content": "我该如何使用你"},
+            {"role": "assistant", "content": "你可以打开资料来源开关，然后输入想研究的问题。"},
+        ],
+    })
+    assert response.status_code == 200
+    data = response.json()
+    assert_product_help_metadata(data)
+    assert data["inference_mode"] == "deterministic_fallback"
+    assert data["model_route"] == "deterministic"
+    assert data["fallback_used"] is True
+    assert data["fallback_reason"] == "invalid_help_response"
+    assert data["answer"] != answer
+    assert "本次 AI 使用指导未完成" in data["answer"]
+    assert len(data["answer"]) < 180
+    assert "1. 准备材料" not in data["answer"]
+    assert "开启资料来源" not in data["answer"]
+    for key in ("prompt_tokens", "completion_tokens", "total_tokens"):
+        assert data[key] == usage[key]
+    assert data["model_attempts"] == [attempt.to_dict()]
+    chat.assert_awaited_once()
 
 
 @pytest.mark.asyncio

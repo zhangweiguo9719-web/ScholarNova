@@ -9,6 +9,7 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 ### Fixed
 
 - Give contextual Assistant help one model attempt with a 45-second response budget and a 500-output-token limit. Keep research questions on the evidence-required path.
+- Treat the user as already on the Assistant page. Prompt the model to ask one progress-clarification question for short follow-ups or repetition feedback, then continue with step-specific guidance for recognized Chinese stage replies. Model-call status questions do not require progress clarification. A trailing question mark is only a basic output check, not complete semantic repetition detection.
 - Handle contextual feedback without repeating the full product guide. Missing configuration, model failures and invalid guidance now return a short local status message; whitespace-normalized copies of the preceding assistant answer are rejected.
 - Record model request attempts, received responses and provider usage reports separately. Expose the attempted provider/model, failure type and help details directly in the UI; absent usage is unknown, not proof of no call or no charge. An attempted request does not prove server receipt.
 - Ignore input-method confirmation Enter events, guard duplicate sends, and prevent clearing or deleting the conversation while its request is pending. Keep waiting indicators and late replies with the originating conversation and preserve the latest-six-message history boundary.

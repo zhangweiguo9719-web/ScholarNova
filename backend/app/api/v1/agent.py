@@ -163,10 +163,17 @@ _HELP_FEEDBACK = re.compile(
     r"you are repeating yourself|say it differently|i (?:still )?don.t understand)"
 )
 
+_HELP_STAGE_REPLY = re.compile(
+    r"(?:(?:我)?(?:卡在|想先|还没|没有|已经|已|正在|先|是|想|不会|不太会))?"
+    r"(?:准备论文|导入论文|导入pdf|选择来源|开启来源|提出科研问题|输入问题|配置模型|配置api)"
+    r"(?:这一步|这步|了)?"
+)
+
 
 def _is_help_followup(question: str) -> bool:
     normalized = _normalize_help_question(question)
-    return bool(_HELP_FOLLOWUP.fullmatch(normalized) or _HELP_FEEDBACK.fullmatch(normalized))
+    return bool(_HELP_FOLLOWUP.fullmatch(normalized) or _HELP_FEEDBACK.fullmatch(normalized)
+                or _HELP_STAGE_REPLY.fullmatch(normalized))
 
 
 def _is_product_help(question: str, history: Sequence[AgentMessage] = ()) -> bool:
@@ -222,6 +229,10 @@ def _product_help_answer(question: str) -> str:
 async def _answer_product_help(request: AgentChatRequest) -> AgentChatResponse:
     """One bounded model call grounded in the product guide, never paper RAG."""
     guide = _product_help_answer(request.question)
+    clarify_progress = bool(request.history and _is_help_followup(request.question)
+                            and not _HELP_STAGE_REPLY.fullmatch(_normalize_help_question(request.question))
+                            and not re.search(r"(?:调用|用)(?:ai|模型)",
+                                              _normalize_help_question(request.question)))
     result = AgentChatResponse(
         answer=guide, citations=[], tool_steps=[], response_type="product_help",
         grounded=False, inference_mode="deterministic_fallback",
@@ -253,7 +264,14 @@ async def _answer_product_help(request: AgentChatRequest) -> AgentChatResponse:
             "若问题需要科研证据，说明应使用论文问答，不依据聊天历史编造事实。\n\n"
             f"内置指南：\n{guide}\n\n"
             f"当前选择：use_knowledge={str(request.use_knowledge).lower()}, "
-            f"use_zotero={str(request.use_zotero).lower()}"
+            f"use_zotero={str(request.use_zotero).lower()}\n"
+            "当前入口：用户已在 ScholarNova 智能体页面与你交谈，不要建议再次进入此页面。\n"
+            + (
+                "本轮任务（优先于上面的通用步骤建议）：仅输出一个具体的进度澄清问句。"
+                "询问用户卡在准备论文、选择来源、还是提出科研问题哪一步；也可以根据上下文缩小选项。"
+                "以问号结束，不附带操作步骤。不要道歉后重述先前建议，不要假设用户已了解或完成某步。"
+                if clarify_progress else ""
+            )
         )}]
         messages.extend(
             {"role": message.role, "content": message.content[:1000]}
@@ -271,7 +289,9 @@ async def _answer_product_help(request: AgentChatRequest) -> AgentChatResponse:
             previous_answer = next((message.content.strip() for message in reversed(request.history)
                                     if message.role == "assistant"), "")
             repeated = bool(answer and "".join(answer.split()) == "".join(previous_answer.split()))
-            if answer and not repeated and not re.search(r"\[S\d+\]", answer, re.IGNORECASE):
+            missing_clarification = clarify_progress and not answer.endswith(("?", "？"))
+            if (answer and not repeated and not missing_clarification
+                    and not re.search(r"\[S\d+\]", answer, re.IGNORECASE)):
                 result.answer = answer
                 result.provider = routed.profile.get("provider")
                 result.model = routed.profile.get("model")
