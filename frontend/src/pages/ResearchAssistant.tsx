@@ -56,6 +56,8 @@ export default function ResearchAssistant() {
   const [useZotero, setUseZotero] = useState(true)
   const [zoteroConnected, setZoteroConnected] = useState<boolean | null>(null)
   const [sending, setSending] = useState(false)
+  const pendingConversationRef = useRef<string | null>(null)
+  const currentConversationPending = sending && pendingConversationRef.current === activeConversation?.id
   const [error, setError] = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)
 
@@ -99,9 +101,9 @@ export default function ResearchAssistant() {
     productHelpSource: '本回答来自 ScholarNova 内置使用指南，无需论文引用。',
     productHelpModel: 'AI 使用指导',
     productHelpModelFallback: 'AI 使用指导 · 备用模型',
-    productHelpFallback: '内置帮助兜底',
+    productHelpFallback: 'AI 指导未完成 · 本地状态提示',
     productHelpModelSource: '本回答由已配置模型结合 ScholarNova 产品说明生成，不是论文研究结论，无需论文引用。',
-    productHelpFallbackSource: '模型未完成本次指导，已显示内置帮助；Token 按接口返回的实际用量显示。',
+    productHelpFallbackSource: '模型未完成本次指导，当前显示本地状态提示。请求与用量状态见上方；缺失用量不代表免费。',
     helpSource: '指导来源',
     model: '模型',
     tokens: 'Token',
@@ -153,9 +155,9 @@ export default function ResearchAssistant() {
     productHelpSource: 'This response comes from the built-in ScholarNova guide and does not require paper citations.',
     productHelpModel: 'AI usage guidance',
     productHelpModelFallback: 'AI usage guidance · fallback model',
-    productHelpFallback: 'Built-in help fallback',
+    productHelpFallback: 'AI guidance incomplete · local status',
     productHelpModelSource: 'Your configured model generated this guidance from the ScholarNova product description. It is not a research finding and does not require paper citations.',
-    productHelpFallbackSource: 'The model did not complete this guidance, so built-in help is shown. Tokens reflect the usage returned by the API.',
+    productHelpFallbackSource: 'The model did not complete this guidance; a local status message is shown. Request and usage details are above; missing usage does not mean the request was free.',
     helpSource: 'Guidance source',
     model: 'Model',
     tokens: 'Tokens',
@@ -198,8 +200,9 @@ export default function ResearchAssistant() {
 
   const submit = async () => {
     const cleanQuestion = question.trim()
-    if (!cleanQuestion || sending || !activeConversation) return
+    if (!cleanQuestion || pendingConversationRef.current || !activeConversation) return
     const conversationId = activeConversation.id
+    pendingConversationRef.current = conversationId
     const history: AgentMessage[] = messages.slice(-6).map(({ role, content }) => ({ role, content }))
     const userEntry: AssistantMessage = { id: newId(), role: 'user', content: cleanQuestion }
     appendMessage(conversationId, userEntry)
@@ -225,11 +228,13 @@ export default function ResearchAssistant() {
         || (isChinese ? '智能体暂时无法回答，请检查模型和 Zotero 设置。' : 'The assistant could not answer. Check model and Zotero settings.')
       )
     } finally {
+      pendingConversationRef.current = null
       setSending(false)
     }
   }
 
   const clearConversation = () => {
+    if (pendingConversationRef.current === activeConversation?.id) return
     if (activeConversation) clearStoredConversation(activeConversation.id)
     setError('')
     requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }))
@@ -321,7 +326,7 @@ export default function ResearchAssistant() {
                       {folders.map((folder) => <option key={folder.id} value={folder.id}>{folder.name}</option>)}
                     </select>
                   </label>
-                  <button title={copy.deleteChat} onClick={() => deleteConversation(activeConversation.id)} className="rounded-lg p-2 text-[var(--ui-muted)] hover:bg-red-500/10 hover:text-red-500"><Trash2 className="h-4 w-4" /></button>
+                  <button title={copy.deleteChat} disabled={currentConversationPending} onClick={() => deleteConversation(activeConversation.id)} className="rounded-lg p-2 text-[var(--ui-muted)] hover:bg-red-500/10 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-40"><Trash2 className="h-4 w-4" /></button>
                 </div>
               )}
 
@@ -348,10 +353,10 @@ export default function ResearchAssistant() {
                 </article>
               ))}
 
-              {sending && (
+              {currentConversationPending && (
                 <div className="flex items-center gap-3 text-sm text-[var(--ui-text-soft)]">
                   <Loader2 className="h-4 w-4 animate-spin text-[var(--ui-accent)]" />
-                  {isChinese ? '正在处理问题并组织回答…' : 'Processing your question and composing an answer…'}
+                  {isChinese ? '正在处理问题；模型生成较慢时可能需要约 45 秒，请稍候…' : 'Processing your question; model generation may take about 45 seconds when slow. Please wait…'}
                 </div>
               )}
               <div ref={bottomRef} />
@@ -364,7 +369,7 @@ export default function ResearchAssistant() {
                   value={question}
                   onChange={(event) => setQuestion(event.target.value)}
                   onKeyDown={(event) => {
-                    if (event.key === 'Enter' && !event.shiftKey) {
+                    if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing && event.nativeEvent.keyCode !== 229) {
                       event.preventDefault()
                       void submit()
                     }
@@ -381,7 +386,7 @@ export default function ResearchAssistant() {
               </div>
               <div className="mt-3 flex items-center justify-between gap-3 text-[11px] text-[var(--ui-muted)]">
                 <span className="inline-flex items-center gap-1"><ShieldCheck className="h-3.5 w-3.5" />{copy.safety}</span>
-                {messages.length > 0 && <button onClick={clearConversation} className="inline-flex shrink-0 items-center gap-1 hover:text-[var(--ui-text)]"><Eraser className="h-3.5 w-3.5" />{copy.clear}</button>}
+                {messages.length > 0 && <button onClick={clearConversation} disabled={currentConversationPending} className="inline-flex shrink-0 items-center gap-1 hover:text-[var(--ui-text)] disabled:cursor-not-allowed disabled:opacity-40"><Eraser className="h-3.5 w-3.5" />{copy.clear}</button>}
               </div>
               </div>
             </div>
@@ -402,6 +407,9 @@ function SourceToggle({ active, onClick, icon, label, warning = false }: { activ
 
 function AgentTrace({ result, copy, isChinese }: { result: AgentChatResponse; copy: Record<string, any>; isChinese: boolean }) {
   const isProductHelp = result.response_type === 'product_help'
+  const modelAttempts = result.model_attempts || []
+  const hasReportedUsage = result.total_tokens > 0 || modelAttempts.some((attempt) => (attempt.usage_reports || 0) > 0)
+  const hasUnreportedRequest = modelAttempts.some((attempt) => (attempt.request_attempts || 0) > 0 && attempt.usage_reports === 0)
   const isModelHelp = isProductHelp && result.inference_mode === 'model'
     && result.model_route !== 'deterministic' && !result.fallback_used
   const isHelpFallback = isProductHelp && !isModelHelp && (
@@ -443,15 +451,41 @@ function AgentTrace({ result, copy, isChinese }: { result: AgentChatResponse; co
         </span>
         {result.model && (!isProductHelp || isModelHelp) && <span>{copy.model}: {result.provider}/{result.model}</span>}
         {result.model_attempts?.length > (isProductHelp ? 0 : 1) && (
-          <span title={result.model_attempts.map((attempt) => `${attempt.role}: ${attempt.provider}/${attempt.model} · ${attempt.status} · ${attempt.total_tokens} Token`).join('\n')}>
+          <span title={isProductHelp ? undefined : result.model_attempts.map((attempt) => `${attempt.role}: ${attempt.provider}/${attempt.model} · ${attempt.status} · ${attempt.total_tokens} Token`).join('\n')}>
             {isChinese ? `模型尝试 ${result.model_attempts.length} 次` : `${result.model_attempts.length} model attempts`}
           </span>
         )}
         {!isProductHelp && <span>{copy.retrieval}: {result.retrieval_mode === 'hybrid' ? 'BM25 + Embedding RRF' : 'BM25'}</span>}
         {!isProductHelp && result.retrieval_tokens > 0 && <span>{copy.embeddingTokens}: {result.retrieval_tokens}</span>}
         {!isProductHelp && verificationStatus !== 'not_applicable' && <span>{copy.coverage}: {Math.round((result.citation_coverage || 0) * 100)}%</span>}
-        <span>{copy.tokens}: {result.total_tokens}</span>
+        <span>{copy.tokens}: {!isProductHelp ? result.total_tokens : hasReportedUsage
+          ? `${result.total_tokens}${isChinese ? '（已返回的用量）' : ' (reported usage)'}`
+          : modelAttempts.length > 0
+            ? (isChinese ? '未知（未收到或未记录服务商用量）' : 'Unknown (provider usage not received or recorded)')
+            : (isChinese ? '无用量记录' : 'No usage record')}</span>
       </div>
+      {isProductHelp && (
+        <div className="space-y-1.5 leading-5">
+          {isHelpFallback && modelAttempts.length === 0 && <p>{isChinese ? '未调用模型：没有模型尝试记录，请检查模型配置。' : 'Model not called: no model attempt was recorded. Check your model configuration.'}</p>}
+          {modelAttempts.map((attempt, index) => (
+            <div key={`${attempt.role}-${index}`}>
+              <p className="font-medium text-[var(--ui-text)]">
+                {isChinese ? (attempt.role === 'primary' ? '主模型' : '备用模型') : attempt.role}: {attempt.provider}/{attempt.model}
+                {' · '}{attempt.status === 'completed' ? (isChinese ? '已完成' : 'Completed') : (isChinese ? '未完成' : 'Incomplete')}
+                {attempt.error_type && ` · ${isChinese ? '失败类型' : 'Error type'}: ${attempt.error_type}`}
+              </p>
+              <p>{attempt.request_attempts !== undefined
+                ? (isChinese ? `请求尝试: ${attempt.request_attempts} · 收到响应: ${attempt.responses_received ?? '未知'} · 用量报告: ${attempt.usage_reports ?? '未知'}`
+                  : `Request attempts: ${attempt.request_attempts} · Responses received: ${attempt.responses_received ?? 'Unknown'} · Usage reports: ${attempt.usage_reports ?? 'Unknown'}`)
+                : (isChinese ? '历史记录未保存请求状态，不能据此判断是否调用。' : 'Request status was not saved in this history; whether a call occurred cannot be confirmed.')}</p>
+            </div>
+          ))}
+          {hasUnreportedRequest && <p className="text-amber-700 dark:text-amber-300">{isChinese
+            ? '已尝试模型请求，但服务商未返回用量；这不代表未调用或免费。请求尝试次数不等于服务端已接收次数。'
+            : 'A model request was attempted, but provider usage was not returned. This does not mean no call or no charge; an attempt does not prove server receipt.'}</p>}
+          {result.tool_steps.filter((step) => step.tool === 'product_help' && step.detail).map((step, index) => <p key={index}>{step.detail}</p>)}
+        </div>
+      )}
       {!isProductHelp && (verificationStatus === 'partial' || verificationStatus === 'failed') && (
         <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-2.5 py-2 text-amber-700 dark:text-amber-300">
           {copy.uncited}: {result.uncited_claim_count || 0}

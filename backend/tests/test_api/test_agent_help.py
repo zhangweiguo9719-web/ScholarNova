@@ -19,7 +19,9 @@ HELP_PROFILE = {
     "base_url": "http://127.0.0.1:9/v1",
 }
 HELP_USAGE = {"prompt_tokens": 80, "completion_tokens": 20, "total_tokens": 100, "requests": 1}
-FOLLOWUPS = ["那下一步呢", "那怎么用呢", "然后呢", "具体一点", "what next"]
+FOLLOWUPS = ["那下一步呢", "那怎么用呢", "然后呢", "具体一点", "what next",
+             "这两次回答咋一样", "你一直重复回答", "我还是没听懂", "换种说法",
+             "你是不是没有调用AI", "why are the answers the same"]
 
 
 def history_of(*questions):
@@ -153,8 +155,8 @@ async def test_model_help_is_bounded_uses_recent_history_and_reports_actual_usag
     kwargs = chat.await_args.kwargs
     assert kwargs["task"] == "assistant"
     assert kwargs["allow_fallback"] is False
-    assert kwargs["timeout_seconds"] == 12
-    assert kwargs["max_tokens"] == 800
+    assert kwargs["timeout_seconds"] == 45
+    assert kwargs["max_tokens"] == 500
     assert kwargs["temperature"] == 0.2
     messages = kwargs["messages"]
     assert messages[1:-1] == [
@@ -196,7 +198,8 @@ async def test_help_failure_returns_builtin_guide_without_losing_attempt_usage(
     assert response.status_code == 200
     data = response.json()
     assert_product_help_metadata(data)
-    assert data["answer"] == _product_help_answer(question)
+    assert data["answer"] != _product_help_answer(question)
+    assert "本次 AI 使用指导未完成" in data["answer"]
     assert data["inference_mode"] == "deterministic_fallback"
     assert data["model_route"] == "deterministic"
     assert data["fallback_used"] is True
@@ -298,7 +301,8 @@ async def test_help_configuration_errors_return_safe_guide_instead_of_500(
     assert response.status_code == 200
     data = response.json()
     assert_product_help_metadata(data)
-    assert data["answer"] == _product_help_answer(question)
+    assert data["answer"] != _product_help_answer(question)
+    assert "本次 AI 使用指导未完成" in data["answer"]
     assert data["inference_mode"] == "deterministic_fallback"
     assert data["model_route"] == "deterministic"
     assert data["fallback_used"] is True
@@ -313,3 +317,57 @@ async def test_help_configuration_errors_return_safe_guide_instead_of_500(
     if factory is not None:
         factory.from_profile.assert_called_once()
         factory.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_feedback_uses_model_without_paper_retrieval_and_does_not_replay_guide(client, isolated_help):
+    chat, _ = isolated_help
+    chat.side_effect = None
+    chat.return_value = model_result("你说得对，前文重复了。可以从搜索一篇论文开始，分析后保存重要结论，再提具体问题。")
+    response = await client.post("/api/v1/agent/chat", json={
+        "question": "这两次回答咋一样",
+        "history": [message.model_dump() for message in history_of("我该如何使用你", "那下一步呢")],
+    })
+    data = response.json()
+    assert_product_help_metadata(data)
+    assert data["inference_mode"] == "model"
+    assert data["answer"] == chat.return_value.content
+    assert chat.await_args.kwargs["messages"][-1]["content"] == "这两次回答咋一样"
+
+
+@pytest.mark.asyncio
+async def test_repeated_model_answer_is_not_appended_again_and_usage_is_preserved(client, isolated_help):
+    chat, _ = isolated_help
+    previous = "先检索并分析一篇论文，再保存重要结论。"
+    chat.side_effect = None
+    chat.return_value = model_result(previous)
+    response = await client.post("/api/v1/agent/chat", json={
+        "question": "那下一步呢", "history": [
+            {"role": "user", "content": "我该如何使用你"},
+            {"role": "assistant", "content": previous},
+        ],
+    })
+    data = response.json()
+    assert data["answer"] != previous
+    assert "重复内容" in data["answer"]
+    assert data["total_tokens"] == HELP_USAGE["total_tokens"]
+    assert data["fallback_reason"] == "invalid_help_response"
+
+
+@pytest.mark.asyncio
+async def test_failure_followup_does_not_repeat_full_guide(client, isolated_help):
+    chat, _ = isolated_help
+    attempt = model_attempt(status="unavailable", error_type="TimeoutError")
+    chat.side_effect = AllModelsUnavailableError([attempt], dict(HELP_USAGE))
+    response = await client.post("/api/v1/agent/chat", json={
+        "question": "这两次回答咋一样", "history": [
+            {"role": "user", "content": "我该如何使用你"},
+            {"role": "assistant", "content": _product_help_answer("我该如何使用你")},
+        ],
+    })
+    data = response.json()
+    assert_product_help_metadata(data)
+    assert "45 秒" in data["answer"]
+    assert "重新发送这条追问" in data["answer"]
+    assert len(data["answer"]) < 180
+    assert "1. 准备材料" not in data["answer"]

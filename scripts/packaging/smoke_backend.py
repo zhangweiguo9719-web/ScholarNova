@@ -75,10 +75,11 @@ def main():
                     assert error.code == 403
                 checks.append("private desktop session enforced")
                 help_history = []
-                for question in ("目前这个智能体怎么使用？", "介绍一下你自己", "你是谁", "What can you do?", "你可以做什么？", "我该如何使用你", "那下一步呢"):
+                for question in ("目前这个智能体怎么使用？", "介绍一下你自己", "你是谁", "What can you do?", "你可以做什么？", "我该如何使用你", "那下一步呢", "这两次回答咋一样"):
+                    history = help_history if question in ("那下一步呢", "这两次回答咋一样") else []
                     help_result = request("/agent/chat", {
                         "question": question, "use_zotero": False,
-                        "history": help_history if question == "那下一步呢" else [],
+                        "history": history,
                     })
                     assert help_result["response_type"] == "product_help", question
                     assert all(help_result[field] == 0 for field in (
@@ -88,9 +89,13 @@ def main():
                     assert help_result["model_route"] == "deterministic" and help_result["fallback_used"] is True, question
                     assert help_result["model_attempts"] == [] and help_result["citations"] == [], question
                     assert {step["tool"] for step in help_result["tool_steps"]} == {"product_help"}, question
-                    help_history = [{"role": "user", "content": question},
-                                    {"role": "assistant", "content": help_result["answer"]}]
-                checks.append("six bilingual help prompts and contextual follow-up use zero-token built-in fallback without keys")
+                    if history:
+                        assert "本次 AI 使用指导未完成" in help_result["answer"], question
+                        assert "重新发送这条追问" in help_result["answer"], question
+                        assert len(help_result["answer"]) < 180 and "1. 准备材料" not in help_result["answer"], question
+                    help_history = history + [{"role": "user", "content": question},
+                                              {"role": "assistant", "content": help_result["answer"]}]
+                checks.append("six bilingual help prompts, next-step and repetition feedback use zero-token local status without paper retrieval")
 
                 # An academic concept is not an application-support request. In
                 # this isolated empty library it must abstain without model calls.

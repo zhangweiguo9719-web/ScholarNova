@@ -60,6 +60,7 @@ class LLMGateway:
             "requests": 0,
         }
         self.last_usage = dict(self._usage)
+        self._usage.update(request_attempts=0, responses_received=0, usage_reports=0)
 
         # SenseNova 默认配置
         if self.provider == "sensenova" and not self._api_key:
@@ -103,14 +104,28 @@ class LLMGateway:
 
     @property
     def usage(self) -> dict[str, int]:
-        """Return cumulative provider-reported token usage for this gateway."""
+        """Return provider usage and independent text-request transport counters."""
         return dict(self._usage)
 
     def reset_usage(self) -> None:
         """Reset cumulative usage before a separately measured operation."""
         for key in self._usage:
             self._usage[key] = 0
-        self.last_usage = dict(self._usage)
+        # Keep the legacy last-response usage shape; transport counters are
+        # cumulative and may change even when there is no provider response.
+        self.last_usage = {key: 0 for key in self.last_usage}
+
+    async def _invoke_text_request(self, call, **kwargs):
+        """Count SDK/HTTP invocation, not proof of server acceptance or billing."""
+        self._usage["request_attempts"] += 1
+        try:
+            response = await call(**kwargs)
+        except Exception as exc:
+            if getattr(exc, "response", None) is not None:
+                self._usage["responses_received"] += 1
+            raise
+        self._usage["responses_received"] += 1
+        return response
 
     @staticmethod
     def _usage_value(usage: Any, *names: str) -> int:
@@ -126,6 +141,7 @@ class LLMGateway:
         prompt_tokens: int = 0,
         completion_tokens: int = 0,
         total_tokens: int = 0,
+        usage_reported: bool = False,
     ) -> None:
         prompt = max(0, int(prompt_tokens or 0))
         completion = max(0, int(completion_tokens or 0))
@@ -138,6 +154,7 @@ class LLMGateway:
         }
         for key, value in self.last_usage.items():
             self._usage[key] += value
+        self._usage["usage_reports"] += int(usage_reported)
 
     async def chat(
         self,
@@ -271,6 +288,11 @@ class LLMGateway:
                 if not content or not content.strip():
                     raise EmptyLLMResponseError("LLM provider returned an empty response")
                 return content
+            except asyncio.CancelledError:
+                # An outer task deadline cancels this coroutine before the
+                # normal error path. Close the SDK client without retrying.
+                await self._discard_openai_client()
+                raise
             except Exception as exc:
                 last_error = exc
                 retryable = isinstance(
@@ -368,7 +390,8 @@ class LLMGateway:
                 timeout=120.0,
             )
 
-        response = await self._client.chat.completions.create(
+        response = await self._invoke_text_request(
+            self._client.chat.completions.create,
             model=model or self._model_name or settings.OPENAI_DEFAULT_MODEL,
             messages=messages,
             temperature=temperature,
@@ -380,6 +403,7 @@ class LLMGateway:
             prompt_tokens=self._usage_value(usage, "prompt_tokens", "input_tokens"),
             completion_tokens=self._usage_value(usage, "completion_tokens", "output_tokens"),
             total_tokens=self._usage_value(usage, "total_tokens"),
+            usage_reported=usage is not None,
         )
         return response.choices[0].message.content
 
@@ -430,11 +454,16 @@ class LLMGateway:
             call_kwargs["system"] = system_text
         call_kwargs.update(kwargs)
 
-        response = await client.messages.create(**call_kwargs)
+        try:
+            response = await self._invoke_text_request(client.messages.create, **call_kwargs)
+        except asyncio.CancelledError:
+            await self._discard_openai_client()
+            raise
         usage = getattr(response, "usage", None)
         self._record_usage(
             prompt_tokens=self._usage_value(usage, "input_tokens", "prompt_tokens"),
             completion_tokens=self._usage_value(usage, "output_tokens", "completion_tokens"),
+            usage_reported=usage is not None,
         )
         return response.content[0].text
 
@@ -465,8 +494,9 @@ class LLMGateway:
 
         async with httpx.AsyncClient() as client:
             base_url = (self._base_url or settings.OLLAMA_BASE_URL).rstrip("/")
-            response = await client.post(
-                f"{base_url}/api/chat",
+            response = await self._invoke_text_request(
+                client.post,
+                url=f"{base_url}/api/chat",
                 json=payload,
                 timeout=120,
             )
@@ -475,6 +505,7 @@ class LLMGateway:
             self._record_usage(
                 prompt_tokens=self._usage_value(data, "prompt_eval_count"),
                 completion_tokens=self._usage_value(data, "eval_count"),
+                usage_reported="prompt_eval_count" in data or "eval_count" in data,
             )
             return data["message"]["content"]
 

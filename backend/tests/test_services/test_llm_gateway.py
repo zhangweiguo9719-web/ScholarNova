@@ -2,8 +2,11 @@
 LLM 网关测试
 """
 
+import asyncio
+from types import SimpleNamespace
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
 
 from app.services.llm.gateway import LLMGateway
 
@@ -132,6 +135,9 @@ class TestLLMGateway:
             "requests": 1,
         }
         assert gateway.usage["total_tokens"] == 16
+        assert gateway.usage["request_attempts"] == 1
+        assert gateway.usage["responses_received"] == 1
+        assert gateway.usage["usage_reports"] == 1
 
     async def test_usage_accumulates_and_resets(self):
         """连续模型调用应累计真实 usage，并支持按评测样本清零。"""
@@ -144,6 +150,9 @@ class TestLLMGateway:
             "completion_tokens": 5,
             "total_tokens": 35,
             "requests": 2,
+            "request_attempts": 0,
+            "responses_received": 0,
+            "usage_reports": 0,
         }
 
         gateway.reset_usage()
@@ -152,6 +161,9 @@ class TestLLMGateway:
             "completion_tokens": 0,
             "total_tokens": 0,
             "requests": 0,
+            "request_attempts": 0,
+            "responses_received": 0,
+            "usage_reports": 0,
         }
 
     async def test_chat_openai_rebuilds_client_after_connection_error(self):
@@ -191,6 +203,8 @@ class TestLLMGateway:
         failed_client.close.assert_awaited_once()
         assert failed_client.chat.completions.create.await_count == 1
         assert healthy_client.chat.completions.create.await_count == 1
+        assert gateway.usage["request_attempts"] == 2
+        assert gateway.usage["responses_received"] == 1
 
     async def test_openai_probe_retry_override_is_not_sent_to_provider(self):
         """Internal retry controls must not leak into compatible API payloads."""
@@ -243,6 +257,9 @@ class TestLLMGateway:
 
         assert result == "Hello from Ollama"
         assert gateway.usage["total_tokens"] == 11
+        assert gateway.usage["request_attempts"] == 1
+        assert gateway.usage["responses_received"] == 1
+        assert gateway.usage["usage_reports"] == 1
 
     async def test_test_connection_success(self):
         """test_connection 成功应返回 success=True"""
@@ -400,3 +417,62 @@ class TestLLMGateway:
         assert len(requests) == 1
         assert "_max_retries" not in requests[0]
         assert requests[0]["model"] == "test-model"
+        assert gateway.usage["request_attempts"] == 1
+        assert gateway.usage["responses_received"] == 1
+        assert gateway.usage["usage_reports"] == int(status_code == 200)
+
+    @pytest.mark.parametrize("reported_usage", [None, {"prompt_tokens": 0, "completion_tokens": 0}])
+    async def test_openai_response_without_usage_is_not_reported_as_known_zero(self, reported_usage):
+        response = SimpleNamespace(
+            choices=[SimpleNamespace(message=SimpleNamespace(content="OK"))],
+            usage=reported_usage,
+        )
+        client = AsyncMock()
+        client.chat.completions.create.return_value = response
+        gateway = LLMGateway.from_profile({
+            "provider": "siliconflow", "model": "offline-qwen", "api_key": "dummy",
+            "base_url": "http://127.0.0.1:9/v1",
+        })
+        with patch("openai.AsyncOpenAI", return_value=client):
+            assert await gateway.chat([{"role": "user", "content": "hello"}], _max_retries=0) == "OK"
+        assert gateway.usage == {
+            "prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0,
+            "requests": 1, "request_attempts": 1, "responses_received": 1,
+            "usage_reports": int(reported_usage is not None),
+        }
+        gateway.reset_usage()
+        assert all(value == 0 for value in gateway.usage.values())
+
+    @pytest.mark.parametrize("provider", ["siliconflow", "anthropic"])
+    async def test_cancelled_sdk_call_closes_client_without_retry_or_fake_usage(self, provider):
+        started = asyncio.Event()
+
+        async def wait_for_cancel(**kwargs):
+            started.set()
+            await asyncio.Event().wait()
+
+        client = AsyncMock()
+        client.with_options = MagicMock(return_value=client)
+        client.chat.completions.create.side_effect = wait_for_cancel
+        client.messages.create.side_effect = wait_for_cancel
+        gateway = LLMGateway.from_profile({
+            "provider": provider, "model": "offline-model", "api_key": "dummy",
+            "base_url": "http://127.0.0.1:9/v1",
+        })
+        factory = "anthropic.AsyncAnthropic" if provider == "anthropic" else "openai.AsyncOpenAI"
+        with patch(factory, return_value=client):
+            request = asyncio.create_task(gateway.chat(
+                [{"role": "user", "content": "hello"}], _max_retries=0,
+            ))
+            try:
+                await asyncio.wait_for(started.wait(), timeout=1)
+            finally:
+                request.cancel()
+                with pytest.raises(asyncio.CancelledError):
+                    await request
+        client.close.assert_awaited_once()
+        assert gateway._client is None
+        assert gateway.usage == {
+            "prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0,
+            "requests": 0, "request_attempts": 1, "responses_received": 0, "usage_reports": 0,
+        }

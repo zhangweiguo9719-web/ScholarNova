@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import asyncio
+from types import SimpleNamespace
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -283,3 +285,67 @@ async def test_gateway_adapter_disables_thinking_and_preserves_failed_usage(monk
     assert gateway.last_usage["total_tokens"] == 15
     assert gateway.usage["total_tokens"] == 30
     assert gateway.usage["requests"] == 2
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("outcome", ["timeout", "http-error", "no-usage", "reported-usage"])
+async def test_real_gateway_router_reports_transport_and_usage_independently(monkeypatch, outcome):
+    import httpx
+    import openai
+
+    from app.services.llm.gateway import LLMGateway
+
+    client = AsyncMock()
+    if outcome == "timeout":
+        async def wait_for_cancel(**kwargs):
+            await asyncio.Event().wait()
+        client.chat.completions.create.side_effect = wait_for_cancel
+    elif outcome == "http-error":
+        client.chat.completions.create.side_effect = openai.AuthenticationError(
+            "invalid dummy-private-key",
+            response=httpx.Response(401, request=httpx.Request("POST", "https://offline.test/chat")),
+            body=None,
+        )
+    else:
+        client.chat.completions.create.return_value = SimpleNamespace(
+            choices=[SimpleNamespace(message=SimpleNamespace(content="Helpful answer"))],
+            usage={"prompt_tokens": 12, "completion_tokens": 4, "total_tokens": 16}
+            if outcome == "reported-usage" else None,
+        )
+    monkeypatch.setattr("openai.AsyncOpenAI", lambda **kwargs: client)
+    monkeypatch.setattr("app.services.inference.model_router.get_fallback_model_config", lambda: {
+        "enabled": True, "provider": "qwen", "model": "must-not-use-fallback",
+    })
+    request = chat_with_fallback(
+        task="assistant", messages=[{"role": "user", "content": "hello"}],
+        temperature=0.2, max_tokens=240, gateway_factory=LLMGateway,
+        profile={"provider": "siliconflow", "model": "offline-qwen", "api_key": "dummy",
+                 "base_url": "http://127.0.0.1:9/v1"},
+        allow_fallback=False, timeout_seconds=0.02 if outcome == "timeout" else 1,
+    )
+    if outcome in {"timeout", "http-error"}:
+        with pytest.raises(AllModelsUnavailableError) as caught:
+            await request
+        result = caught.value
+        assert result.attempts[0].status == "unavailable"
+        assert result.attempts[0].error_type == (
+            "TimeoutError" if outcome == "timeout" else "AuthenticationError"
+        )
+        client.close.assert_awaited_once()
+    else:
+        result = await request
+        assert result.content == "Helpful answer"
+        assert result.attempts[0].status == "completed"
+        assert result.fallback_used is False
+    assert len(result.attempts) == 1
+    attempt = result.attempts[0].to_dict()
+    assert attempt["request_attempts"] == result.usage["request_attempts"] == 1
+    assert attempt["responses_received"] == result.usage["responses_received"] == int(outcome != "timeout")
+    assert attempt["usage_reports"] == result.usage["usage_reports"] == int(outcome == "reported-usage")
+    assert attempt["total_tokens"] == result.usage["total_tokens"] == (16 if outcome == "reported-usage" else 0)
+    assert result.usage["requests"] == int(outcome in {"no-usage", "reported-usage"})
+    assert "dummy-private-key" not in str(attempt)
+    client.chat.completions.create.assert_awaited_once()
+    kwargs = client.chat.completions.create.await_args.kwargs
+    assert kwargs["extra_body"] == {"enable_thinking": False}
+    assert "_max_retries" not in kwargs

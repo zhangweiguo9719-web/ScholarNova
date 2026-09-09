@@ -435,6 +435,9 @@ export interface AgentModelAttempt {
   completion_tokens: number
   total_tokens: number
   requests: number
+  request_attempts?: number
+  responses_received?: number
+  usage_reports?: number
   error_type: string | null
 }
 

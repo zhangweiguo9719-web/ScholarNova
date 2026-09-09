@@ -32,6 +32,9 @@ class ModelAttempt:
     total_tokens: int = 0
     requests: int = 0
     error_type: str | None = None
+    request_attempts: int = 0
+    responses_received: int = 0
+    usage_reports: int = 0
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -65,6 +68,9 @@ def _empty_usage() -> dict[str, int]:
         "completion_tokens": 0,
         "total_tokens": 0,
         "requests": 0,
+        "request_attempts": 0,
+        "responses_received": 0,
+        "usage_reports": 0,
     }
 
 
@@ -184,13 +190,16 @@ async def chat_with_fallback(
         except Exception as exc:
             usage = _read_usage(gateway, succeeded=False)
             _add_usage(total_usage, usage)
+            # The compatible gateway wraps provider failures in RuntimeError;
+            # expose only the original type, never its potentially secret text.
+            error = exc.__cause__ if isinstance(exc, RuntimeError) and exc.__cause__ else exc
             attempts.append(
                 ModelAttempt(
                     role=role,
                     provider=str(profile.get("provider") or "unknown"),
                     model=str(profile.get("model") or "unknown"),
                     status="unavailable",
-                    error_type=type(exc).__name__,
+                    error_type=type(error).__name__,
                     **usage,
                 )
             )
