@@ -234,6 +234,14 @@ function startStaticServer(uiPort, backendPort) {
   })
 }
 
+function showMainWindow() {
+  if (smokeTest || !mainWindow || mainWindow.isDestroyed()) return
+  if (mainWindow.isMinimized()) mainWindow.restore()
+  // focus() is a no-op for a window hidden by the Windows launcher.
+  mainWindow.show()
+  mainWindow.focus()
+}
+
 async function createWindow(uiPort) {
   mainWindow = new BrowserWindow({
     width: 1440,
@@ -269,6 +277,7 @@ async function createWindow(uiPort) {
     callback(wc === mainWindow.webContents && permission === 'clipboard-sanitized-write')
   })
   await mainWindow.loadURL(origin)
+  showMainWindow()
   if (smokeTest) {
     const pages = ['/', '/search', '/knowledge', '/assistant', '/settings']
     const screenshotDir = path.join(app.getPath('userData'), 'smoke-pages')
@@ -310,12 +319,7 @@ const gotLock = app.requestSingleInstanceLock()
 if (!gotLock) {
   app.quit()
 } else {
-  app.on('second-instance', () => {
-    if (mainWindow) {
-      if (mainWindow.isMinimized()) mainWindow.restore()
-      mainWindow.focus()
-    }
-  })
+  app.on('second-instance', showMainWindow)
 
   app.whenReady().then(() => {
     ensureDesktopShortcut()
