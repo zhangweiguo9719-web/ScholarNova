@@ -18,6 +18,7 @@ import urllib.request
 
 def main():
     executable = Path(sys.argv[1]).resolve()
+    version = json.loads((Path(__file__).resolve().parents[2] / "package.json").read_text(encoding="utf-8"))["version"]
     opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
     checks = []
     with tempfile.TemporaryDirectory(prefix="scholarnova-backend-qa-") as directory:
@@ -65,6 +66,8 @@ def main():
 
             try:
                 process = start()
+                assert request("/health/live")["version"] == version, "Packaged backend version mismatch"
+                checks.append(f"packaged backend version {version}")
                 try:
                     request("/health/live", authenticated=False)
                     raise AssertionError("Unauthenticated backend access was accepted")

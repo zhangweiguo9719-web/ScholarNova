@@ -1,5 +1,5 @@
 <p align="center"><img src="docs/assets/scholarnova-cover-en.svg" width="800" alt="ScholarNova — AI Research Workspace"></p>
-<p align="center"><a href="https://github.com/zhangweiguo9719-web/ScholarNova/releases/latest">Download / 下载</a> · <a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="CHANGELOG.md">Changelog</a></p>
+<p align="center"><a href="https://github.com/wei9719/ScholarNova/releases/tag/v1.2.3">Download / 下载</a> · <a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="CHANGELOG.md">Changelog</a></p>
 <p align="center"><a href="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/ci.yml"><img src="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/ci.yml/badge.svg" alt="CI"></a> <a href="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/desktop-release.yml"><img src="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/desktop-release.yml/badge.svg" alt="Desktop builds"></a> <a href="LICENSE"><img src="https://img.shields.io/badge/Own_source-MIT-d4a84f" alt="项目自有源代码：MIT"></a> <a href="docs/DESKTOP_LICENSE_REVIEW.md"><img src="https://img.shields.io/badge/Desktop_combination-AGPLv3-536b82" alt="桌面发行组合：AGPLv3"></a></p>
 
 # ScholarNova
@@ -8,7 +8,7 @@
 
 ## 下载与安装
 
-**[v1.2.2 已发布](https://github.com/wei9719/ScholarNova/releases/tag/v1.2.2)**：提供 Windows x64、Intel Mac、Apple Silicon Mac 安装包，以及同版本源码和校验文件。修复智能体身份/能力问答，并包含研究路线与 Zotero 工作流改进。详见 [实际验收报告](docs/reports/v1.2.2-assistant-help.zh-CN.md)。
+**[v1.2.3 已发布](https://github.com/wei9719/ScholarNova/releases/tag/v1.2.3)**：提供 Windows x64、Intel Mac、Apple Silicon Mac 安装包，以及同版本源码和校验文件。支持结合上下文的 AI 使用指导与内置帮助兜底，并修复桌面窗口隐藏后的恢复显示。详见 [发布与验收报告](docs/reports/v1.2.3-contextual-help.zh-CN.md)。
 
 到 **[GitHub Releases 下载已发布安装包](https://github.com/zhangweiguo9719-web/ScholarNova/releases/latest)**，展开 Assets，按你的电脑选择。源码中的版本号或 Git 标签不代表安装包已经发布；以 Release 中实际存在的文件为准。
 
@@ -23,7 +23,7 @@
 
 桌面版自带界面、本地后端和 SQLite，无需安装 Python、Node.js 或 Docker。首次启动可能因解压运行时稍慢。升级前退出应用，安装新版本；个人数据位于用户目录，不在安装目录内。
 
-Windows 日常使用优先选择 **Setup 安装版**。本次 Portable 虽通过云端启动检查，但在开发者本机冷解压接近两分钟、未通过 120 秒验收；不要据此认为所有 Windows 设备都能快速启动。安装版在同机已完成启动和功能验证。
+Windows 日常使用优先选择 **Setup 安装版**。在 v1.2.2 验收中，Portable 虽通过云端启动检查，但在开发者本机冷解压接近两分钟、未通过 120 秒验收；不要据此认为所有 Windows 设备都能快速启动。该版本安装版在同机已完成启动和功能验证。
 
 本版要求 macOS 13 或更新系统，依据 [Electron 44 官方平台要求](https://www.electronjs.org/blog/electron-44-0)。
 
@@ -39,7 +39,7 @@ Windows 日常使用优先选择 **Setup 安装版**。本次 Portable 虽通过
 
 普通关键词检索不要求 LLM Key；学术源是否可用取决于各源政策、Key、额度与网络。需要 AI 的操作会调用你配置的模型，费用由相应提供商计收。
 
-**不知道智能体怎么用？** v1.2.3 源码支持先问“我该如何使用你”，再在同一对话追问“那下一步呢”。已配置的**智能体任务模型**会结合内置产品指南和有限的近期上下文给出步骤，无需先导入论文。帮助请求只尝试一次模型调用、最多等待 12 秒；未配置模型、超时或回答无效时回退内置指南。界面区分“AI 使用指导”和“内置帮助兜底”，如实显示供应商返回的 Token。具体科研问题仍需真实证据。安装包可用性以 Release 实际文件为准；升级后请重新提问，旧消息不自动改写。见 [使用案例与测试报告](docs/reports/v1.2.3-contextual-help.zh-CN.md)。
+**不知道智能体怎么用？** 可以先问“我该如何使用你”，再在同一对话追问“那下一步呢”。已配置的**智能体任务模型**会结合内置产品指南和有限的近期上下文给出步骤，无需先导入论文。帮助请求只尝试一次模型调用、最多等待 12 秒；未配置模型、超时或回答无效时回退内置指南。界面区分“AI 使用指导”和“内置帮助兜底”，如实显示供应商返回的 Token。具体科研问题仍需真实证据。安装包可用性以 Release 实际文件为准；升级后请重新提问，旧消息不自动改写。见 [使用案例与测试报告](docs/reports/v1.2.3-contextual-help.zh-CN.md)。
 
 ## 产品预览
 

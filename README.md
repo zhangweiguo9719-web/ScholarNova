@@ -1,5 +1,5 @@
 <p align="center"><img src="docs/assets/scholarnova-cover-en.svg" width="800" alt="ScholarNova — AI Research Workspace"></p>
-<p align="center"><a href="https://github.com/zhangweiguo9719-web/ScholarNova/releases/latest">Download / 下载</a> · <a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="CHANGELOG.md">Changelog</a></p>
+<p align="center"><a href="https://github.com/wei9719/ScholarNova/releases/tag/v1.2.3">Download / 下载</a> · <a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="CHANGELOG.md">Changelog</a></p>
 <p align="center"><a href="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/ci.yml"><img src="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/ci.yml/badge.svg" alt="CI"></a> <a href="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/desktop-release.yml"><img src="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/desktop-release.yml/badge.svg" alt="Desktop builds"></a> <a href="LICENSE"><img src="https://img.shields.io/badge/Own_source-MIT-d4a84f" alt="Project-owned source: MIT"></a> <a href="docs/DESKTOP_LICENSE_REVIEW.md"><img src="https://img.shields.io/badge/Desktop_combination-AGPLv3-536b82" alt="Desktop combination: AGPLv3"></a></p>
 
 # ScholarNova
@@ -8,7 +8,7 @@ A desktop research workspace for individuals: **find papers → read full text �
 
 ## Download and install
 
-**[v1.2.2 is available](https://github.com/wei9719/ScholarNova/releases/tag/v1.2.2)** for Windows x64, Intel Mac and Apple Silicon Mac, together with matching source and checksums. It fixes Assistant identity/capability guidance and includes research-route and Zotero workflow improvements. See the [verified release report](docs/reports/v1.2.2-assistant-help.zh-CN.md).
+**[v1.2.3 is available](https://github.com/wei9719/ScholarNova/releases/tag/v1.2.3)** for Windows x64, Intel Mac and Apple Silicon Mac, together with matching source and checksums. It adds contextual AI usage guidance with a built-in help fallback and restores hidden desktop windows. See the [release and validation report](docs/reports/v1.2.3-contextual-help.zh-CN.md).
 
 Open **[GitHub Releases](https://github.com/zhangweiguo9719-web/ScholarNova/releases/latest)** and choose an existing asset for your computer. A source version or Git tag does not mean downloadable binaries have been published; the release assets are authoritative.
 
@@ -23,7 +23,7 @@ Open **[GitHub Releases](https://github.com/zhangweiguo9719-web/ScholarNova/rele
 
 The desktop app bundles the interface, local backend and SQLite. No Python, Node.js or Docker is required. First launch may take longer while the portable runtime extracts. Quit before upgrading; personal data is stored outside the installation directory.
 
-For everyday Windows use, prefer **Setup**. Portable passed cloud smoke tests but took nearly two minutes to cold-extract on the developer's PC and failed its 120-second local acceptance limit. Fast startup is not guaranteed across Windows devices; the installed build passed startup and functional checks on that same PC.
+For everyday Windows use, prefer **Setup**. In v1.2.2 testing, Portable passed cloud smoke tests but took nearly two minutes to cold-extract on the developer's PC and failed its 120-second local acceptance limit. Fast startup is not guaranteed across Windows devices; that version's installed build passed startup and functional checks on the same PC.
 
 This build requires macOS 13 or later, following [Electron 44's platform requirements](https://www.electronjs.org/blog/electron-44-0).
 
@@ -39,7 +39,7 @@ This build requires macOS 13 or later, following [Electron 44's platform require
 
 Basic keyword retrieval does not require an LLM key. Scholarly-source access depends on source policies, credentials, quota and network. AI operations use your configured provider and its billing.
 
-**New to the Assistant?** In v1.2.3 source, ask “How can I use you?”, then “What next?” in the same conversation. The configured **Assistant** model uses the built-in product guide and bounded recent history to explain the next step, without requiring papers. Help makes at most one model attempt with a 12-second response budget; missing configuration, timeouts or invalid answers fall back to the built-in guide. The UI distinguishes AI guidance from that fallback and reports provider-returned tokens. Research claims still require evidence. Check Release assets for installer availability; old messages are not rewritten. See the [workflow and validation report](docs/reports/v1.2.3-contextual-help.zh-CN.md).
+**New to the Assistant?** Ask “How can I use you?”, then “What next?” in the same conversation. The configured **Assistant** model uses the built-in product guide and bounded recent history to explain the next step, without requiring papers. Help makes at most one model attempt with a 12-second response budget; missing configuration, timeouts or invalid answers fall back to the built-in guide. The UI distinguishes AI guidance from that fallback and reports provider-returned tokens. Research claims still require evidence. Check Release assets for installer availability; old messages are not rewritten. See the [workflow and validation report](docs/reports/v1.2.3-contextual-help.zh-CN.md).
 
 ## Product preview
 
