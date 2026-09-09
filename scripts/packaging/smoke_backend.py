@@ -71,9 +71,30 @@ def main():
                 except urllib.error.HTTPError as error:
                     assert error.code == 403
                 checks.append("private desktop session enforced")
-                help_result = request("/agent/chat", {"question": "目前这个智能体怎么使用？", "use_zotero": False})
-                assert help_result["response_type"] == "product_help" and help_result["total_tokens"] == 0
-                checks.append("built-in bilingual product help without a model key")
+                for question in ("目前这个智能体怎么使用？", "介绍一下你自己", "你是谁", "What can you do?", "你可以做什么？"):
+                    help_result = request("/agent/chat", {"question": question, "use_zotero": False})
+                    assert help_result["response_type"] == "product_help", question
+                    assert all(help_result[field] == 0 for field in (
+                        "prompt_tokens", "completion_tokens", "retrieval_tokens", "total_tokens")), question
+                    assert help_result["provider"] is None and help_result["model"] is None, question
+                    assert help_result["inference_mode"] == "none" and help_result["model_route"] == "none", question
+                    assert help_result["model_attempts"] == [] and help_result["citations"] == [], question
+                    assert {step["tool"] for step in help_result["tool_steps"]} == {"product_help"}, question
+                checks.append("five bilingual product-help and identity prompts bypass model and research tools")
+
+                # An academic concept is not an application-support request. In
+                # this isolated empty library it must abstain without model calls.
+                research_result = request("/agent/chat", {"question": "智能体是什么", "use_zotero": False})
+                assert research_result["response_type"] == "research"
+                assert all(research_result[field] == 0 for field in (
+                    "prompt_tokens", "completion_tokens", "retrieval_tokens", "total_tokens"))
+                assert research_result["provider"] is None and research_result["model"] is None
+                assert research_result["inference_mode"] == "none" and research_result["model_route"] == "none"
+                assert research_result["model_attempts"] == [] and research_result["citations"] == []
+                steps = {step["tool"]: step for step in research_result["tool_steps"]}
+                assert "knowledge_search" in steps and "product_help" not in steps and "answer_generation" not in steps
+                assert steps["knowledge_search"]["count"] == 0 and steps["evidence_pack"]["count"] == 0
+                checks.append("generic agent concept stays research and abstains without evidence or model calls")
                 item = request("/knowledge", {"title": "QA citation fixture", "category": "QA isolated",
                                "content": "Graph models represent road-network dependencies. This is synthetic QA content.",
                                "auto_polish": False})
