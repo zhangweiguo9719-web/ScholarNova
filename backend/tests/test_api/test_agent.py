@@ -533,6 +533,9 @@ async def test_agent_answers_product_help_without_search_or_model(
         "论文中智能体能做什么",
         "什么是RAG",
         "Who are you studying in this paper?",
+        "智能体是什么？",
+        "系统是什么？",
+        "智能体有什么功能？",
     ],
 )
 @pytest.mark.parametrize("has_history", [False, True], ids=["new", "after-help"])
