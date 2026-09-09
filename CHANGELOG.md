@@ -4,6 +4,18 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 
 ## [Unreleased]
 
+## [1.2.3] - 2026-09-09
+
+### Fixed
+
+- Recognize first-person usage questions and bounded help follow-ups in the current conversation; explicit research questions continue to require evidence.
+- Generate product guidance with the configured Assistant model, the built-in guide and the latest four bounded history messages. Limit help to one attempt, 12 seconds and 800 output tokens; preserve measured usage on failures and fall back to the guide without configuration or valid model output.
+- Distinguish AI guidance and built-in fallback in the UI, without misleading evidence/verification labels; retain conversation isolation.
+- Explicitly show and focus the desktop window after loading and on a second launch, while keeping smoke tests hidden.
+- Report the shared package version from both health endpoints.
+
+See the [v1.2.3 validation and walkthrough](docs/reports/v1.2.3-contextual-help.zh-CN.md) for live-provider results and limitations. Binary availability is determined by published Release assets, not the source version alone.
+
 ## [1.2.2] - 2026-09-09
 
 ### Fixed

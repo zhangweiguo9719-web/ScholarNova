@@ -97,6 +97,12 @@ export default function ResearchAssistant() {
     uncited: '未引用事实句',
     productHelp: '产品使用指南',
     productHelpSource: '本回答来自 ScholarNova 内置使用指南，无需论文引用。',
+    productHelpModel: 'AI 使用指导',
+    productHelpModelFallback: 'AI 使用指导 · 备用模型',
+    productHelpFallback: '内置帮助兜底',
+    productHelpModelSource: '本回答由已配置模型结合 ScholarNova 产品说明生成，不是论文研究结论，无需论文引用。',
+    productHelpFallbackSource: '模型未完成本次指导，已显示内置帮助；Token 按接口返回的实际用量显示。',
+    helpSource: '指导来源',
     model: '模型',
     tokens: 'Token',
     retrieval: '检索',
@@ -145,6 +151,12 @@ export default function ResearchAssistant() {
     uncited: 'Uncited factual segments',
     productHelp: 'Product guide',
     productHelpSource: 'This response comes from the built-in ScholarNova guide and does not require paper citations.',
+    productHelpModel: 'AI usage guidance',
+    productHelpModelFallback: 'AI usage guidance · fallback model',
+    productHelpFallback: 'Built-in help fallback',
+    productHelpModelSource: 'Your configured model generated this guidance from the ScholarNova product description. It is not a research finding and does not require paper citations.',
+    productHelpFallbackSource: 'The model did not complete this guidance, so built-in help is shown. Tokens reflect the usage returned by the API.',
+    helpSource: 'Guidance source',
     model: 'Model',
     tokens: 'Tokens',
     retrieval: 'Retrieval',
@@ -339,7 +351,7 @@ export default function ResearchAssistant() {
               {sending && (
                 <div className="flex items-center gap-3 text-sm text-[var(--ui-text-soft)]">
                   <Loader2 className="h-4 w-4 animate-spin text-[var(--ui-accent)]" />
-                  {isChinese ? '正在检索本地材料并组织回答…' : 'Retrieving local evidence and composing an answer…'}
+                  {isChinese ? '正在处理问题并组织回答…' : 'Processing your question and composing an answer…'}
                 </div>
               )}
               <div ref={bottomRef} />
@@ -390,6 +402,19 @@ function SourceToggle({ active, onClick, icon, label, warning = false }: { activ
 
 function AgentTrace({ result, copy, isChinese }: { result: AgentChatResponse; copy: Record<string, any>; isChinese: boolean }) {
   const isProductHelp = result.response_type === 'product_help'
+  const isModelHelp = isProductHelp && result.inference_mode === 'model'
+    && result.model_route !== 'deterministic' && !result.fallback_used
+  const isHelpFallback = isProductHelp && !isModelHelp && (
+    result.fallback_used || result.inference_mode === 'deterministic_fallback'
+    || result.model_route === 'deterministic'
+    || result.model_attempts?.some((attempt) => attempt.status === 'unavailable')
+  )
+  const helpLabel = isModelHelp
+    ? result.model_route === 'fallback' || result.model_fallback_used
+      ? copy.productHelpModelFallback : copy.productHelpModel
+    : isHelpFallback ? copy.productHelpFallback : copy.productHelp
+  const helpSource = isModelHelp ? copy.productHelpModelSource
+    : isHelpFallback ? copy.productHelpFallbackSource : copy.productHelpSource
   const verificationStatus = result.verification_status || (result.grounded ? 'verified' : 'not_applicable')
   const statusLabel = result.fallback_used
     ? result.fallback_reason === 'citation_verification'
@@ -414,16 +439,16 @@ function AgentTrace({ result, copy, isChinese }: { result: AgentChatResponse; co
       <div className="flex flex-wrap items-center gap-2">
         <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 font-semibold ${isProductHelp ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400' : statusStyle}`}>
           {isProductHelp ? <Bot className="h-3.5 w-3.5" /> : verificationStatus === 'verified' ? <ShieldCheck className="h-3.5 w-3.5" /> : <AlertTriangle className="h-3.5 w-3.5" />}
-          {isProductHelp ? copy.productHelp : statusLabel}
+          {isProductHelp ? helpLabel : statusLabel}
         </span>
-        {result.model && <span>{copy.model}: {result.provider}/{result.model}</span>}
-        {result.model_attempts?.length > 1 && (
+        {result.model && (!isProductHelp || isModelHelp) && <span>{copy.model}: {result.provider}/{result.model}</span>}
+        {result.model_attempts?.length > (isProductHelp ? 0 : 1) && (
           <span title={result.model_attempts.map((attempt) => `${attempt.role}: ${attempt.provider}/${attempt.model} · ${attempt.status} · ${attempt.total_tokens} Token`).join('\n')}>
             {isChinese ? `模型尝试 ${result.model_attempts.length} 次` : `${result.model_attempts.length} model attempts`}
           </span>
         )}
         {!isProductHelp && <span>{copy.retrieval}: {result.retrieval_mode === 'hybrid' ? 'BM25 + Embedding RRF' : 'BM25'}</span>}
-        {result.retrieval_tokens > 0 && <span>{copy.embeddingTokens}: {result.retrieval_tokens}</span>}
+        {!isProductHelp && result.retrieval_tokens > 0 && <span>{copy.embeddingTokens}: {result.retrieval_tokens}</span>}
         {!isProductHelp && verificationStatus !== 'not_applicable' && <span>{copy.coverage}: {Math.round((result.citation_coverage || 0) * 100)}%</span>}
         <span>{copy.tokens}: {result.total_tokens}</span>
       </div>
@@ -444,8 +469,8 @@ function AgentTrace({ result, copy, isChinese }: { result: AgentChatResponse; co
         </div>
       </div>
       <div>
-        <p className="mb-2 inline-flex items-center gap-1 font-semibold text-[var(--ui-text)]"><Database className="h-3.5 w-3.5 text-[var(--ui-accent)]" />{copy.sources}</p>
-        {result.citations.length > 0 ? (
+        <p className="mb-2 inline-flex items-center gap-1 font-semibold text-[var(--ui-text)]"><Database className="h-3.5 w-3.5 text-[var(--ui-accent)]" />{isProductHelp ? copy.helpSource : copy.sources}</p>
+        {isProductHelp ? <p>{helpSource}</p> : result.citations.length > 0 ? (
           <div className="grid gap-2 sm:grid-cols-2">
             {result.citations.map((citation) => {
               const safeUrl = /^https?:\/\//i.test(citation.url || '') ? citation.url : null
@@ -469,7 +494,7 @@ function AgentTrace({ result, copy, isChinese }: { result: AgentChatResponse; co
               </div>
             })}
           </div>
-        ) : <p>{isProductHelp ? copy.productHelpSource : copy.noSource}</p>}
+        ) : <p>{copy.noSource}</p>}
       </div>
     </div>
   )

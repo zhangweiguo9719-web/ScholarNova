@@ -39,7 +39,7 @@ This build requires macOS 13 or later, following [Electron 44's platform require
 
 Basic keyword retrieval does not require an LLM key. Scholarly-source access depends on source policies, credentials, quota and network. AI operations use your configured provider and its billing.
 
-**New to the Assistant?** Ask “Who are you?”, “What can you do?” or “How do I use this assistant?”. The v1.2.2 desktop app returns built-in product guidance before research retrieval, without requiring papers or a model call; zero tokens are expected here. Research claims still require evidence. Ask again after upgrading: previous conversation messages are not rewritten. See the [fix and validation report](docs/reports/v1.2.2-assistant-help.zh-CN.md).
+**New to the Assistant?** In v1.2.3 source, ask “How can I use you?”, then “What next?” in the same conversation. The configured **Assistant** model uses the built-in product guide and bounded recent history to explain the next step, without requiring papers. Help makes at most one model attempt with a 12-second response budget; missing configuration, timeouts or invalid answers fall back to the built-in guide. The UI distinguishes AI guidance from that fallback and reports provider-returned tokens. Research claims still require evidence. Check Release assets for installer availability; old messages are not rewritten. See the [workflow and validation report](docs/reports/v1.2.3-contextual-help.zh-CN.md).
 
 ## Product preview
 

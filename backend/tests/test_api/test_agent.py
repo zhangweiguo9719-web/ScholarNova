@@ -454,6 +454,10 @@ async def test_agent_answers_from_indexed_pdf_chunk(
         "Who are you?",
         "  WHAT   CAN YOU DO?  ",
         "你可以分析论文中的方法吗？",
+        "我该如何使用你",
+        "我应该怎么用你",
+        "如何与你协作",
+        "how can I use you",
     ],
 )
 @pytest.mark.parametrize("has_knowledge", [False, True], ids=["empty", "populated"])
@@ -467,6 +471,11 @@ async def test_agent_answers_product_help_without_search_or_model(
     has_history,
 ) -> None:
     monkeypatch.setattr("app.api.v1.agent.check_rate_limit", lambda *args, **kwargs: None)
+    profile_lookup = MagicMock(return_value={
+        "provider": "custom", "model": "offline-help", "api_key": "",
+        "base_url": "http://127.0.0.1:9/v1",
+    })
+    monkeypatch.setattr("app.api.v1.agent.get_model_for_task", profile_lookup)
     if has_knowledge:
         db_session.add(
             KnowledgeBase(
@@ -488,7 +497,7 @@ async def test_agent_answers_product_help_without_search_or_model(
         mock = AsyncMock(side_effect=AssertionError(f"Help must not call {name}"))
         monkeypatch.setattr(f"app.api.v1.agent.{name}", mock)
         forbidden_calls[name] = mock
-    for name in ("get_model_for_task", "LLMGateway"):
+    for name in ("LLMGateway",):
         mock = MagicMock(side_effect=AssertionError(f"Help must not call {name}"))
         monkeypatch.setattr(f"app.api.v1.agent.{name}", mock)
         forbidden_calls[name] = mock
@@ -514,13 +523,17 @@ async def test_agent_answers_product_help_without_search_or_model(
     assert all(data[key] == 0 for key in (
         "prompt_tokens", "completion_tokens", "retrieval_tokens", "total_tokens"
     ))
-    assert data["inference_mode"] == "none"
-    assert data["model_route"] == "none"
+    assert data["inference_mode"] == "deterministic_fallback"
+    assert data["model_route"] == "deterministic"
+    assert data["fallback_used"] is True
+    assert data["fallback_reason"] == "model_unavailable"
+    assert data["model_fallback_used"] is False
     assert data["model_attempts"] == []
     assert data["provider"] is None
     assert data["model"] is None
     assert [step["tool"] for step in data["tool_steps"]] == ["product_help"]
     assert "ScholarNova" in data["answer"]
+    profile_lookup.assert_called_once_with("assistant")
     for mock in forbidden_calls.values():
         mock.assert_not_called()
 

@@ -71,16 +71,23 @@ def main():
                 except urllib.error.HTTPError as error:
                     assert error.code == 403
                 checks.append("private desktop session enforced")
-                for question in ("目前这个智能体怎么使用？", "介绍一下你自己", "你是谁", "What can you do?", "你可以做什么？"):
-                    help_result = request("/agent/chat", {"question": question, "use_zotero": False})
+                help_history = []
+                for question in ("目前这个智能体怎么使用？", "介绍一下你自己", "你是谁", "What can you do?", "你可以做什么？", "我该如何使用你", "那下一步呢"):
+                    help_result = request("/agent/chat", {
+                        "question": question, "use_zotero": False,
+                        "history": help_history if question == "那下一步呢" else [],
+                    })
                     assert help_result["response_type"] == "product_help", question
                     assert all(help_result[field] == 0 for field in (
                         "prompt_tokens", "completion_tokens", "retrieval_tokens", "total_tokens")), question
                     assert help_result["provider"] is None and help_result["model"] is None, question
-                    assert help_result["inference_mode"] == "none" and help_result["model_route"] == "none", question
+                    assert help_result["inference_mode"] == "deterministic_fallback", question
+                    assert help_result["model_route"] == "deterministic" and help_result["fallback_used"] is True, question
                     assert help_result["model_attempts"] == [] and help_result["citations"] == [], question
                     assert {step["tool"] for step in help_result["tool_steps"]} == {"product_help"}, question
-                checks.append("five bilingual product-help and identity prompts bypass model and research tools")
+                    help_history = [{"role": "user", "content": question},
+                                    {"role": "assistant", "content": help_result["answer"]}]
+                checks.append("six bilingual help prompts and contextual follow-up use zero-token built-in fallback without keys")
 
                 # An academic concept is not an application-support request. In
                 # this isolated empty library it must abstain without model calls.

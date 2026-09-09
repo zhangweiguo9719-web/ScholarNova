@@ -97,11 +97,23 @@ class TestHealthCheck:
         data = response.json()
         assert data["status"] in ("healthy", "degraded", "unhealthy")
 
-    async def test_health_version(self, client: AsyncClient):
-        """版本号应为 1.2.1"""
-        response = await client.get("/api/v1/health")
+    @pytest.mark.parametrize("endpoint", ["/api/v1/health", "/api/v1/health/live"])
+    async def test_health_version(self, client: AsyncClient, monkeypatch, endpoint):
+        """Both health endpoints must report the current application version."""
+        from unittest.mock import AsyncMock
+
+        from app import __version__
+        from app.api.v1 import health
+
+        monkeypatch.setattr(health, "_check_redis", AsyncMock(return_value="connected"))
+        monkeypatch.setattr(health, "_check_llm", AsyncMock(return_value="available"))
+        monkeypatch.setattr(health, "_data_source_cache", (
+            health.time.monotonic(), {"semantic_scholar": "available"},
+        ))
+        response = await client.get(endpoint)
         data = response.json()
-        assert data["version"] == "1.2.1"
+        assert response.status_code == 200
+        assert data["version"] == __version__
 
     async def test_health_services_dict(self, client: AsyncClient):
         """services 字段应为字典类型"""

@@ -451,7 +451,7 @@ export interface AgentChatResponse {
   total_tokens: number
   retrieval_mode: 'bm25' | 'hybrid'
   inference_mode: 'model' | 'deterministic_fallback' | 'none'
-  fallback_reason?: 'model_unavailable' | 'citation_verification' | null
+  fallback_reason?: 'model_unavailable' | 'citation_verification' | 'invalid_help_response' | null
   verification_status: 'verified' | 'partial' | 'failed' | 'not_applicable'
   citation_coverage: number
   uncited_claim_count: number

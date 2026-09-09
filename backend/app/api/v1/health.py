@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app import __version__
 from app.database import get_db
 from app.schemas.search import HealthResponse
 from app.services.sources.semantic_scholar import SemanticScholarSource
@@ -101,7 +102,7 @@ async def liveness_check(db: AsyncSession = Depends(get_db)) -> dict:
 
     return {
         "status": "ok" if database == "connected" else "degraded",
-        "version": "1.2.1",
+        "version": __version__,
         "timestamp": datetime.utcnow().isoformat(),
         "services": {"database": database},
     }
@@ -185,7 +186,7 @@ async def health_check(
 
     return HealthResponse(
         status=status,
-        version="1.2.1",
+        version=__version__,
         timestamp=datetime.utcnow(),
         services=services,
     )
