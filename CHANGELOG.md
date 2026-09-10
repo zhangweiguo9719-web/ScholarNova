@@ -14,7 +14,7 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 - Record model request attempts, received responses and provider usage reports separately. Expose the attempted provider/model, failure type and help details directly in the UI; absent usage is unknown, not proof of no call or no charge. An attempted request does not prove server receipt.
 - Ignore input-method confirmation Enter events, guard duplicate sends, and prevent clearing or deleting the conversation while its request is pending. Keep waiting indicators and late replies with the originating conversation and preserve the latest-six-message history boundary.
 
-These are source changes. Installer availability is determined by published Release assets; the download links remain on v1.2.3 until v1.2.4 is published.
+The v1.2.4 Release is published with Windows x64, Intel Mac and Apple Silicon Mac assets, a portable Windows build, corresponding source and SHA256 checksums. Installer availability is determined by the published Release assets.
 
 ## [1.2.3] - 2026-09-09
 

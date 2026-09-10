@@ -1,5 +1,5 @@
 <p align="center"><img src="docs/assets/scholarnova-cover-en.svg" width="800" alt="ScholarNova — AI Research Workspace"></p>
-<p align="center"><a href="https://github.com/wei9719/ScholarNova/releases/tag/v1.2.3">Download / 下载</a> · <a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="CHANGELOG.md">Changelog</a></p>
+<p align="center"><a href="https://github.com/wei9719/ScholarNova/releases/tag/v1.2.4">Download / 下载</a> · <a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="CHANGELOG.md">Changelog</a></p>
 <p align="center"><a href="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/ci.yml"><img src="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/ci.yml/badge.svg" alt="CI"></a> <a href="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/desktop-release.yml"><img src="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/desktop-release.yml/badge.svg" alt="Desktop builds"></a> <a href="LICENSE"><img src="https://img.shields.io/badge/Own_source-MIT-d4a84f" alt="项目自有源代码：MIT"></a> <a href="docs/DESKTOP_LICENSE_REVIEW.md"><img src="https://img.shields.io/badge/Desktop_combination-AGPLv3-536b82" alt="桌面发行组合：AGPLv3"></a></p>
 
 # ScholarNova
@@ -8,9 +8,9 @@
 
 ## 下载与安装
 
-**[v1.2.3 已发布](https://github.com/wei9719/ScholarNova/releases/tag/v1.2.3)**：提供 Windows x64、Intel Mac、Apple Silicon Mac 安装包，以及同版本源码和校验文件。支持结合上下文的 AI 使用指导与内置帮助兜底，并修复桌面窗口隐藏后的恢复显示。详见 [发布与验收报告](docs/reports/v1.2.3-contextual-help.zh-CN.md)。
+**[v1.2.4 已发布](https://github.com/wei9719/ScholarNova/releases/tag/v1.2.4)**：提供 Windows x64、Intel Mac、Apple Silicon Mac 安装包、Windows 便携版，以及同版本源码和 SHA256 校验文件。支持结合上下文的 AI 使用指导，记录真实模型调用状态，并修复重复帮助回答。详见 [发布与验收报告](docs/reports/v1.2.4-assistant-calls.zh-CN.md)。
 
-到 **[GitHub Releases 下载已发布安装包](https://github.com/zhangweiguo9719-web/ScholarNova/releases/latest)**，展开 Assets，按你的电脑选择。源码中的版本号或 Git 标签不代表安装包已经发布；以 Release 中实际存在的文件为准。
+到 **[GitHub Releases 下载已发布安装包](https://github.com/wei9719/ScholarNova/releases/latest)**，展开 Assets，按你的电脑选择。v1.2.4 已包含 Windows x64、Intel Mac、Apple Silicon Mac 安装包、Windows 便携版、对应源码和 SHA256 校验文件。
 
 **社区桌面版采用已选择的 AGPL 开源发行路线。** 每个版本须包含逐包许可声明和相应源码，并通过自动源码检查及 Windows / macOS 启动测试后才能发布。详见 [发行要求](docs/DESKTOP_LICENSE_REVIEW.md)；可下载版本以同版本 Release 的实际附件为准，旧安装包不会自动包含最新源码改动。
 
@@ -39,7 +39,7 @@ Windows 日常使用优先选择 **Setup 安装版**。在 v1.2.2 验收中，Po
 
 普通关键词检索不要求 LLM Key；学术源是否可用取决于各源政策、Key、额度与网络。需要 AI 的操作会调用你配置的模型，费用由相应提供商计收。
 
-**不知道智能体怎么用？** 可以先问“我该如何使用你”，再在同一对话追问“那下一步呢”。**当前 v1.2.4 源码**中的**智能体任务模型**会结合内置产品指南和有限的近期上下文给出步骤，无需先导入论文；帮助请求只尝试一次模型调用，等待预算 45 秒，最多输出 500 Token。提示词明确用户已在智能体页；遇到短追问或重复反馈时，要求 AI 先问一个进度澄清问题，用户回答“我卡在准备论文”或“我卡在选择来源”等后，可继续获得该步骤指导。询问模型调用状态时不强制澄清进度。未配置模型、超时、回答无效或与上一条完全一致（忽略空白）时，只显示简短的本地状态提示，不再反复贴出整段指南。澄清回答末尾的问号仅作基本输出校验，不代表能够完全检测语义重复。界面分别显示模型请求尝试、收到的响应和供应商返回的用量；未返回用量表示未知，不等于未调用或免费，请求尝试也不等于服务端已接收。具体科研问题仍需真实证据。顶部下载仍指向已发布的 v1.2.3，安装包可用性以 Release 实际文件为准；升级后请重新提问，旧消息不自动改写。见 [变更记录](CHANGELOG.md)。
+**不知道智能体怎么用？** 可以先问“我该如何使用你”，再在同一对话追问“那下一步呢”。**v1.2.4**中的**智能体任务模型**会结合内置产品指南和有限的近期上下文给出步骤，无需先导入论文；帮助请求只尝试一次模型调用，等待预算 45 秒，最多输出 500 Token。提示词明确用户已在智能体页；遇到短追问或重复反馈时，要求 AI 先问一个进度澄清问题，用户回答“我卡在准备论文”或“我卡在选择来源”等后，可继续获得该步骤指导。询问模型调用状态时不强制澄清进度。未配置模型、超时、回答无效或与上一条完全一致（忽略空白）时，只显示简短的本地状态提示，不再反复贴出整段指南。澄清回答末尾的问号仅作基本输出校验，不代表能够完全检测语义重复。界面分别显示模型请求尝试、收到的响应和供应商返回的用量；未返回用量表示未知，不等于未调用或免费，请求尝试也不等于服务端已接收。具体科研问题仍需真实证据。v1.2.4 已提供 Windows、Intel Mac 和 Apple Silicon Mac 构建，并附便携版、源码和 SHA256 校验；升级后请重新提问，旧消息不自动改写。见 [变更记录](CHANGELOG.md)。
 
 ## 产品预览
 
