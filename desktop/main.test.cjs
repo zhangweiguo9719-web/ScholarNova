@@ -7,6 +7,11 @@ const vm = require('node:vm')
 
 const mainSource = fs.readFileSync(path.join(__dirname, 'main.cjs'), 'utf8')
 
+test('portable packaging uses direct zip extraction instead of a nested LZMA archive', () => {
+  const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'))
+  assert.equal(manifest.build.portable.useZip, true)
+})
+
 function mockWindow({ minimized = false, destroyed = false } = {}) {
   const calls = []
   return {

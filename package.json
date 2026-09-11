@@ -69,6 +69,7 @@
       "shortcutName": "ScholarNova"
     },
     "portable": {
+      "useZip": true,
       "artifactName": "${productName}-Portable-${version}-${arch}.${ext}"
     },
     "mac": {

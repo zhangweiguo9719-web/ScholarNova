@@ -102,8 +102,8 @@ React + TypeScript 构建界面，Electron 提供桌面外壳，FastAPI 编排�
 - [源码部署与开发](docs/DEVELOPMENT.zh-CN.md)
 - [Windows / macOS 打包、测试和版本发布](docs/desktop-release.zh-CN.md)
 - [FTI 流水线架构](docs/FTI_PIPELINE_ARCHITECTURE.zh-CN.md) · [产品路线图](docs/AI_APPLICATION_ROADMAP.zh-CN.md)
-- [本轮改进与验收报告](docs/reports/v1.2.1-consumer-readiness.zh-CN.md) · [版本记录](CHANGELOG.md)
-- [真实 API 全流程测试（2026-09-08）](docs/reports/2026-09-08-live-api-validation.zh-CN.md)：区分模型完成、规则降级、图像质量与未验证项；后续修复属于 `Unreleased`，不冒充已包含在 v1.2.1 安装包中。
+- [历史 v1.2.1 改进与验收报告](docs/reports/v1.2.1-consumer-readiness.zh-CN.md) · [版本记录](CHANGELOG.md)
+- [历史真实 API 全流程测试（2026-09-08）](docs/reports/2026-09-08-live-api-validation.zh-CN.md)：区分模型完成、规则降级、图像质量与未验证项；后续修复见版本记录，不包含在 v1.2.1 安装包中。
 
 历史 Asta 18 题验证子集 F1 为 **0.341379**；66 题中具备二元标签的 27 题 F1 为 **0.283713**。这不是完整竞赛成绩，也不表示超过其他数据集上的 SPAR。此次产品修复不把历史分数当成新版本测评结果。[原始评测报告](outputs/competition-benchmark-report-2026-07-02.md)
 

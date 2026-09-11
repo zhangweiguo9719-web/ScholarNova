@@ -102,8 +102,8 @@ React / TypeScript provides the interface; Electron hosts the desktop app; FastA
 - [Source deployment and development](docs/DEVELOPMENT.md)
 - [Desktop builds, smoke tests and release process (中文)](docs/desktop-release.zh-CN.md)
 - [FTI architecture (中文)](docs/FTI_PIPELINE_ARCHITECTURE.zh-CN.md) · [Product roadmap (中文)](docs/AI_APPLICATION_ROADMAP.zh-CN.md)
-- [This release's acceptance report (中文)](docs/reports/v1.2.1-consumer-readiness.zh-CN.md) · [Changelog](CHANGELOG.md)
-- [Real-provider workflow validation, 2026-09-08 (中文)](docs/reports/2026-09-08-live-api-validation.zh-CN.md): model completion, deterministic fallbacks, image quality and unverified items are distinguished. Subsequent fixes are **Unreleased**, not silently included in the v1.2.1 installers.
+- [Historical v1.2.1 acceptance report (中文)](docs/reports/v1.2.1-consumer-readiness.zh-CN.md) · [Changelog](CHANGELOG.md)
+- [Historical real-provider workflow validation, 2026-09-08 (中文)](docs/reports/2026-09-08-live-api-validation.zh-CN.md): model completion, deterministic fallbacks, image quality and unverified items are distinguished. Later fixes are recorded in the Changelog and are not included in the v1.2.1 installers.
 
 Historical Asta results: **F1 0.341379** on an 18-query validation subset; **F1 0.283713** on the 27 binary-labelled queries within a 66-query file. These are not full competition scores or a like-for-like SPAR comparison. They have not been rerun for these product fixes. [Original evaluation report](outputs/competition-benchmark-report-2026-07-02.md)
 
