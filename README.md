@@ -1,5 +1,5 @@
 <p align="center"><img src="docs/assets/scholarnova-cover-en.svg" width="800" alt="ScholarNova — AI Research Workspace"></p>
-<p align="center"><a href="https://github.com/wei9719/ScholarNova/releases/tag/v1.2.4">Download / 下载</a> · <a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="CHANGELOG.md">Changelog</a></p>
+<p align="center"><a href="https://github.com/wei9719/ScholarNova/releases/tag/v1.2.5">Download / 下载</a> · <a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="CHANGELOG.md">Changelog</a></p>
 <p align="center"><a href="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/ci.yml"><img src="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/ci.yml/badge.svg" alt="CI"></a> <a href="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/desktop-release.yml"><img src="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/desktop-release.yml/badge.svg" alt="Desktop builds"></a> <a href="LICENSE"><img src="https://img.shields.io/badge/Own_source-MIT-d4a84f" alt="Project-owned source: MIT"></a> <a href="docs/DESKTOP_LICENSE_REVIEW.md"><img src="https://img.shields.io/badge/Desktop_combination-AGPLv3-536b82" alt="Desktop combination: AGPLv3"></a></p>
 
 # ScholarNova
@@ -8,9 +8,9 @@ A desktop research workspace for individuals: **find papers → read full text �
 
 ## Download and install
 
-**[v1.2.4 is available](https://github.com/wei9719/ScholarNova/releases/tag/v1.2.4)** for Windows x64, Intel Mac and Apple Silicon Mac, together with matching source and checksums. It adds contextual AI usage guidance, separates real model attempts from reported usage, and prevents repetitive help replies. See the [release and validation report](docs/reports/v1.2.4-assistant-calls.zh-CN.md).
+**[v1.2.5 is available](https://github.com/wei9719/ScholarNova/releases/tag/v1.2.5)** for Windows x64, Intel Mac and Apple Silicon Mac, together with matching source and checksums. Retry failed guidance in place without losing earlier usage, use a compact model context, and benefit from improved portable extraction. See the [release and validation report](docs/reports/v1.2.5-assistant-retry.zh-CN.md).
 
-Open **[GitHub Releases](https://github.com/wei9719/ScholarNova/releases/latest)** and choose an existing asset for your computer. The v1.2.4 release includes Windows x64, Intel Mac and Apple Silicon Mac installers, portable Windows build, corresponding source and SHA256 checksums.
+Open **[GitHub Releases](https://github.com/wei9719/ScholarNova/releases/latest)** and choose an existing asset for your computer. v1.2.5 has passed automated native builds and startup checks on all three desktop platforms.
 
 **Community desktop builds follow the selected AGPL open-source distribution route.** Each release must include package-specific notices and matching corresponding source, and pass the automated source checks and Windows / macOS smoke tests before publication. See the [distribution requirements](docs/DESKTOP_LICENSE_REVIEW.md) and each release's assets for available versions; older releases do not automatically contain the latest source changes.
 
@@ -23,7 +23,7 @@ Open **[GitHub Releases](https://github.com/wei9719/ScholarNova/releases/latest)
 
 The desktop app bundles the interface, local backend and SQLite. No Python, Node.js or Docker is required. First launch may take longer while the portable runtime extracts. Quit before upgrading; personal data is stored outside the installation directory.
 
-For everyday Windows use, prefer **Setup**. In v1.2.2 testing, Portable passed cloud smoke tests but took nearly two minutes to cold-extract on the developer's PC and failed its 120-second local acceptance limit. Fast startup is not guaranteed across Windows devices; that version's installed build passed startup and functional checks on the same PC.
+For everyday Windows use, prefer **Setup**. After changing extraction in v1.2.5, two complete local portable checks passed in 74.50 / 63.47 seconds; the earlier two attempts exceeded 120 seconds. The new download is larger and still needs extraction. These single-PC results do not guarantee fast startup on every device.
 
 This build requires macOS 13 or later, following [Electron 44's platform requirements](https://www.electronjs.org/blog/electron-44-0).
 

@@ -1,5 +1,5 @@
 <p align="center"><img src="docs/assets/scholarnova-cover-en.svg" width="800" alt="ScholarNova — AI Research Workspace"></p>
-<p align="center"><a href="https://github.com/wei9719/ScholarNova/releases/tag/v1.2.4">Download / 下载</a> · <a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="CHANGELOG.md">Changelog</a></p>
+<p align="center"><a href="https://github.com/wei9719/ScholarNova/releases/tag/v1.2.5">Download / 下载</a> · <a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="CHANGELOG.md">Changelog</a></p>
 <p align="center"><a href="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/ci.yml"><img src="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/ci.yml/badge.svg" alt="CI"></a> <a href="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/desktop-release.yml"><img src="https://github.com/zhangweiguo9719-web/ScholarNova/actions/workflows/desktop-release.yml/badge.svg" alt="Desktop builds"></a> <a href="LICENSE"><img src="https://img.shields.io/badge/Own_source-MIT-d4a84f" alt="项目自有源代码：MIT"></a> <a href="docs/DESKTOP_LICENSE_REVIEW.md"><img src="https://img.shields.io/badge/Desktop_combination-AGPLv3-536b82" alt="桌面发行组合：AGPLv3"></a></p>
 
 # ScholarNova
@@ -8,9 +8,9 @@
 
 ## 下载与安装
 
-**[v1.2.4 已发布](https://github.com/wei9719/ScholarNova/releases/tag/v1.2.4)**：提供 Windows x64、Intel Mac、Apple Silicon Mac 安装包、Windows 便携版，以及同版本源码和 SHA256 校验文件。支持结合上下文的 AI 使用指导，记录真实模型调用状态，并修复重复帮助回答。详见 [发布与验收报告](docs/reports/v1.2.4-assistant-calls.zh-CN.md)。
+**[v1.2.5 已发布](https://github.com/wei9719/ScholarNova/releases/tag/v1.2.5)**：提供 Windows x64、Intel Mac、Apple Silicon Mac 安装包、Windows 便携版，以及同版本源码和 SHA256 校验文件。新增失败指导原位重试，保留历史用量，精简模型上下文，并改善便携版解压启动。详见 [发布与验收报告](docs/reports/v1.2.5-assistant-retry.zh-CN.md)。
 
-到 **[GitHub Releases 下载已发布安装包](https://github.com/wei9719/ScholarNova/releases/latest)**，展开 Assets，按你的电脑选择。v1.2.4 已包含 Windows x64、Intel Mac、Apple Silicon Mac 安装包、Windows 便携版、对应源码和 SHA256 校验文件。
+到 **[GitHub Releases 下载已发布安装包](https://github.com/wei9719/ScholarNova/releases/latest)**，展开 Assets，按你的电脑选择。v1.2.5 已通过三个桌面平台的自动构建和启动检查。
 
 **社区桌面版采用已选择的 AGPL 开源发行路线。** 每个版本须包含逐包许可声明和相应源码，并通过自动源码检查及 Windows / macOS 启动测试后才能发布。详见 [发行要求](docs/DESKTOP_LICENSE_REVIEW.md)；可下载版本以同版本 Release 的实际附件为准，旧安装包不会自动包含最新源码改动。
 
@@ -23,7 +23,7 @@
 
 桌面版自带界面、本地后端和 SQLite，无需安装 Python、Node.js 或 Docker。首次启动可能因解压运行时稍慢。升级前退出应用，安装新版本；个人数据位于用户目录，不在安装目录内。
 
-Windows 日常使用优先选择 **Setup 安装版**。在 v1.2.2 验收中，Portable 虽通过云端启动检查，但在开发者本机冷解压接近两分钟、未通过 120 秒验收；不要据此认为所有 Windows 设备都能快速启动。该版本安装版在同机已完成启动和功能验证。
+Windows 日常使用优先选择 **Setup 安装版**。v1.2.5 便携版调整解压方式后，本机完整启动检查两次为 74.50 / 63.47 秒，均通过；此前两次超过 120 秒。新包下载体积较大，且便携版仍需解压，不能保证所有电脑快速启动。
 
 本版要求 macOS 13 或更新系统，依据 [Electron 44 官方平台要求](https://www.electronjs.org/blog/electron-44-0)。
 
