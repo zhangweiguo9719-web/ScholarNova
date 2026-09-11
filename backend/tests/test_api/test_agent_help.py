@@ -4,7 +4,12 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from app.api.v1.agent import AgentMessage, _is_product_help, _product_help_answer
+from app.api.v1.agent import (
+    AgentMessage,
+    _is_product_help,
+    _product_help_answer,
+    _product_help_model_context,
+)
 from app.services.inference.model_router import (
     AllModelsUnavailableError,
     ModelAttempt,
@@ -169,9 +174,10 @@ async def test_model_help_is_bounded_uses_recent_history_and_reports_actual_usag
     kwargs = chat.await_args.kwargs
     assert kwargs["task"] == "assistant"
     assert kwargs["allow_fallback"] is False
-    assert kwargs["timeout_seconds"] == 45
-    assert kwargs["max_tokens"] == 500
+    assert kwargs["timeout_seconds"] == 60
+    assert kwargs["max_tokens"] == 320
     assert kwargs["temperature"] == 0.2
+    assert kwargs["profile"] == HELP_PROFILE
     messages = kwargs["messages"]
     assert messages[1:-1] == [
         {"role": message["role"], "content": message["content"][:1000]}
@@ -179,7 +185,8 @@ async def test_model_help_is_bounded_uses_recent_history_and_reports_actual_usag
     ]
     prompt = "\n".join(message["content"] for message in messages)
     assert question in messages[-1]["content"]
-    assert _product_help_answer(question) in prompt
+    assert _product_help_model_context(question) in prompt
+    assert _product_help_answer(question) not in prompt
     assert "OLD_USER_MUST_NOT_APPEAR" not in prompt
     assert "OLD_ASSISTANT_MUST_NOT_APPEAR" not in prompt
     assert "TRUNCATED_TAIL_" not in prompt
@@ -510,7 +517,7 @@ async def test_failure_followup_does_not_repeat_full_guide(client, isolated_help
     })
     data = response.json()
     assert_product_help_metadata(data)
-    assert "45 秒" in data["answer"]
+    assert "60 秒" in data["answer"]
     assert "重新发送这条追问" in data["answer"]
     assert len(data["answer"]) < 180
     assert "1. 准备材料" not in data["answer"]

@@ -44,6 +44,7 @@ export default function ResearchAssistant() {
     setActiveConversation,
     moveConversation,
     appendMessage,
+    replaceMessage,
     replaceMessages,
     clearConversation: clearStoredConversation,
   } = useAssistantStore()
@@ -104,6 +105,7 @@ export default function ResearchAssistant() {
     productHelpFallback: 'AI 指导未完成 · 本地状态提示',
     productHelpModelSource: '本回答由已配置模型结合 ScholarNova 产品说明生成，不是论文研究结论，无需论文引用。',
     productHelpFallbackSource: '模型未完成本次指导，当前显示本地状态提示。请求与用量状态见上方；缺失用量不代表免费。',
+    retryAi: '再次调用 AI',
     helpSource: '指导来源',
     model: '模型',
     tokens: 'Token',
@@ -158,6 +160,7 @@ export default function ResearchAssistant() {
     productHelpFallback: 'AI guidance incomplete · local status',
     productHelpModelSource: 'Your configured model generated this guidance from the ScholarNova product description. It is not a research finding and does not require paper citations.',
     productHelpFallbackSource: 'The model did not complete this guidance; a local status message is shown. Request and usage details are above; missing usage does not mean the request was free.',
+    retryAi: 'Retry AI',
     helpSource: 'Guidance source',
     model: 'Model',
     tokens: 'Tokens',
@@ -198,15 +201,17 @@ export default function ResearchAssistant() {
     return () => { active = false }
   }, [])
 
-  const submit = async () => {
-    const cleanQuestion = question.trim()
+  const submit = async (questionOverride?: string, options: { history?: AgentMessage[]; replaceMessageId?: string } = {}) => {
+    const cleanQuestion = (questionOverride ?? question).trim()
     if (!cleanQuestion || pendingConversationRef.current || !activeConversation) return
     const conversationId = activeConversation.id
     pendingConversationRef.current = conversationId
-    const history: AgentMessage[] = messages.slice(-6).map(({ role, content }) => ({ role, content }))
-    const userEntry: AssistantMessage = { id: newId(), role: 'user', content: cleanQuestion }
-    appendMessage(conversationId, userEntry)
-    setQuestion('')
+    const history: AgentMessage[] = options.history || messages.slice(-6).map(({ role, content }) => ({ role, content }))
+    const previousReply = messages.find((message) => message.id === options.replaceMessageId)
+    if (!options.replaceMessageId) {
+      appendMessage(conversationId, { id: newId(), role: 'user', content: cleanQuestion })
+      setQuestion('')
+    }
     setError('')
     setSending(true)
     try {
@@ -216,12 +221,17 @@ export default function ResearchAssistant() {
         use_knowledge: useKnowledge,
         use_zotero: useZotero,
       })
-      appendMessage(conversationId, {
-        id: newId(),
+      const assistantEntry: AssistantMessage = {
+        id: options.replaceMessageId || newId(),
         role: 'assistant',
         content: response.data.answer,
         result: response.data,
-      })
+        ...(previousReply?.result ? {
+          priorResults: [...(previousReply.priorResults || []), previousReply.result],
+        } : {}),
+      }
+      if (options.replaceMessageId) replaceMessage(conversationId, options.replaceMessageId, assistantEntry)
+      else appendMessage(conversationId, assistantEntry)
     } catch (requestError: any) {
       setError(
         requestError.response?.data?.detail
@@ -231,6 +241,18 @@ export default function ResearchAssistant() {
       pendingConversationRef.current = null
       setSending(false)
     }
+  }
+
+  const retryMessage = (messageId: string) => {
+    if (sending || !activeConversation) return
+    const index = messages.findIndex((message) => message.id === messageId)
+    if (index !== messages.length - 1 || index < 1) return
+    const originalQuestion = messages[index - 1]
+    if (originalQuestion.role !== 'user') return
+    // The backend appends question itself. Include only the preceding turns,
+    // so retries have the same context as the original request.
+    const history = messages.slice(Math.max(0, index - 7), index - 1).map(({ role, content }) => ({ role, content }))
+    void submit(originalQuestion.content, { history, replaceMessageId: messageId })
   }
 
   const clearConversation = () => {
@@ -344,19 +366,20 @@ export default function ResearchAssistant() {
                 </div>
               )}
 
-              {messages.map((message) => (
+              {messages.map((message, index) => (
                 <article key={message.id} className={message.role === 'user' ? 'ml-auto max-w-3xl' : 'mr-auto max-w-4xl'}>
                   <div className={`rounded-2xl px-4 py-3 text-sm leading-7 ${message.role === 'user' ? 'bg-[var(--ui-brand)] text-white dark:text-[#101722]' : 'border border-[var(--ui-border)] bg-[var(--ui-surface-soft)] text-[var(--ui-text)]'}`}>
                     <div className="whitespace-pre-wrap">{message.content}</div>
                   </div>
-                  {message.result && <AgentTrace result={message.result} copy={copy} isChinese={isChinese} />}
+                  {message.result && <AgentTrace result={message.result} copy={copy} isChinese={isChinese} onRetry={index === messages.length - 1 && index > 0 && messages[index - 1].role === 'user' ? () => retryMessage(message.id) : undefined} retryDisabled={sending} />}
+                  {message.priorResults?.length ? <RetryHistory results={message.priorResults} isChinese={isChinese} /> : null}
                 </article>
               ))}
 
               {currentConversationPending && (
                 <div className="flex items-center gap-3 text-sm text-[var(--ui-text-soft)]">
                   <Loader2 className="h-4 w-4 animate-spin text-[var(--ui-accent)]" />
-                  {isChinese ? '正在处理问题；模型生成较慢时可能需要约 45 秒，请稍候…' : 'Processing your question; model generation may take about 45 seconds when slow. Please wait…'}
+                  {isChinese ? '正在处理问题；模型生成较慢时可能需要约 60 秒，请稍候…' : 'Processing your question; model generation may take about 60 seconds when slow. Please wait…'}
                 </div>
               )}
               <div ref={bottomRef} />
@@ -405,7 +428,36 @@ function SourceToggle({ active, onClick, icon, label, warning = false }: { activ
   )
 }
 
-function AgentTrace({ result, copy, isChinese }: { result: AgentChatResponse; copy: Record<string, any>; isChinese: boolean }) {
+function RetryHistory({ results, isChinese }: { results: AgentChatResponse[]; isChinese: boolean }) {
+  const reportedTokens = results.reduce((total, result) => total + result.total_tokens, 0)
+  const hasUnknownUsage = results.some((result) => !result.model_attempts?.length
+    || result.model_attempts.some((attempt) => (attempt.usage_reports || 0) === 0))
+  return (
+    <details className="mt-2 rounded-xl border border-[var(--ui-border)] px-3 py-2 text-xs leading-5 text-[var(--ui-text-soft)]">
+      <summary className="cursor-pointer font-medium">
+        {isChinese ? `此前 ${results.length} 次尝试 · 已知 Token: ${reportedTokens}` : `${results.length} earlier attempts · Known tokens: ${reportedTokens}`}
+        {hasUnknownUsage && (isChinese ? ' · 含用量未知的请求' : ' · Some usage unknown')}
+      </summary>
+      <p className="mt-2">{isChinese ? '下列为重试前的记录；上方显示本次调用。未知用量不计入已知 Token，也不代表免费。' : 'These records precede the retry; the current call is shown above. Unknown usage is excluded from known tokens and does not mean free usage.'}</p>
+      {results.map((result, index) => (
+        <div key={index} className="mt-2 border-t border-[var(--ui-border)] pt-2">
+          <p>{isChinese ? `第 ${index + 1} 次 · 已知 Token: ${result.total_tokens}` : `Attempt ${index + 1} · Known tokens: ${result.total_tokens}`}</p>
+          {(result.model_attempts || []).map((attempt, attemptIndex) => (
+            <p key={attemptIndex}>
+              {attempt.provider}/{attempt.model} · {attempt.status}
+              {attempt.error_type && ` · ${attempt.error_type}`}
+              {' · '}{isChinese ? '请求尝试' : 'Requests'}: {attempt.request_attempts ?? (isChinese ? '未知' : 'Unknown')}
+              {' · '}{isChinese ? '收到响应' : 'Responses'}: {attempt.responses_received ?? (isChinese ? '未知' : 'Unknown')}
+              {' · '}{isChinese ? '用量报告' : 'Usage reports'}: {attempt.usage_reports ?? (isChinese ? '未知' : 'Unknown')}
+            </p>
+          ))}
+        </div>
+      ))}
+    </details>
+  )
+}
+
+function AgentTrace({ result, copy, isChinese, onRetry, retryDisabled }: { result: AgentChatResponse; copy: Record<string, any>; isChinese: boolean; onRetry?: () => void; retryDisabled?: boolean }) {
   const isProductHelp = result.response_type === 'product_help'
   const modelAttempts = result.model_attempts || []
   const hasReportedUsage = result.total_tokens > 0 || modelAttempts.some((attempt) => (attempt.usage_reports || 0) > 0)
@@ -484,6 +536,11 @@ function AgentTrace({ result, copy, isChinese }: { result: AgentChatResponse; co
             ? '已尝试模型请求，但服务商未返回用量；这不代表未调用或免费。请求尝试次数不等于服务端已接收次数。'
             : 'A model request was attempted, but provider usage was not returned. This does not mean no call or no charge; an attempt does not prove server receipt.'}</p>}
           {result.tool_steps.filter((step) => step.tool === 'product_help' && step.detail).map((step, index) => <p key={index}>{step.detail}</p>)}
+          {isHelpFallback && modelAttempts.length > 0 && onRetry && (
+            <button type="button" onClick={onRetry} disabled={retryDisabled} className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--ui-border-strong)] bg-[var(--ui-accent-soft)] px-2.5 py-1.5 font-semibold text-[var(--ui-text)] transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40">
+              <Sparkles className="h-3.5 w-3.5" />{copy.retryAi}
+            </button>
+          )}
         </div>
       )}
       {!isProductHelp && (verificationStatus === 'partial' || verificationStatus === 'failed') && (

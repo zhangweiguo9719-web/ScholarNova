@@ -4,6 +4,16 @@ All notable changes to ScholarNova are recorded here. The project follows semant
 
 ## [Unreleased]
 
+## [1.2.5] - 2026-09-11
+
+### Fixed
+
+- Shorten the product guide supplied to the configured Assistant model. Bound its model stage to 60 seconds and 320 output tokens; these limits do not control provider queue time or guarantee end-to-end latency. Preserve the model selected in Settings.
+- Add one-click retry for the latest failed product-help answer. Reuse the original question without including it twice in history, and replace that answer without rewriting older turns.
+- Persist earlier attempts and their reported usage across retries; missing usage remains explicitly unknown. Keep retries user-triggered, prevent duplicate submissions, and retain the originating conversation when switching chats.
+
+See the [v1.2.5 validation report](docs/reports/v1.2.5-assistant-retry.zh-CN.md) for test scope, live calls and installation checks.
+
 ## [1.2.4] - 2026-09-09
 
 ### Fixed

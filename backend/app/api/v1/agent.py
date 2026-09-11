@@ -226,6 +226,32 @@ def _product_help_answer(question: str) -> str:
     )
 
 
+def _product_help_model_context(question: str) -> str:
+    """Return a compact, factual guide for the model prompt.
+
+    The full built-in answer remains the reference guide. Product-help
+    calls only need the facts required to answer the latest turn; embedding
+    the whole guide on every request makes shared reasoning endpoints much
+    slower and increases the chance of a timeout.
+    """
+    if re.search(r"[\u4e00-\u9fff]", question):
+        return (
+            "ScholarNova 是科研论文搜索与可追溯问答平台。真实功能事实：搜索页可检索并分析论文，"
+            "有权使用的 PDF 会建立本地全文片段；重要结论可保存到 ScholarNova 知识库。智能体页可按需"
+            "选择知识库和本机 Zotero 来源，再询问研究共识、方法差异、局限、研究空白或可验证问题。"
+            "回答应提醒用户核对原文；材料不足要明确说明。设置页可测试模型连接，Zotero 需要本机已启动"
+            "且允许本机应用通信。使用指导不需要论文，模型失败时必须显示状态而不是伪装成 AI 回答。"
+        )
+    return (
+        "ScholarNova is a traceable academic-paper search and Q&A platform. Facts: Search can retrieve and "
+        "analyze papers; authorized PDFs are indexed locally, and important findings can be saved to the "
+        "ScholarNova knowledge base. On Assistant, users choose the knowledge-base and local Zotero sources "
+        "before asking about consensus, method differences, limitations, gaps, or testable questions. Tell "
+        "users to verify important claims against the original paper and report insufficient evidence. Settings "
+        "can test the model connection; Zotero must be running and allow local application communication."
+    )
+
+
 async def _answer_product_help(request: AgentChatRequest) -> AgentChatResponse:
     """One bounded model call grounded in the product guide, never paper RAG."""
     guide = _product_help_answer(request.question)
@@ -262,7 +288,7 @@ async def _answer_product_help(request: AgentChatRequest) -> AgentChatResponse:
             "不要断言 Zotero 已连接或未连接，也不要假定用户已完成导入；只描述选择开关和条件步骤。"
             "使用纯文本和数字列表，不使用 Markdown 加粗、标题或代码围栏。"
             "若问题需要科研证据，说明应使用论文问答，不依据聊天历史编造事实。\n\n"
-            f"内置指南：\n{guide}\n\n"
+            f"内置指南（精简事实）：\n{_product_help_model_context(request.question)}\n\n"
             f"当前选择：use_knowledge={str(request.use_knowledge).lower()}, "
             f"use_zotero={str(request.use_zotero).lower()}\n"
             "当前入口：用户已在 ScholarNova 智能体页面与你交谈，不要建议再次进入此页面。\n"
@@ -281,8 +307,10 @@ async def _answer_product_help(request: AgentChatRequest) -> AgentChatResponse:
         try:
             routed = await chat_with_fallback(
                 task="assistant", messages=messages, temperature=0.2,
-                max_tokens=500, gateway_factory=LLMGateway, profile=profile,
-                allow_fallback=False, timeout_seconds=45,
+                # Bound generation and waiting separately. This does not
+                # control provider queue time or change the configured model.
+                max_tokens=320, gateway_factory=LLMGateway, profile=profile,
+                allow_fallback=False, timeout_seconds=60,
             )
             usage, attempts = routed.usage, routed.attempts
             answer = routed.content.strip()
@@ -306,7 +334,7 @@ async def _answer_product_help(request: AgentChatRequest) -> AgentChatResponse:
         except AllModelsUnavailableError as exc:
             usage, attempts = exc.usage, exc.attempts
             timed_out = any(attempt.error_type in {"TimeoutError", "APITimeoutError"} for attempt in attempts)
-            detail = "助手模型未在 45 秒等待预算内完成" if timed_out else "助手模型请求失败，请查看下方调用状态"
+            detail = "助手模型未在 60 秒等待预算内完成" if timed_out else "助手模型请求失败，请查看下方调用状态"
         except Exception:
             # Gateway construction can fail before the router records a call.
             usage, attempts = {}, ()

@@ -242,7 +242,7 @@ it('ignores IME confirmation and prevents duplicate sends while a request is pen
   fireEvent.keyDown(input, { key: 'Enter' })
   fireEvent.click(screen.getByRole('button', { name: '发送' }))
   expect(mocks.chat).toHaveBeenCalledOnce()
-  expect(screen.getByText(/模型生成较慢时可能需要约 45 秒/)).toBeInTheDocument()
+  expect(screen.getByText(/模型生成较慢时可能需要约 60 秒/)).toBeInTheDocument()
   expectNoResearchWarnings()
 
   const clearButton = screen.getByRole('button', { name: '清空对话' })
@@ -266,7 +266,7 @@ it('keeps the pending reply and clear protection with its original conversation'
   fireEvent.click(screen.getByRole('button', { name: '发送' }))
 
   fireEvent.click(screen.getByRole('button', { name: '另一个会话的内容' }))
-  expect(screen.queryByText(/模型生成较慢时可能需要约 45 秒/)).not.toBeInTheDocument()
+  expect(screen.queryByText(/模型生成较慢时可能需要约 60 秒/)).not.toBeInTheDocument()
   expect(screen.getByRole('button', { name: '清空对话' })).toBeEnabled()
   fireEvent.click(screen.getByRole('button', { name: '清空对话' }))
   await act(async () => { resolveChat({ data: productHelp }) })
@@ -299,4 +299,118 @@ it('sends only the active conversation\'s latest six messages for a follow-up', 
     use_knowledge: true,
     use_zotero: true,
   })
+})
+
+const failedHelp: AgentChatResponse = {
+  ...productHelp,
+  answer: '本次 AI 使用指导未完成：助手模型超时。',
+  inference_mode: 'deterministic_fallback', model_route: 'deterministic', fallback_used: true,
+  fallback_reason: 'model_unavailable',
+  model_attempts: [{
+    ...primaryAttempt, status: 'unavailable', error_type: 'TimeoutError',
+    prompt_tokens: 0, completion_tokens: 0, total_tokens: 0, requests: 0,
+    request_attempts: 1, responses_received: 0, usage_reports: 0,
+  }],
+}
+
+function appendFailedTurn() {
+  useAssistantStore.getState().appendMessage('guide-chat', {
+    id: 'retry-question', role: 'user', content: '我该如何使用你？',
+  })
+  useAssistantStore.getState().appendMessage('guide-chat', {
+    id: 'retry-answer', role: 'assistant', content: failedHelp.answer, result: failedHelp,
+  })
+}
+
+it('retries one turn without duplicate context and retains every previous usage record', async () => {
+  const previousMessages = Array.from({ length: 8 }, (_, index) => ({
+    id: `before-${index}`, role: index % 2 ? 'assistant' as const : 'user' as const,
+    content: `之前的消息 ${index}`,
+  }))
+  useAssistantStore.getState().replaceMessages('guide-chat', previousMessages)
+  appendFailedTurn()
+  const reportedFailure: AgentChatResponse = {
+    ...failedHelp, answer: '模型返回的指导无效，请重试。', total_tokens: 17,
+    model_attempts: [{ ...primaryAttempt, total_tokens: 17 }],
+  }
+  let resolveChat!: (response: { data: AgentChatResponse }) => void
+  mocks.chat.mockReturnValueOnce(new Promise((resolve) => { resolveChat = resolve }))
+  const view = render(<ResearchAssistant />)
+  const retry = screen.getByRole('button', { name: '再次调用 AI' })
+  fireEvent.click(retry)
+  fireEvent.click(retry)
+  expect(mocks.chat).toHaveBeenCalledOnce()
+  expect(retry).toBeDisabled()
+  expect(mocks.chat).toHaveBeenCalledWith({
+    question: '我该如何使用你？',
+    history: previousMessages.slice(-6).map(({ role, content }) => ({ role, content })),
+    use_knowledge: true, use_zotero: true,
+  })
+  await act(async () => { resolveChat({ data: reportedFailure }) })
+
+  mocks.chat.mockResolvedValueOnce({ data: modelHelp })
+  fireEvent.click(screen.getByRole('button', { name: '再次调用 AI' }))
+  expect(await screen.findByText(modelHelp.answer)).toBeInTheDocument()
+  expect(mocks.chat).toHaveBeenCalledTimes(2)
+  expect(mocks.chat.mock.calls[1][0].history).toEqual(mocks.chat.mock.calls[0][0].history)
+  const messages = useAssistantStore.getState().conversations[0].messages
+  expect(messages).toHaveLength(previousMessages.length + 2)
+  expect(messages.filter((message) => message.id === 'retry-question')).toHaveLength(1)
+  expect(messages[messages.length - 1]).toEqual({
+    id: 'retry-answer', role: 'assistant', content: modelHelp.answer, result: modelHelp,
+    priorResults: [failedHelp, reportedFailure],
+  })
+  expect(screen.getByText('Token: 123（已返回的用量）')).toBeInTheDocument()
+  expect(screen.getByText('此前 2 次尝试 · 已知 Token: 17 · 含用量未知的请求')).toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: '再次调用 AI' })).not.toBeInTheDocument()
+
+  const storageKey = 'scholarnova-assistant-workspace-v2'
+  const persisted = localStorage.getItem(storageKey)!
+  view.unmount()
+  useAssistantStore.setState({ conversations: [], activeConversationId: '' })
+  localStorage.setItem(storageKey, persisted)
+  await useAssistantStore.persist.rehydrate()
+  expect(useAssistantStore.getState().conversations[0].messages.at(-1)?.priorResults).toEqual([failedHelp, reportedFailure])
+})
+
+it('keeps a retry attached to its original conversation when the user switches chats', async () => {
+  appendFailedTurn()
+  const otherChat = useAssistantStore.getState().createConversation()
+  useAssistantStore.getState().appendMessage(otherChat, { id: 'other-question', role: 'user', content: '另一个会话' })
+  useAssistantStore.getState().setActiveConversation('guide-chat')
+  let resolveChat!: (response: { data: AgentChatResponse }) => void
+  mocks.chat.mockReturnValueOnce(new Promise((resolve) => { resolveChat = resolve }))
+  render(<ResearchAssistant />)
+  fireEvent.click(screen.getByRole('button', { name: '再次调用 AI' }))
+  fireEvent.click(screen.getByRole('button', { name: '另一个会话' }))
+  await act(async () => { resolveChat({ data: modelHelp }) })
+
+  const state = useAssistantStore.getState()
+  expect(state.activeConversationId).toBe(otherChat)
+  expect(state.conversations.find((chat) => chat.id === otherChat)?.messages).toHaveLength(1)
+  const original = state.conversations.find((chat) => chat.id === 'guide-chat')!
+  expect(original.messages).toHaveLength(2)
+  expect(original.messages[1].result).toEqual(modelHelp)
+  expect(original.messages[1].priorResults).toEqual([failedHelp])
+  expect(screen.queryByText(modelHelp.answer)).not.toBeInTheDocument()
+})
+
+it('does not offer an in-place retry after later messages depend on the failed turn', async () => {
+  appendFailedTurn()
+  useAssistantStore.getState().appendMessage('guide-chat', { id: 'later-question', role: 'user', content: '我刚刚打开了设置。' })
+  render(<ResearchAssistant />)
+  expect(await screen.findByText(failedHelp.answer)).toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: '再次调用 AI' })).not.toBeInTheDocument()
+  expect(mocks.chat).not.toHaveBeenCalled()
+})
+
+it('retains the failed answer when a retry transport request rejects', async () => {
+  appendFailedTurn()
+  mocks.chat.mockRejectedValueOnce(new Error('network unavailable'))
+  render(<ResearchAssistant />)
+  fireEvent.click(screen.getByRole('button', { name: '再次调用 AI' }))
+  expect(await screen.findByText('智能体暂时无法回答，请检查模型和 Zotero 设置。')).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: '再次调用 AI' })).toBeEnabled()
+  expect(useAssistantStore.getState().conversations[0].messages).toHaveLength(2)
+  expect(useAssistantStore.getState().conversations[0].messages[1].result).toEqual(failedHelp)
 })

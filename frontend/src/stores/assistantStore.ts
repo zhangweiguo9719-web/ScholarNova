@@ -7,6 +7,7 @@ export interface AssistantMessage {
   role: 'user' | 'assistant'
   content: string
   result?: AgentChatResponse
+  priorResults?: AgentChatResponse[]
 }
 
 export interface ResearchFolder {
@@ -35,6 +36,7 @@ interface AssistantState {
   setActiveConversation: (id: string) => void
   moveConversation: (id: string, folderId: string | null) => void
   appendMessage: (conversationId: string, message: AssistantMessage) => void
+  replaceMessage: (conversationId: string, messageId: string, message: AssistantMessage) => void
   replaceMessages: (conversationId: string, messages: AssistantMessage[]) => void
   clearConversation: (id: string) => void
 }
@@ -114,6 +116,20 @@ export const useAssistantStore = create<AssistantState>()(
             updatedAt: Date.now(),
           }
         }),
+      })),
+
+      replaceMessage: (conversationId, messageId, message) => set((state) => ({
+        conversations: state.conversations.map((conversation) =>
+          conversation.id === conversationId
+            ? {
+                ...conversation,
+                messages: conversation.messages.map((current) =>
+                  current.id === messageId ? message : current
+                ),
+                updatedAt: Date.now(),
+              }
+            : conversation
+        ),
       })),
 
       replaceMessages: (conversationId, messages) => set((state) => ({
